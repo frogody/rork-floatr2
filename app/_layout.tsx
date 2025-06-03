@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router, useSegments, useRootNavigationState } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -9,6 +9,8 @@ import colors from '@/constants/colors';
 
 export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
+  const segments = useSegments();
+  const navigationState = useRootNavigationState();
   
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
@@ -27,6 +29,19 @@ export default function RootLayout() {
       SystemUI.setStatusBarStyle('light');
     }
   }, [isInitialized, checkAuth]);
+
+  useEffect(() => {
+    if (!navigationState?.key || !isInitialized) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const inOnboardingGroup = segments[0] === 'onboarding';
+
+    if (isAuthenticated && (inAuthGroup || segments[0] === undefined)) {
+      router.replace('/(tabs)');
+    } else if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, segments, navigationState?.key, isInitialized]);
 
   if (!fontsLoaded || !isInitialized) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;

@@ -24,6 +24,7 @@ export default function TabsLayout() {
         options={{
           title: 'Discover',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -31,6 +32,7 @@ export default function TabsLayout() {
         options={{
           title: 'Nearby',
           tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -38,6 +40,7 @@ export default function TabsLayout() {
         options={{
           title: 'Chat',
           tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -45,6 +48,7 @@ export default function TabsLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          headerShown: false,
         }}
       />
     </Tabs>

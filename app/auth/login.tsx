@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Platform } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
@@ -37,7 +37,7 @@ export default function LoginScreen() {
         type: 'success'
       });
       
-      // After successful login, router.replace will be handled by the root layout
+      // Navigation will be handled by root layout
     } catch (error) {
       showToast({
         message: 'Invalid credentials',
