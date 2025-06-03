@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -6,28 +6,30 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  TextInput,
   Platform,
-  Pressable,
   Dimensions,
+  PanGestureHandler,
+  Animated,
   Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { 
-  Search, 
   MapPin, 
   Navigation2, 
   Users, 
-  Filter,
   Compass,
   Anchor,
-  Waves
+  Waves,
+  Plus,
+  Minus,
+  Crosshair,
+  Layers,
+  Zap
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import colors from '@/constants/colors';
-import { mockCrews } from '@/mocks/crews';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,20 +43,21 @@ interface CrewLocation {
   crewSize: number;
   boatType: string;
   status: 'anchored' | 'moving' | 'docked';
+  lastSeen: string;
 }
 
-export default function NearbyScreen() {
-  const [searchText, setSearchText] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 37.7749,
-    longitude: -122.4194,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
+  const [selectedCrew, setSelectedCrew] = useState<CrewLocation | null>(null);
+  const [mapZoom, setMapZoom] = useState(1);
+  const [showSatellite, setShowSatellite] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const mapTranslateX = useRef(new Animated.Value(0)).current;
+  const mapTranslateY = useRef(new Animated.Value(0)).current;
+  const zoomScale = useRef(new Animated.Value(1)).current;
 
-  // Mock crew locations based on mockCrews
+  // Mock crew locations with realistic coordinates
   const [crewLocations] = useState<CrewLocation[]>([
     {
       id: '1',
@@ -62,10 +65,11 @@ export default function NearbyScreen() {
       latitude: 37.7849,
       longitude: -122.4094,
       distance: 1.2,
-      photoUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2070',
+      photoUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=400',
       crewSize: 4,
       boatType: 'Sailboat',
-      status: 'anchored'
+      status: 'anchored',
+      lastSeen: '2 min ago'
     },
     {
       id: '2',
@@ -73,10 +77,11 @@ export default function NearbyScreen() {
       latitude: 37.7649,
       longitude: -122.4294,
       distance: 2.8,
-      photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=2070',
+      photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=400',
       crewSize: 6,
       boatType: 'Yacht',
-      status: 'moving'
+      status: 'moving',
+      lastSeen: 'now'
     },
     {
       id: '3',
@@ -84,10 +89,11 @@ export default function NearbyScreen() {
       latitude: 37.7949,
       longitude: -122.3994,
       distance: 0.8,
-      photoUrl: 'https://images.unsplash.com/photo-1566024287286-457247b70310?q=80&w=2070',
+      photoUrl: 'https://images.unsplash.com/photo-1566024287286-457247b70310?q=80&w=400',
       crewSize: 3,
       boatType: 'Catamaran',
-      status: 'docked'
+      status: 'docked',
+      lastSeen: '5 min ago'
     },
     {
       id: '4',
@@ -95,20 +101,34 @@ export default function NearbyScreen() {
       latitude: 37.7549,
       longitude: -122.4394,
       distance: 3.5,
-      photoUrl: 'https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=2070',
+      photoUrl: 'https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=400',
       crewSize: 5,
       boatType: 'Sailboat',
-      status: 'moving'
+      status: 'moving',
+      lastSeen: '1 min ago'
+    },
+    {
+      id: '5',
+      name: 'Marina Masters',
+      latitude: 37.8049,
+      longitude: -122.4194,
+      distance: 1.9,
+      photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400',
+      crewSize: 7,
+      boatType: 'Motor Yacht',
+      status: 'docked',
+      lastSeen: '10 min ago'
     }
   ]);
 
   useEffect(() => {
     requestLocationPermission();
+    // Simulate loading
+    setTimeout(() => setIsLoading(false), 1500);
   }, []);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'web') {
-      // Use web geolocation API
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -125,12 +145,6 @@ export default function NearbyScreen() {
               timestamp: position.timestamp,
             } as Location.LocationObject;
             setUserLocation(location);
-            setMapRegion({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            });
           },
           (error) => console.log('Location error:', error)
         );
@@ -141,12 +155,6 @@ export default function NearbyScreen() {
         if (status === 'granted') {
           const location = await Location.getCurrentPositionAsync({});
           setUserLocation(location);
-          setMapRegion({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-          });
         }
       } catch (error) {
         console.log('Location permission error:', error);
@@ -154,26 +162,45 @@ export default function NearbyScreen() {
     }
   };
 
-  const handleFilterPress = async (filter: string) => {
+  const handleZoomIn = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    setSelectedFilter(filter);
+    const newZoom = Math.min(mapZoom + 0.5, 3);
+    setMapZoom(newZoom);
+    Animated.spring(zoomScale, {
+      toValue: newZoom,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleZoomOut = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    const newZoom = Math.max(mapZoom - 0.5, 0.5);
+    setMapZoom(newZoom);
+    Animated.spring(zoomScale, {
+      toValue: newZoom,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleCrewPress = async (crew: CrewLocation) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    Alert.alert(
-      crew.name,
-      `${crew.boatType} • ${crew.crewSize} crew members\n${crew.distance} miles away\nStatus: ${crew.status}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Message', onPress: () => console.log('Message crew') },
-        { text: 'View Profile', onPress: () => console.log('View profile') }
-      ]
-    );
+    setSelectedCrew(crew);
+  };
+
+  const handleCenterLocation = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    Animated.parallel([
+      Animated.spring(mapTranslateX, { toValue: 0, useNativeDriver: true }),
+      Animated.spring(mapTranslateY, { toValue: 0, useNativeDriver: true }),
+    ]).start();
   };
 
   const getStatusColor = (status: string) => {
@@ -194,175 +221,179 @@ export default function NearbyScreen() {
     }
   };
 
-  const filteredCrews = crewLocations.filter(crew => {
-    if (selectedFilter === 'all') return true;
-    return crew.status === selectedFilter;
-  });
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <StatusBar style="light" />
+        <View style={styles.loadingContent}>
+          <View style={styles.loadingSpinner}>
+            <Compass size={32} color={colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Loading map...</Text>
+          <Text style={styles.loadingSubtext}>Finding crews near you</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Header */}
-      <View style={styles.header}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop' }}
-          style={styles.headerImage}
-        />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.6)', 'transparent']}
-          style={styles.headerGradient}
-        >
-          <View style={styles.headerContent}>
-            <Text style={styles.headerTitle}>Nearby Crews</Text>
-            <Text style={styles.headerSubtitle}>Discover sailors around you</Text>
-          </View>
-        </LinearGradient>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={colors.text.secondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search locations, crews..."
-            placeholderTextColor={colors.text.secondary}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-          <TouchableOpacity style={styles.filterButton}>
-            <Filter size={20} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Filter Tabs */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterContainer}
-      >
-        {[
-          { id: 'all', label: 'All', icon: Users },
-          { id: 'anchored', label: 'Anchored', icon: Anchor },
-          { id: 'moving', label: 'Moving', icon: Navigation2 },
-          { id: 'docked', label: 'Docked', icon: MapPin },
-        ].map((filter) => {
-          const Icon = filter.icon;
-          return (
-            <TouchableOpacity 
-              key={filter.id}
-              style={[
-                styles.filterTab,
-                selectedFilter === filter.id && styles.activeFilterTab
-              ]}
-              onPress={() => handleFilterPress(filter.id)}
-            >
-              <Icon 
-                size={18} 
-                color={selectedFilter === filter.id ? colors.text.primary : colors.text.secondary} 
-              />
-              <Text style={[
-                styles.filterText,
-                selectedFilter === filter.id && styles.activeFilterText
-              ]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-      {/* Map Area */}
+      {/* Interactive Map */}
       <View style={styles.mapContainer}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop' }}
-          style={styles.mapBackground}
-        />
-        <LinearGradient
-          colors={['rgba(10,10,10,0.3)', 'rgba(10,10,10,0.7)']}
-          style={styles.mapOverlay}
+        <Animated.View 
+          style={[
+            styles.mapContent,
+            {
+              transform: [
+                { translateX: mapTranslateX },
+                { translateY: mapTranslateY },
+                { scale: zoomScale }
+              ]
+            }
+          ]}
         >
-          {/* Map Pins */}
-          {filteredCrews.map((crew, index) => {
+          {/* Map Background */}
+          <Image 
+            source={{ 
+              uri: showSatellite 
+                ? 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?q=80&w=2000'
+                : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000'
+            }}
+            style={styles.mapBackground}
+          />
+          
+          {/* Map Grid Overlay */}
+          <View style={styles.mapGrid} />
+          
+          {/* User Location */}
+          <View style={styles.userLocationContainer}>
+            <View style={styles.userLocationPulse}>
+              <View style={styles.userLocationDot}>
+                <Compass size={16} color={colors.text.primary} />
+              </View>
+            </View>
+          </View>
+
+          {/* Crew Pins */}
+          {crewLocations.map((crew, index) => {
             const StatusIcon = getStatusIcon(crew.status);
             return (
               <TouchableOpacity
                 key={crew.id}
                 style={[
-                  styles.mapPin,
+                  styles.crewPin,
                   {
-                    left: `${20 + (index * 15)}%`,
-                    top: `${30 + (index * 10)}%`,
+                    left: `${25 + (index * 12)}%`,
+                    top: `${20 + (index * 15)}%`,
                   }
                 ]}
                 onPress={() => handleCrewPress(crew)}
               >
                 <View style={[styles.pinContainer, { borderColor: getStatusColor(crew.status) }]}>
                   <Image source={{ uri: crew.photoUrl }} style={styles.pinImage} />
-                  <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(crew.status) }]}>
-                    <StatusIcon size={12} color={colors.text.primary} />
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(crew.status) }]}>
+                    <StatusIcon size={10} color={colors.text.primary} />
                   </View>
                 </View>
-                <View style={styles.pinLabel}>
-                  <Text style={styles.pinLabelText}>{crew.name}</Text>
-                  <Text style={styles.pinDistance}>{crew.distance} mi</Text>
-                </View>
+                {crew.status === 'moving' && (
+                  <View style={styles.movingIndicator}>
+                    <View style={styles.movingDot} />
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
+        </Animated.View>
 
-          {/* User Location */}
-          <View style={styles.userLocation}>
-            <View style={styles.userLocationPing}>
-              <Compass size={16} color={colors.text.primary} />
-            </View>
-            <Text style={styles.userLocationText}>You</Text>
-          </View>
+        {/* Map Controls */}
+        <View style={styles.mapControls}>
+          <TouchableOpacity style={styles.controlButton} onPress={handleZoomIn}>
+            <Plus size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.controlButton} onPress={handleZoomOut}>
+            <Minus size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.controlButton} onPress={handleCenterLocation}>
+            <Crosshair size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.controlButton} 
+            onPress={() => setShowSatellite(!showSatellite)}
+          >
+            <Layers size={20} color={showSatellite ? colors.primary : colors.text.primary} />
+          </TouchableOpacity>
+        </View>
 
-          {/* Map Controls */}
-          <View style={styles.mapControls}>
-            <TouchableOpacity style={styles.mapControlButton}>
-              <Navigation2 size={20} color={colors.text.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mapControlButton}>
-              <Waves size={20} color={colors.text.primary} />
-            </TouchableOpacity>
+        {/* Map Info */}
+        <View style={styles.mapInfo}>
+          <View style={styles.infoCard}>
+            <Text style={styles.infoTitle}>{crewLocations.length} crews nearby</Text>
+            <Text style={styles.infoSubtitle}>Zoom: {mapZoom.toFixed(1)}x</Text>
           </View>
-        </LinearGradient>
+        </View>
       </View>
 
-      {/* Crew List */}
-      <View style={styles.crewListContainer}>
-        <Text style={styles.crewListTitle}>
-          {filteredCrews.length} crews nearby
-        </Text>
-        <ScrollView 
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.crewList}
-        >
-          {filteredCrews.map((crew) => {
-            const StatusIcon = getStatusIcon(crew.status);
-            return (
-              <TouchableOpacity
-                key={crew.id}
-                style={styles.crewCard}
-                onPress={() => handleCrewPress(crew)}
-              >
-                <Image source={{ uri: crew.photoUrl }} style={styles.crewCardImage} />
-                <View style={styles.crewCardContent}>
-                  <Text style={styles.crewCardName}>{crew.name}</Text>
-                  <View style={styles.crewCardDetails}>
-                    <StatusIcon size={14} color={getStatusColor(crew.status)} />
-                    <Text style={styles.crewCardDistance}>{crew.distance} mi</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+      {/* Selected Crew Details */}
+      {selectedCrew && (
+        <View style={styles.crewDetails}>
+          <TouchableOpacity 
+            style={styles.crewDetailsCard}
+            onPress={() => {
+              Alert.alert(
+                selectedCrew.name,
+                `${selectedCrew.boatType} • ${selectedCrew.crewSize} crew members
+${selectedCrew.distance} miles away
+Status: ${selectedCrew.status}
+Last seen: ${selectedCrew.lastSeen}`,
+                [
+                  { text: 'Close', onPress: () => setSelectedCrew(null) },
+                  { text: 'Message', onPress: () => console.log('Message crew') },
+                  { text: 'View Profile', onPress: () => console.log('View profile') }
+                ]
+              );
+            }}
+          >
+            <Image source={{ uri: selectedCrew.photoUrl }} style={styles.crewDetailsImage} />
+            <View style={styles.crewDetailsContent}>
+              <View style={styles.crewDetailsHeader}>
+                <Text style={styles.crewDetailsName}>{selectedCrew.name}</Text>
+                <TouchableOpacity onPress={() => setSelectedCrew(null)}>
+                  <Text style={styles.closeButton}>×</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.crewDetailsInfo}>
+                {selectedCrew.boatType} • {selectedCrew.crewSize} crew • {selectedCrew.distance} mi
+              </Text>
+              <View style={styles.crewDetailsStatus}>
+                {React.createElement(getStatusIcon(selectedCrew.status), {
+                  size: 14,
+                  color: getStatusColor(selectedCrew.status)
+                })}
+                <Text style={[styles.statusText, { color: getStatusColor(selectedCrew.status) }]}>
+                  {selectedCrew.status} • {selectedCrew.lastSeen}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Quick Actions */}
+      <View style={styles.quickActions}>
+        <TouchableOpacity style={styles.actionButton}>
+          <Users size={20} color={colors.text.primary} />
+          <Text style={styles.actionText}>Find Crew</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}>
+          <Waves size={20} color={colors.text.primary} />
+          <Text style={styles.actionText}>Weather</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}>
+          <Zap size={20} color={colors.text.primary} />
+          <Text style={styles.actionText}>Live</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -373,154 +404,73 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.primary,
   },
-  header: {
-    height: 160,
-    width: '100%',
-    position: 'relative',
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerImage: {
-    width: '100%',
-    height: '100%',
+  loadingContent: {
+    alignItems: 'center',
   },
-  headerGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '100%',
-    justifyContent: 'flex-end',
+  loadingSpinner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  headerContent: {
-    padding: 20,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.text.primary,
     marginBottom: 4,
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    opacity: 0.9,
-  },
-  searchContainer: {
-    padding: 16,
-    marginTop: -20,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.card,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchInput: {
-    flex: 1,
-    color: colors.text.primary,
-    marginLeft: 12,
-    fontSize: 16,
-  },
-  filterButton: {
-    padding: 4,
-  },
-  filterContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  filterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.background.card,
-  },
-  activeFilterTab: {
-    backgroundColor: colors.primary,
-  },
-  filterText: {
-    color: colors.text.secondary,
+  loadingSubtext: {
     fontSize: 14,
-    fontWeight: '500',
-  },
-  activeFilterText: {
-    color: colors.text.primary,
+    color: colors.text.secondary,
   },
   mapContainer: {
     flex: 1,
-    margin: 16,
-    borderRadius: 20,
-    overflow: 'hidden',
+    position: 'relative',
+  },
+  mapContent: {
+    width: '100%',
+    height: '100%',
     position: 'relative',
   },
   mapBackground: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
   },
-  mapOverlay: {
+  mapGrid: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
+    opacity: 0.1,
+    backgroundColor: 'transparent',
+    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+    backgroundSize: '20px 20px',
   },
-  mapPin: {
+  userLocationContainer: {
     position: 'absolute',
-    alignItems: 'center',
-  },
-  pinContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 3,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  pinImage: {
-    width: '100%',
-    height: '100%',
-  },
-  statusIndicator: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.background.primary,
-  },
-  pinLabel: {
-    marginTop: 4,
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  pinLabelText: {
-    color: colors.text.primary,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  pinDistance: {
-    color: colors.text.secondary,
-    fontSize: 10,
-  },
-  userLocation: {
-    position: 'absolute',
-    bottom: '40%',
+    top: '45%',
     left: '45%',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  userLocationPing: {
+  userLocationPulse: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userLocationDot: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -530,69 +480,159 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.text.primary,
   },
-  userLocationText: {
-    color: colors.text.primary,
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  mapControls: {
+  crewPin: {
     position: 'absolute',
-    top: 16,
-    right: 16,
-    gap: 8,
+    alignItems: 'center',
   },
-  mapControlButton: {
+  pinContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderWidth: 3,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: colors.text.primary,
+  },
+  pinImage: {
+    width: '100%',
+    height: '100%',
+  },
+  statusBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.text.primary,
   },
-  crewListContainer: {
-    padding: 16,
-    paddingTop: 8,
+  movingIndicator: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
   },
-  crewListTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 12,
+  movingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
   },
-  crewList: {
-    gap: 12,
+  mapControls: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    gap: 8,
   },
-  crewCard: {
-    width: 120,
-    backgroundColor: colors.background.card,
+  controlButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+  },
+  mapInfo: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+  },
+  infoCard: {
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 12,
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border.primary,
   },
-  crewCardImage: {
-    width: '100%',
-    height: 80,
-  },
-  crewCardContent: {
-    padding: 12,
-  },
-  crewCardName: {
+  infoTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.text.primary,
+  },
+  infoSubtitle: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  crewDetails: {
+    position: 'absolute',
+    bottom: 100,
+    left: 16,
+    right: 16,
+  },
+  crewDetailsCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+  },
+  crewDetailsImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 16,
+  },
+  crewDetailsContent: {
+    flex: 1,
+  },
+  crewDetailsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
-  crewCardDetails: {
+  crewDetailsName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  closeButton: {
+    fontSize: 24,
+    color: colors.text.secondary,
+    fontWeight: '300',
+  },
+  crewDetailsInfo: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    marginBottom: 6,
+  },
+  crewDetailsStatus: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  quickActions: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+  },
+  actionButton: {
     alignItems: 'center',
     gap: 4,
   },
-  crewCardDistance: {
+  actionText: {
     fontSize: 12,
-    color: colors.text.secondary,
+    color: colors.text.primary,
+    fontWeight: '500',
   },
 });
