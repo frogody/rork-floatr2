@@ -5,20 +5,15 @@ export interface User {
   avatarUrl?: string;
   bio?: string;
   isPremium?: boolean;
-  verified?: boolean;
-  createdAt?: Date;
 }
 
 export interface Boat {
-  id: string;
-  ownerId: string;
   name: string;
   type: string;
   length: number;
   capacity: number;
   photoUrl?: string;
   verified?: boolean;
-  createdAt?: Date;
 }
 
 export interface Crew {

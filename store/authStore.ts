@@ -14,7 +14,7 @@ interface AuthState {
   blockedUsers: string[];
   
   // Actions
-  signIn: (user: User) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -41,20 +41,36 @@ export const useAuthStore = create<AuthState>()(
       hasSeenTutorial: false,
       blockedUsers: [],
       
-      signIn: async (user) => {
+      signIn: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          // Mock authentication delay
+          // Mock authentication for now
+          // In a real app, this would call an API
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          set({ 
-            user, 
-            isAuthenticated: true, 
-            isLoading: false 
-          });
+          if (email === 'demo@floatr.com' && password === 'password') {
+            // Mock user data
+            const user: User = {
+              id: '1',
+              displayName: 'John Doe',
+              bio: 'Passionate boater looking for adventure',
+              avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000',
+              createdAt: new Date(),
+              verified: true,
+              isPremium: false,
+            };
+            
+            set({ 
+              user, 
+              isAuthenticated: true, 
+              isLoading: false 
+            });
+          } else {
+            throw new Error('Invalid credentials');
+          }
         } catch (error) {
           set({ 
-            error: 'Authentication failed', 
+            error: 'Invalid email or password', 
             isLoading: false 
           });
         }
@@ -68,7 +84,6 @@ export const useAuthStore = create<AuthState>()(
           
           const user: User = {
             id: Math.random().toString(36).substring(7),
-            email,
             displayName,
             createdAt: new Date(),
             verified: false,
