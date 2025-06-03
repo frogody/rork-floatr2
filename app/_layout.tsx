@@ -130,84 +130,98 @@ function RootLayoutNav() {
             name="chat/[id]" 
             options={{ 
               title: "Chat",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="profile/edit" 
             options={{ 
               title: "Edit Profile",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="boat/edit" 
             options={{ 
               title: "Edit Boat",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="settings/index" 
             options={{ 
               title: "Settings",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="settings/account" 
             options={{ 
               title: "Account Settings",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="settings/notifications" 
             options={{ 
               title: "Notifications",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="settings/blocked-users" 
             options={{ 
               title: "Blocked Users",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="help" 
             options={{ 
               title: "Help & Support",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="help/faq" 
             options={{ 
               title: "FAQ",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="help/safety" 
             options={{ 
               title: "Safety Tips",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="privacy" 
             options={{ 
               title: "Privacy & Safety",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="legal/index" 
             options={{ 
               title: "Legal",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="legal/terms" 
             options={{ 
               title: "Terms of Service",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
             name="legal/privacy" 
             options={{ 
               title: "Privacy Policy",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 
@@ -222,6 +236,7 @@ function RootLayoutNav() {
             name="meetups/[id]" 
             options={{ 
               title: "Meetup Details",
+              headerBackTitle: "",
             }} 
           />
           <Stack.Screen 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   TouchableOpacity, 
   Text, 
@@ -7,7 +7,8 @@ import {
   ViewStyle,
   TextStyle,
   TouchableOpacityProps,
-  Platform
+  Platform,
+  Animated
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -45,6 +46,8 @@ export default function Button({
   haptic = true,
   ...rest
 }: ButtonProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+  
   const buttonStyles: ViewStyle[] = [
     styles.button,
     styles[`${size}Button`],
@@ -68,6 +71,23 @@ export default function Button({
       : ['transparent', 'transparent'] as readonly [string, string, ...string[]];
 
   const handlePress = async () => {
+    if (disabled || loading) return;
+    
+    // Animate button press
+    Animated.sequence([
+      Animated.timing(scale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        tension: 300,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     if (haptic && Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -93,35 +113,39 @@ export default function Button({
 
   if (gradient && !disabled && variant !== 'outline' && variant !== 'text') {
     return (
-      <TouchableOpacity
-        onPress={handlePress}
-        disabled={disabled || loading}
-        style={[styles.buttonContainer, style]}
-        activeOpacity={0.8}
-        {...rest}
-      >
-        <LinearGradient
-          colors={gradientColors || defaultGradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={buttonStyles}
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <TouchableOpacity
+          onPress={handlePress}
+          disabled={disabled || loading}
+          style={[styles.buttonContainer, style]}
+          activeOpacity={0.8}
+          {...rest}
         >
-          <ButtonContent />
-        </LinearGradient>
-      </TouchableOpacity>
+          <LinearGradient
+            colors={gradientColors || defaultGradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={buttonStyles}
+          >
+            <ButtonContent />
+          </LinearGradient>
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      disabled={disabled || loading}
-      style={[...buttonStyles]}
-      activeOpacity={0.8}
-      {...rest}
-    >
-      <ButtonContent />
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <TouchableOpacity
+        onPress={handlePress}
+        disabled={disabled || loading}
+        style={[...buttonStyles]}
+        activeOpacity={0.8}
+        {...rest}
+      >
+        <ButtonContent />
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 

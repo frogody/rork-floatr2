@@ -4,7 +4,6 @@ import {
   StyleSheet, 
   Text, 
   FlatList, 
-  ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
   Platform
@@ -13,13 +12,16 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useMatchStore } from '@/store/matchStore';
+import { useToast } from '@/hooks/useToast';
 import MatchCard from '@/components/MatchCard';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import AnimatedToast from '@/components/AnimatedToast';
 import colors from '@/constants/colors';
 import { Plus } from 'lucide-react-native';
 
 export default function MatchesScreen() {
   const { matches, fetchMatches, isLoading, error } = useMatchStore();
+  const { toast, hideToast, showSuccess, showError, showInfo } = useToast();
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -28,8 +30,12 @@ export default function MatchesScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     await fetchMatches();
     setRefreshing(false);
+    showSuccess('Refreshed', 'Updated your matches');
   };
 
   const handleMatchPress = async (matchId: string) => {
@@ -43,7 +49,7 @@ export default function MatchesScreen() {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    // In a real app, this would open a create group chat or invite friends modal
+    showInfo('Coming Soon', 'Group chat creation will be available soon!');
   };
 
   if (isLoading && !refreshing) {
@@ -72,6 +78,13 @@ export default function MatchesScreen() {
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyStateText}>Error: {error}</Text>
         </View>
+        <AnimatedToast
+          visible={toast.visible}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onHide={hideToast}
+        />
       </View>
     );
   }
@@ -113,6 +126,14 @@ export default function MatchesScreen() {
           }
         />
       )}
+
+      <AnimatedToast
+        visible={toast.visible}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onHide={hideToast}
+      />
     </View>
   );
 }

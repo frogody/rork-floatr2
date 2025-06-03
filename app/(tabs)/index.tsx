@@ -6,7 +6,6 @@ import {
   Animated, 
   PanResponder,
   Dimensions,
-  Alert,
   Platform,
   TouchableOpacity,
   SafeAreaView
@@ -17,11 +16,14 @@ import * as Haptics from 'expo-haptics';
 import { Filter, RotateCcw, Zap, Heart, X, Crown, RefreshCw } from 'lucide-react-native';
 import { useSwipeStore } from '@/store/swipeStore';
 import { useAuthStore } from '@/store/authStore';
+import { useToast } from '@/hooks/useToast';
 import CrewCard from '@/components/CrewCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import UndoButton from '@/components/UndoButton';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import FilterModal, { FilterOptions } from '@/components/FilterModal';
+import AnimatedToast from '@/components/AnimatedToast';
+import MatchAnimation from '@/components/MatchAnimation';
 import colors from '@/constants/colors';
 import { Crew } from '@/types';
 
@@ -43,13 +45,17 @@ export default function DiscoverScreen() {
     setAnchor, 
     isAnchored,
     boostProfile,
-    boostsRemaining 
+    boostsRemaining,
+    setGestureActive,
+    isGestureActive
   } = useSwipeStore();
   const { user, hasSeenTutorial, setHasSeenTutorial } = useAuthStore();
+  const { toast, hideToast, showSuccess, showError, showMatch, showBoost, showInfo } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showMatchAnimation, setShowMatchAnimation] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     distance: 25,
     boatTypes: [],
@@ -105,6 +111,9 @@ export default function DiscoverScreen() {
       },
       onPanResponderTerminationRequest: () => false, // Don't allow other components to steal the gesture
       onPanResponderGrant: () => {
+        // Set gesture active to prevent scroll conflicts
+        setGestureActive(true);
+        
         // Add haptic feedback when starting to drag
         if (Platform.OS !== 'web') {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -119,6 +128,9 @@ export default function DiscoverScreen() {
         scale.setValue(scaleValue);
       },
       onPanResponderRelease: (_, gesture) => {
+        // Reset gesture active state
+        setGestureActive(false);
+        
         const velocity = Math.sqrt(gesture.vx * gesture.vx + gesture.vy * gesture.vy);
         
         if (gesture.dy < BOOST_THRESHOLD && velocity > 0.5) {
@@ -165,6 +177,7 @@ export default function DiscoverScreen() {
     await fetchCrews();
     setCurrentIndex(0);
     setRefreshing(false);
+    showSuccess('Refreshed', 'Found new crews nearby');
   };
 
   const handleSwipeLeftGesture = async (dx: number) => {
@@ -217,16 +230,12 @@ export default function DiscoverScreen() {
       position.setValue({ x: 0, y: 0 });
       scale.setValue(1);
       
-      // Show match alert (in a real app, this would check for mutual matches)
+      // Show match animation (in a real app, this would check for mutual matches)
       if (Math.random() > 0.7) {
-        Alert.alert(
-          "It's a Match!",
-          `You and ${crews[currentIndex].name} have waved at each other.`,
-          [
-            { text: 'Send Message', onPress: () => router.push('/chat/new') },
-            { text: 'Keep Swiping', style: 'cancel' },
-          ]
-        );
+        setShowMatchAnimation(true);
+        showMatch("It's a Match!", `You and ${crews[currentIndex].name} have waved at each other.`);
+      } else {
+        showSuccess('Wave Sent!', `Your wave was sent to ${crews[currentIndex].name}`);
       }
     });
   };
@@ -239,30 +248,11 @@ export default function DiscoverScreen() {
     }
     
     if (boostsRemaining > 0) {
-      Alert.alert(
-        'Boost This Profile',
-        `Use a boost to get priority visibility with ${crews[currentIndex].name}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: `Use Boost (${boostsRemaining} left)`, 
-            onPress: () => {
-              boostProfile(crews[currentIndex].id);
-              Alert.alert('Boosted!', 'Your profile will be shown first to this crew.');
-              handleSwipeRightGesture(0);
-            }
-          },
-        ]
-      );
+      boostProfile(crews[currentIndex].id);
+      showBoost('Boosted!', 'Your profile will be shown first to this crew.');
+      handleSwipeRightGesture(0);
     } else {
-      Alert.alert(
-        'No Boosts Left',
-        'Get more boosts with Floatr Premium!',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Go Premium', onPress: () => router.push('/premium') },
-        ]
-      );
+      showError('No Boosts Left', 'Get more boosts with Floatr Premium!');
     }
     
     // Reset position
@@ -294,15 +284,13 @@ export default function DiscoverScreen() {
     }
     
     if (swipeHistory.length === 0) {
-      Alert.alert('No More Undos', 'Get unlimited undos with Floatr Premium!', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Go Premium', onPress: () => router.push('/premium') },
-      ]);
+      showError('No More Undos', 'Get unlimited undos with Floatr Premium!');
       return;
     }
     
     undoLastSwipe();
     setCurrentIndex(Math.max(currentIndex - 1, 0));
+    showSuccess('Undone', 'Last action was undone');
   };
 
   const handleAnchor = async () => {
@@ -311,13 +299,11 @@ export default function DiscoverScreen() {
     }
     
     setAnchor(!isAnchored);
-    Alert.alert(
-      isAnchored ? 'Anchor Lifted' : 'Anchor Dropped',
-      isAnchored 
-        ? 'You are now moving. Other boaters will see you as underway.' 
-        : 'You are now visible as anchored. Nearby boaters can see you are stationary.',
-      [{ text: 'OK' }]
-    );
+    if (isAnchored) {
+      showInfo('Anchor Lifted', 'You are now moving. Other boaters will see you as underway.');
+    } else {
+      showInfo('Anchor Dropped', 'You are now visible as anchored. Nearby boaters can see you are stationary.');
+    }
   };
 
   const handleFiltersPress = async () => {
@@ -335,22 +321,14 @@ export default function DiscoverScreen() {
     if (user?.isPremium) {
       router.push('/who-liked-you');
     } else {
-      Alert.alert(
-        'Premium Feature',
-        'See who liked you with Floatr Premium!',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Go Premium', onPress: () => router.push('/premium') },
-        ]
-      );
+      showError('Premium Feature', 'See who liked you with Floatr Premium!');
     }
   };
 
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
-    // In a real app, this would refetch crews with the new filters
-    console.log('Applying filters:', newFilters);
     fetchCrews(); // Refetch with new filters
+    showSuccess('Filters Applied', 'Updated your discovery preferences');
   };
 
   const renderCards = () => {
@@ -513,7 +491,7 @@ export default function DiscoverScreen() {
       </SafeAreaView>
       
       {/* Main card area - no scroll view to prevent gesture conflicts */}
-      <View style={styles.cardsContainer}>
+      <View style={styles.cardsContainer} pointerEvents={isGestureActive ? 'none' : 'auto'}>
         {renderCards()}
       </View>
       
@@ -532,6 +510,19 @@ export default function DiscoverScreen() {
         visible={showFilters}
         onClose={() => setShowFilters(false)}
         onApply={handleApplyFilters}
+      />
+      
+      <AnimatedToast
+        visible={toast.visible}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onHide={hideToast}
+      />
+      
+      <MatchAnimation
+        visible={showMatchAnimation}
+        onComplete={() => setShowMatchAnimation(false)}
       />
       
       {renderTutorial()}

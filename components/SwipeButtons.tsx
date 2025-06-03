@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
+import React, { useRef } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, Platform, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { X, Heart, Zap, Anchor } from 'lucide-react-native';
 import colors from '@/constants/colors';
@@ -20,51 +20,82 @@ export default function SwipeButtons({
   boostsRemaining = 0 
 }: SwipeButtonsProps) {
   
-  const handlePress = async (action: () => void) => {
+  const passScale = useRef(new Animated.Value(1)).current;
+  const waveScale = useRef(new Animated.Value(1)).current;
+  const anchorScale = useRef(new Animated.Value(1)).current;
+  const boostScale = useRef(new Animated.Value(1)).current;
+
+  const animateButton = (scale: Animated.Value, callback: () => void) => {
+    Animated.sequence([
+      Animated.timing(scale, {
+        toValue: 0.9,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        tension: 300,
+        friction: 10,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
+    callback();
+  };
+
+  const handlePress = async (action: () => void, scale: Animated.Value) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    action();
+    animateButton(scale, action);
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.passButton} 
-        onPress={() => handlePress(onPass)}
-        activeOpacity={0.7}
-      >
-        <X size={28} color={colors.error} />
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: passScale }] }}>
+        <TouchableOpacity 
+          style={styles.passButton} 
+          onPress={() => handlePress(onPass, passScale)}
+          activeOpacity={0.7}
+        >
+          <X size={28} color={colors.error} />
+        </TouchableOpacity>
+      </Animated.View>
       
-      <TouchableOpacity 
-        style={[styles.anchorButton, isAnchored && styles.anchoredButton]} 
-        onPress={() => handlePress(onAnchor)}
-        activeOpacity={0.7}
-      >
-        <Anchor size={22} color={isAnchored ? colors.text.primary : colors.text.secondary} />
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: anchorScale }] }}>
+        <TouchableOpacity 
+          style={[styles.anchorButton, isAnchored && styles.anchoredButton]} 
+          onPress={() => handlePress(onAnchor, anchorScale)}
+          activeOpacity={0.7}
+        >
+          <Anchor size={22} color={isAnchored ? colors.text.primary : colors.text.secondary} />
+        </TouchableOpacity>
+      </Animated.View>
       
-      <TouchableOpacity 
-        style={styles.boostButton} 
-        onPress={() => handlePress(() => {})} // Boost handled in parent
-        activeOpacity={0.7}
-      >
-        <Zap size={22} color={colors.warning} fill={colors.warning} />
-        {boostsRemaining > 0 && (
-          <View style={styles.boostBadge}>
-            <Text style={styles.boostBadgeText}>{boostsRemaining}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: boostScale }] }}>
+        <TouchableOpacity 
+          style={styles.boostButton} 
+          onPress={() => handlePress(() => {}, boostScale)} // Boost handled in parent
+          activeOpacity={0.7}
+        >
+          <Zap size={22} color={colors.warning} fill={colors.warning} />
+          {boostsRemaining > 0 && (
+            <Animated.View style={styles.boostBadge}>
+              <Text style={styles.boostBadgeText}>{boostsRemaining}</Text>
+            </Animated.View>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
       
-      <TouchableOpacity 
-        style={styles.waveButton} 
-        onPress={() => handlePress(onWave)}
-        activeOpacity={0.7}
-      >
-        <Heart size={28} color={colors.success} fill={colors.success} />
-      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ scale: waveScale }] }}>
+        <TouchableOpacity 
+          style={styles.waveButton} 
+          onPress={() => handlePress(onWave, waveScale)}
+          activeOpacity={0.7}
+        >
+          <Heart size={28} color={colors.success} fill={colors.success} />
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }

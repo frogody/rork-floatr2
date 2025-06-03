@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions, Pressable } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, Image, Dimensions, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Crew } from '@/types';
 import colors from '@/constants/colors';
@@ -14,54 +14,81 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
 
 export default function CrewCard({ crew, onPress }: CrewCardProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.98,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
-    <Pressable onPress={onPress} style={styles.container}>
-      <Image 
-        source={{ uri: crew.photoUrls[0] }} 
-        style={styles.image}
-        resizeMode="cover"
-      />
-      
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        style={styles.gradient}
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable 
+        onPress={onPress} 
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.container}
       >
-        <View style={styles.infoContainer}>
-          <View style={styles.header}>
-            <Text style={styles.name}>{crew.name}</Text>
-            <View style={styles.locationContainer}>
-              <MapPin size={14} color={colors.text.primary} />
-              <Text style={styles.location}>{crew.location} • {crew.distance} mi</Text>
-            </View>
-          </View>
-          
-          <Text style={styles.bio} numberOfLines={2}>{crew.bio}</Text>
-          
-          <View style={styles.detailsContainer}>
-            <View style={styles.detail}>
-              <Users size={14} color={colors.text.primary} />
-              <Text style={styles.detailText}>{crew.memberCount} crew</Text>
-            </View>
-            <View style={styles.detail}>
-              <Ship size={14} color={colors.text.primary} />
-              <Text style={styles.detailText}>{crew.boatType}</Text>
-            </View>
-            <View style={styles.detail}>
-              <Ruler size={14} color={colors.text.primary} />
-              <Text style={styles.detailText}>{crew.boatLength}ft</Text>
-            </View>
-          </View>
-          
-          <View style={styles.tagsContainer}>
-            {crew.tags.map((tag, index) => (
-              <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
+        <Image 
+          source={{ uri: crew.photoUrls[0] }} 
+          style={styles.image}
+          resizeMode="cover"
+        />
+        
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.gradient}
+        >
+          <View style={styles.infoContainer}>
+            <View style={styles.header}>
+              <Text style={styles.name}>{crew.name}</Text>
+              <View style={styles.locationContainer}>
+                <MapPin size={14} color={colors.text.primary} />
+                <Text style={styles.location}>{crew.location} • {crew.distance} mi</Text>
               </View>
-            ))}
+            </View>
+            
+            <Text style={styles.bio} numberOfLines={2}>{crew.bio}</Text>
+            
+            <View style={styles.detailsContainer}>
+              <View style={styles.detail}>
+                <Users size={14} color={colors.text.primary} />
+                <Text style={styles.detailText}>{crew.memberCount} crew</Text>
+              </View>
+              <View style={styles.detail}>
+                <Ship size={14} color={colors.text.primary} />
+                <Text style={styles.detailText}>{crew.boatType}</Text>
+              </View>
+              <View style={styles.detail}>
+                <Ruler size={14} color={colors.text.primary} />
+                <Text style={styles.detailText}>{crew.boatLength}ft</Text>
+              </View>
+            </View>
+            
+            <View style={styles.tagsContainer}>
+              {crew.tags.map((tag, index) => (
+                <View key={index} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      </LinearGradient>
-    </Pressable>
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
   );
 }
 

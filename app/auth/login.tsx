@@ -8,32 +8,67 @@ import {
   KeyboardAvoidingView, 
   Platform,
   ScrollView,
-  ActivityIndicator,
-  Alert
+  Animated
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ArrowLeft } from 'lucide-react-native';
 import Button from '@/components/Button';
+import AnimatedToast from '@/components/AnimatedToast';
+import { useToast } from '@/hooks/useToast';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signIn, isLoading, error, clearError } = useAuthStore();
+  const { toast, hideToast, showError, showSuccess } = useToast();
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    // Clear previous errors
+    setEmailError('');
+    setPasswordError('');
+    clearError();
+
+    // Validate inputs
+    let hasError = false;
+    
+    if (!email) {
+      setEmailError('Email is required');
+      hasError = true;
+    } else if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email');
+      hasError = true;
+    }
+    
+    if (!password) {
+      setPasswordError('Password is required');
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      hasError = true;
+    }
+
+    if (hasError) {
+      showError('Invalid Input', 'Please check your email and password');
       return;
     }
     
-    await signIn(email, password);
+    const result = await signIn(email, password);
     
     if (error) {
-      Alert.alert('Error', error);
+      showError('Login Failed', error);
       clearError();
+    } else {
+      showSuccess('Welcome Back!', 'Successfully signed in');
     }
   };
 
@@ -67,26 +102,42 @@ export default function LoginScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, emailError && styles.inputError]}
               placeholder="Enter your email"
               placeholderTextColor={colors.text.secondary}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (emailError) setEmailError('');
+              }}
               autoCapitalize="none"
               keyboardType="email-address"
             />
+            {emailError ? (
+              <Animated.View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{emailError}</Text>
+              </Animated.View>
+            ) : null}
           </View>
           
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, passwordError && styles.inputError]}
               placeholder="Enter your password"
               placeholderTextColor={colors.text.secondary}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (passwordError) setPasswordError('');
+              }}
               secureTextEntry
             />
+            {passwordError ? (
+              <Animated.View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{passwordError}</Text>
+              </Animated.View>
+            ) : null}
           </View>
           
           <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
@@ -111,7 +162,7 @@ export default function LoginScreen() {
           
           <Button
             title="Continue with Apple"
-            onPress={() => {}}
+            onPress={() => showInfo('Coming Soon', 'Apple Sign In will be available soon')}
             variant="outline"
             size="large"
             style={styles.button}
@@ -119,7 +170,7 @@ export default function LoginScreen() {
           
           <Button
             title="Continue with Google"
-            onPress={() => {}}
+            onPress={() => showInfo('Coming Soon', 'Google Sign In will be available soon')}
             variant="outline"
             size="large"
             style={styles.button}
@@ -133,6 +184,14 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <AnimatedToast
+        visible={toast.visible}
+        type={toast.type}
+        title={toast.title}
+        message={toast.message}
+        onHide={hideToast}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -179,6 +238,20 @@ const styles = StyleSheet.create({
     padding: 16,
     color: colors.text.primary,
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  inputError: {
+    borderColor: colors.error,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  },
+  errorContainer: {
+    marginTop: 4,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 12,
+    fontWeight: '500',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
