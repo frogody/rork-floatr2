@@ -8,9 +8,8 @@ import {
   Image,
   Platform,
   Dimensions,
-  PanGestureHandler,
-  Animated,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
@@ -21,14 +20,16 @@ import {
   Users, 
   Compass,
   Anchor,
-  Waves,
   Plus,
   Minus,
   Crosshair,
   Layers,
-  Zap
+  Search,
+  Filter,
+  Zap,
+  Waves
 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { WebView } from 'react-native-webview';
 import colors from '@/constants/colors';
 
 const { width, height } = Dimensions.get('window');
@@ -49,15 +50,14 @@ interface CrewLocation {
 export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [selectedCrew, setSelectedCrew] = useState<CrewLocation | null>(null);
-  const [mapZoom, setMapZoom] = useState(1);
+  const [mapZoom, setMapZoom] = useState(12);
   const [showSatellite, setShowSatellite] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const mapTranslateX = useRef(new Animated.Value(0)).current;
-  const mapTranslateY = useRef(new Animated.Value(0)).current;
-  const zoomScale = useRef(new Animated.Value(1)).current;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const webViewRef = useRef<WebView>(null);
 
-  // Mock crew locations with realistic coordinates
+  // Mock crew locations with realistic San Francisco Bay coordinates
   const [crewLocations] = useState<CrewLocation[]>([
     {
       id: '1',
@@ -123,8 +123,7 @@ export default function MapScreen() {
 
   useEffect(() => {
     requestLocationPermission();
-    // Simulate loading
-    setTimeout(() => setIsLoading(false), 1500);
+    setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
   const requestLocationPermission = async () => {
@@ -166,41 +165,64 @@ export default function MapScreen() {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    const newZoom = Math.min(mapZoom + 0.5, 3);
+    const newZoom = Math.min(mapZoom + 1, 18);
     setMapZoom(newZoom);
-    Animated.spring(zoomScale, {
-      toValue: newZoom,
-      useNativeDriver: true,
-    }).start();
+    
+    // Send zoom command to map
+    const script = `
+      if (window.map) {
+        window.map.setZoom(${newZoom});
+      }
+    `;
+    webViewRef.current?.postMessage(script);
   };
 
   const handleZoomOut = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    const newZoom = Math.max(mapZoom - 0.5, 0.5);
+    const newZoom = Math.max(mapZoom - 1, 1);
     setMapZoom(newZoom);
-    Animated.spring(zoomScale, {
-      toValue: newZoom,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handleCrewPress = async (crew: CrewLocation) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-    setSelectedCrew(crew);
+    
+    // Send zoom command to map
+    const script = `
+      if (window.map) {
+        window.map.setZoom(${newZoom});
+      }
+    `;
+    webViewRef.current?.postMessage(script);
   };
 
   const handleCenterLocation = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    Animated.parallel([
-      Animated.spring(mapTranslateX, { toValue: 0, useNativeDriver: true }),
-      Animated.spring(mapTranslateY, { toValue: 0, useNativeDriver: true }),
-    ]).start();
+    
+    const lat = userLocation?.coords.latitude || 37.7749;
+    const lng = userLocation?.coords.longitude || -122.4194;
+    
+    const script = `
+      if (window.map) {
+        window.map.setCenter({lat: ${lat}, lng: ${lng}});
+        window.map.setZoom(14);
+      }
+    `;
+    webViewRef.current?.postMessage(script);
+  };
+
+  const toggleMapType = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowSatellite(!showSatellite);
+    
+    const mapType = showSatellite ? 'roadmap' : 'satellite';
+    const script = `
+      if (window.map) {
+        window.map.setMapTypeId('${mapType}');
+      }
+    `;
+    webViewRef.current?.postMessage(script);
   };
 
   const getStatusColor = (status: string) => {
@@ -218,6 +240,172 @@ export default function MapScreen() {
       case 'moving': return Navigation2;
       case 'docked': return MapPin;
       default: return MapPin;
+    }
+  };
+
+  // Generate HTML for the map
+  const generateMapHTML = () => {
+    const userLat = userLocation?.coords.latitude || 37.7749;
+    const userLng = userLocation?.coords.longitude || -122.4194;
+    
+    const crewMarkersJS = crewLocations.map(crew => `
+      {
+        id: '${crew.id}',
+        lat: ${crew.latitude},
+        lng: ${crew.longitude},
+        name: '${crew.name}',
+        status: '${crew.status}',
+        photoUrl: '${crew.photoUrl}',
+        crewSize: ${crew.crewSize},
+        boatType: '${crew.boatType}',
+        distance: ${crew.distance}
+      }
+    `).join(',');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body, html { margin: 0; padding: 0; height: 100%; }
+          #map { height: 100%; width: 100%; }
+          .crew-marker {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: 3px solid #fff;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            position: relative;
+          }
+          .crew-marker.anchored { border-color: #10B981; }
+          .crew-marker.moving { border-color: #3B82F6; }
+          .crew-marker.docked { border-color: #EC4899; }
+          .crew-marker::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            border: 2px solid #fff;
+          }
+          .crew-marker.anchored::after { background-color: #10B981; }
+          .crew-marker.moving::after { background-color: #3B82F6; }
+          .crew-marker.docked::after { background-color: #EC4899; }
+          .user-marker {
+            width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            background-color: #3B82F6;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+          }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          let map;
+          let userMarker;
+          let crewMarkers = [];
+          
+          function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+              center: { lat: ${userLat}, lng: ${userLng} },
+              zoom: ${mapZoom},
+              mapTypeId: '${showSatellite ? 'satellite' : 'roadmap'}',
+              styles: [
+                {
+                  featureType: 'poi',
+                  elementType: 'labels',
+                  stylers: [{ visibility: 'off' }]
+                },
+                {
+                  featureType: 'transit',
+                  elementType: 'labels',
+                  stylers: [{ visibility: 'off' }]
+                }
+              ],
+              disableDefaultUI: true,
+              zoomControl: false,
+              mapTypeControl: false,
+              scaleControl: false,
+              streetViewControl: false,
+              rotateControl: false,
+              fullscreenControl: false
+            });
+            
+            // Add user marker
+            const userMarkerDiv = document.createElement('div');
+            userMarkerDiv.className = 'user-marker';
+            
+            userMarker = new google.maps.marker.AdvancedMarkerElement({
+              map: map,
+              position: { lat: ${userLat}, lng: ${userLng} },
+              content: userMarkerDiv,
+              title: 'Your Location'
+            });
+            
+            // Add crew markers
+            const crews = [${crewMarkersJS}];
+            
+            crews.forEach(crew => {
+              const markerDiv = document.createElement('div');
+              markerDiv.className = \`crew-marker \${crew.status}\`;
+              markerDiv.style.backgroundImage = \`url(\${crew.photoUrl})\`;
+              
+              const marker = new google.maps.marker.AdvancedMarkerElement({
+                map: map,
+                position: { lat: crew.lat, lng: crew.lng },
+                content: markerDiv,
+                title: crew.name
+              });
+              
+              marker.addListener('click', () => {
+                window.ReactNativeWebView?.postMessage(JSON.stringify({
+                  type: 'crewSelected',
+                  crew: crew
+                }));
+              });
+              
+              crewMarkers.push(marker);
+            });
+            
+            window.map = map;
+          }
+          
+          // Listen for messages from React Native
+          window.addEventListener('message', function(event) {
+            try {
+              eval(event.data);
+            } catch (e) {
+              console.error('Error executing script:', e);
+            }
+          });
+        </script>
+        <script async defer
+          src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=marker&callback=initMap">
+        </script>
+      </body>
+      </html>
+    `;
+  };
+
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'crewSelected') {
+        setSelectedCrew(data.crew);
+        if (Platform.OS !== 'web') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing WebView message:', error);
     }
   };
 
@@ -240,72 +428,42 @@ export default function MapScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
+      {/* Search Header */}
+      <View style={styles.searchHeader}>
+        <View style={styles.searchContainer}>
+          <Search size={20} color={colors.text.secondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search locations, marinas..."
+            placeholderTextColor={colors.text.secondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          <TouchableOpacity 
+            style={styles.filterButton}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Interactive Map */}
       <View style={styles.mapContainer}>
-        <Animated.View 
-          style={[
-            styles.mapContent,
-            {
-              transform: [
-                { translateX: mapTranslateX },
-                { translateY: mapTranslateY },
-                { scale: zoomScale }
-              ]
-            }
-          ]}
-        >
-          {/* Map Background */}
-          <Image 
-            source={{ 
-              uri: showSatellite 
-                ? 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?q=80&w=2000'
-                : 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2000'
-            }}
-            style={styles.mapBackground}
-          />
-          
-          {/* Map Grid Overlay */}
-          <View style={styles.mapGrid} />
-          
-          {/* User Location */}
-          <View style={styles.userLocationContainer}>
-            <View style={styles.userLocationPulse}>
-              <View style={styles.userLocationDot}>
-                <Compass size={16} color={colors.text.primary} />
-              </View>
-            </View>
-          </View>
-
-          {/* Crew Pins */}
-          {crewLocations.map((crew, index) => {
-            const StatusIcon = getStatusIcon(crew.status);
-            return (
-              <TouchableOpacity
-                key={crew.id}
-                style={[
-                  styles.crewPin,
-                  {
-                    left: `${25 + (index * 12)}%`,
-                    top: `${20 + (index * 15)}%`,
-                  }
-                ]}
-                onPress={() => handleCrewPress(crew)}
-              >
-                <View style={[styles.pinContainer, { borderColor: getStatusColor(crew.status) }]}>
-                  <Image source={{ uri: crew.photoUrl }} style={styles.pinImage} />
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(crew.status) }]}>
-                    <StatusIcon size={10} color={colors.text.primary} />
-                  </View>
-                </View>
-                {crew.status === 'moving' && (
-                  <View style={styles.movingIndicator}>
-                    <View style={styles.movingDot} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </Animated.View>
+        <WebView
+          ref={webViewRef}
+          source={{ html: generateMapHTML() }}
+          style={styles.webView}
+          onMessage={handleWebViewMessage}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          scalesPageToFit={true}
+          scrollEnabled={false}
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        />
 
         {/* Map Controls */}
         <View style={styles.mapControls}>
@@ -319,8 +477,8 @@ export default function MapScreen() {
             <Crosshair size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.controlButton} 
-            onPress={() => setShowSatellite(!showSatellite)}
+            style={[styles.controlButton, showSatellite && styles.controlButtonActive]} 
+            onPress={toggleMapType}
           >
             <Layers size={20} color={showSatellite ? colors.primary : colors.text.primary} />
           </TouchableOpacity>
@@ -330,7 +488,7 @@ export default function MapScreen() {
         <View style={styles.mapInfo}>
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>{crewLocations.length} crews nearby</Text>
-            <Text style={styles.infoSubtitle}>Zoom: {mapZoom.toFixed(1)}x</Text>
+            <Text style={styles.infoSubtitle}>Zoom: {mapZoom}x</Text>
           </View>
         </View>
       </View>
@@ -343,10 +501,7 @@ export default function MapScreen() {
             onPress={() => {
               Alert.alert(
                 selectedCrew.name,
-                `${selectedCrew.boatType} • ${selectedCrew.crewSize} crew members
-${selectedCrew.distance} miles away
-Status: ${selectedCrew.status}
-Last seen: ${selectedCrew.lastSeen}`,
+                `${selectedCrew.boatType} • ${selectedCrew.crewSize} crew members\n${selectedCrew.distance} miles away\nStatus: ${selectedCrew.status}\nLast seen: ${selectedCrew.lastSeen}`,
                 [
                   { text: 'Close', onPress: () => setSelectedCrew(null) },
                   { text: 'Message', onPress: () => console.log('Message crew') },
@@ -430,99 +585,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text.secondary,
   },
+  searchHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: colors.background.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.primary,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.text.primary,
+  },
+  filterButton: {
+    padding: 4,
+  },
   mapContainer: {
     flex: 1,
     position: 'relative',
   },
-  mapContent: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  mapBackground: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  mapGrid: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.1,
-    backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-    backgroundSize: '20px 20px',
-  },
-  userLocationContainer: {
-    position: 'absolute',
-    top: '45%',
-    left: '45%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userLocationPulse: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userLocationDot: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.text.primary,
-  },
-  crewPin: {
-    position: 'absolute',
-    alignItems: 'center',
-  },
-  pinContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 3,
-    overflow: 'hidden',
-    position: 'relative',
-    backgroundColor: colors.text.primary,
-  },
-  pinImage: {
-    width: '100%',
-    height: '100%',
-  },
-  statusBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.text.primary,
-  },
-  movingIndicator: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-  },
-  movingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
+  webView: {
+    flex: 1,
   },
   mapControls: {
     position: 'absolute',
-    top: 60,
+    top: 16,
     right: 16,
     gap: 8,
   },
@@ -536,9 +633,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.primary,
   },
+  controlButtonActive: {
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    borderColor: colors.primary,
+  },
   mapInfo: {
     position: 'absolute',
-    top: 60,
+    top: 16,
     left: 16,
   },
   infoCard: {
