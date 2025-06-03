@@ -41,10 +41,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
-    position: 'absolute',
-    top: 60,
-    left: 16,
-    zIndex: 10,
   },
   text: {
     color: colors.primary,

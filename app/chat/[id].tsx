@@ -9,19 +9,26 @@ import {
   Platform,
   TouchableOpacity,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Send, Info, Phone, Video } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import { Send, Info, Phone, Video, MoreVertical, Flag, UserX } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import { useMatchStore } from '@/store/matchStore';
 import { Message } from '@/types';
+import ReportModal from '@/components/ReportModal';
+import BlockModal from '@/components/BlockModal';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { matches, messages, fetchMessages, sendMessage, isLoading } = useMatchStore();
   const [inputText, setInputText] = useState('');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   
   const match = matches.find(m => m.id === id);
@@ -49,6 +56,40 @@ export default function ChatScreen() {
     setInputText('');
   };
 
+  const handleOptionsPress = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowOptions(!showOptions);
+  };
+
+  const handleReport = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowOptions(false);
+    setShowReportModal(true);
+  };
+
+  const handleBlock = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowOptions(false);
+    setShowBlockModal(true);
+  };
+
+  const handleReportSubmit = (reason: string, details: string) => {
+    // In a real app, this would send the report to the backend
+    console.log('Report submitted:', { reason, details, userId: match?.crewId });
+  };
+
+  const handleBlockUser = () => {
+    // In a real app, this would block the user in the backend
+    console.log('User blocked:', match?.crewId);
+    router.back();
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMe = item.senderId === 'me';
     
@@ -58,9 +99,14 @@ export default function ChatScreen() {
           <Text style={[styles.messageText, isMe ? styles.myMessageText : styles.theirMessageText]}>
             {item.content}
           </Text>
-          <Text style={[styles.messageTime, isMe ? styles.myMessageTime : styles.theirMessageTime]}>
-            {formatTime(item.sentAt)}
-          </Text>
+          <View style={styles.messageFooter}>
+            <Text style={[styles.messageTime, isMe ? styles.myMessageTime : styles.theirMessageTime]}>
+              {formatTime(item.sentAt)}
+            </Text>
+            {isMe && (
+              <Text style={styles.messageStatus}>✓✓</Text>
+            )}
+          </View>
         </View>
       </View>
     );
@@ -91,13 +137,26 @@ export default function ChatScreen() {
               <TouchableOpacity style={styles.headerButton}>
                 <Video size={20} color={colors.text.primary} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.headerButton}>
-                <Info size={20} color={colors.text.primary} />
+              <TouchableOpacity style={styles.headerButton} onPress={handleOptionsPress}>
+                <MoreVertical size={20} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
           ),
         }}
       />
+      
+      {showOptions && (
+        <View style={styles.optionsMenu}>
+          <TouchableOpacity style={styles.optionItem} onPress={handleReport}>
+            <Flag size={16} color={colors.error} />
+            <Text style={[styles.optionText, { color: colors.error }]}>Report User</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.optionItem} onPress={handleBlock}>
+            <UserX size={16} color={colors.error} />
+            <Text style={[styles.optionText, { color: colors.error }]}>Block User</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -145,6 +204,20 @@ export default function ChatScreen() {
           </View>
         </>
       )}
+      
+      <ReportModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        userName={match?.crewName || 'User'}
+        onSubmit={handleReportSubmit}
+      />
+      
+      <BlockModal
+        visible={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        userName={match?.crewName || 'User'}
+        onBlock={handleBlockUser}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -165,6 +238,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  optionsMenu: {
+    position: 'absolute',
+    top: 90,
+    right: 16,
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
+    padding: 8,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
@@ -222,6 +320,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
+    marginBottom: 4,
   },
   myMessageText: {
     color: colors.text.primary,
@@ -229,16 +328,24 @@ const styles = StyleSheet.create({
   theirMessageText: {
     color: colors.text.primary,
   },
+  messageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 4,
+  },
   messageTime: {
     fontSize: 12,
-    marginTop: 4,
-    alignSelf: 'flex-end',
   },
   myMessageTime: {
     color: 'rgba(255,255,255,0.7)',
   },
   theirMessageTime: {
     color: colors.text.secondary,
+  },
+  messageStatus: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
   },
   inputContainer: {
     flexDirection: 'row',

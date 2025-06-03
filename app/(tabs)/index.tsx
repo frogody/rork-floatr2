@@ -8,16 +8,19 @@ import {
   Dimensions,
   Alert,
   Platform,
-  RefreshControl
+  RefreshControl,
+  TouchableOpacity
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
+import { Filter } from 'lucide-react-native';
 import { useSwipeStore } from '@/store/swipeStore';
 import CrewCard from '@/components/CrewCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import UndoButton from '@/components/UndoButton';
 import SkeletonLoader from '@/components/SkeletonLoader';
+import FilterModal, { FilterOptions } from '@/components/FilterModal';
 import colors from '@/constants/colors';
 import { Crew } from '@/types';
 
@@ -39,6 +42,13 @@ export default function DiscoverScreen() {
   } = useSwipeStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    distance: 25,
+    boatTypes: [],
+    crewSize: { min: 1, max: 12 },
+    tags: [],
+  });
   const position = useRef(new Animated.ValueXY()).current;
   
   const rotate = position.x.interpolate({
@@ -180,6 +190,19 @@ export default function DiscoverScreen() {
     );
   };
 
+  const handleFiltersPress = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowFilters(true);
+  };
+
+  const handleApplyFilters = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    // In a real app, this would refetch crews with the new filters
+    console.log('Applying filters:', newFilters);
+  };
+
   const renderCards = () => {
     if (isLoading && !refreshing) {
       return <SkeletonLoader type="card" />;
@@ -270,10 +293,16 @@ export default function DiscoverScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      <UndoButton 
-        onUndo={handleUndo} 
-        disabled={swipeHistory.length === 0} 
-      />
+      <View style={styles.topControls}>
+        <UndoButton 
+          onUndo={handleUndo} 
+          disabled={swipeHistory.length === 0} 
+        />
+        
+        <TouchableOpacity style={styles.filterButton} onPress={handleFiltersPress}>
+          <Filter size={20} color={colors.text.primary} />
+        </TouchableOpacity>
+      </View>
       
       <View style={styles.cardsContainer}>
         {renderCards()}
@@ -285,6 +314,12 @@ export default function DiscoverScreen() {
         onAnchor={handleAnchor}
         isAnchored={isAnchored}
       />
+      
+      <FilterModal
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={handleApplyFilters}
+      />
     </View>
   );
 }
@@ -293,6 +328,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.dark,
+  },
+  topControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  filterButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardsContainer: {
     flex: 1,
