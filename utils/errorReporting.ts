@@ -1,8 +1,5 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Application from 'expo-application';
-import * as Device from 'expo-device';
-import NetInfo from '@react-native-community/netinfo';
 
 type ErrorSeverity = 'fatal' | 'error' | 'warning' | 'info';
 
@@ -103,12 +100,16 @@ class ErrorReporting {
       });
     } else {
       // React Native error handling
-      const originalErrorHandler = ErrorUtils.getGlobalHandler();
-      
-      ErrorUtils.setGlobalHandler(async (error, isFatal) => {
-        await this.captureError(error, isFatal ? 'fatal' : 'error');
-        originalErrorHandler(error, isFatal);
-      });
+      if (typeof ErrorUtils !== 'undefined') {
+        const originalErrorHandler = ErrorUtils.getGlobalHandler();
+        
+        ErrorUtils.setGlobalHandler(async (error, isFatal) => {
+          await this.captureError(error, isFatal ? 'fatal' : 'error');
+          if (originalErrorHandler) {
+            originalErrorHandler(error, isFatal);
+          }
+        });
+      }
     }
   }
   
@@ -140,18 +141,10 @@ class ErrorReporting {
     
     try {
       let networkType = 'unknown';
-      try {
-        if (Platform.OS !== 'web') {
-          const networkState = await NetInfo.fetch();
-          networkType = networkState.type || 'unknown';
-        }
-      } catch (e) {
-        // Ignore network errors
-      }
       
       const report: ErrorReport = {
-        message: typeof error === 'string' ? error : error.message,
-        stack: typeof error === 'string' ? undefined : error.stack,
+        message: typeof error === 'string' ? error : (error?.message || 'Unknown error'),
+        stack: typeof error === 'string' ? undefined : error?.stack,
         severity,
         metadata: {
           ...metadata,
@@ -159,9 +152,9 @@ class ErrorReporting {
           sessionId: this.sessionId,
           timestamp: Date.now(),
           platform: Platform.OS,
-          appVersion: Platform.OS !== 'web' ? Application.nativeApplicationVersion || '1.0.0' : '1.0.0',
-          deviceModel: Platform.OS !== 'web' ? Device.modelName || 'Unknown' : 'Web Browser',
-          osVersion: Platform.Version.toString(),
+          appVersion: '1.0.0',
+          deviceModel: Platform.OS !== 'web' ? 'Unknown' : 'Web Browser',
+          osVersion: Platform.Version?.toString() || 'Unknown',
           networkType,
         },
       };

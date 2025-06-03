@@ -16,12 +16,16 @@ export default function IndexScreen() {
       return;
     }
 
-    if (isAuthenticated) {
-      console.log('IndexScreen: User authenticated, redirecting to tabs');
-      router.replace('/(tabs)');
-    } else {
-      console.log('IndexScreen: User not authenticated, redirecting to login');
-      router.replace('/auth/login');
+    try {
+      if (isAuthenticated) {
+        console.log('IndexScreen: User authenticated, redirecting to tabs');
+        router.replace('/(tabs)');
+      } else {
+        console.log('IndexScreen: User not authenticated, redirecting to login');
+        router.replace('/auth/login');
+      }
+    } catch (error) {
+      console.error('IndexScreen: Navigation error', error);
     }
   }, [isAuthenticated, isInitialized, router]);
 

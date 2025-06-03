@@ -30,13 +30,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     logger.error('ErrorBoundary: Caught error', {
-      error: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack
+      error: error?.message || 'Unknown error',
+      stack: error?.stack,
+      componentStack: errorInfo?.componentStack
     });
 
     errorReporting.captureError(error, 'fatal', {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo?.componentStack,
       context: 'error_boundary'
     });
 
@@ -52,7 +52,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   handleGoHome = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
-    router.replace('/(tabs)');
+    try {
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('ErrorBoundary: Failed to navigate home', error);
+    }
   };
 
   render() {

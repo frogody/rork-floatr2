@@ -10,17 +10,30 @@ interface ToastState {
   hideToast: () => void;
 }
 
-const useToastStore = create<ToastState>((set) => ({
+const useToastStore = create<ToastState>((set, get) => ({
   visible: false,
   message: '',
   type: 'info',
   showToast: (message: string, type: ToastType = 'info') => {
-    set({ visible: true, message, type });
-    setTimeout(() => {
-      set({ visible: false });
-    }, 3000);
+    try {
+      set({ visible: true, message, type });
+      setTimeout(() => {
+        const state = get();
+        if (state.visible) {
+          set({ visible: false });
+        }
+      }, 3000);
+    } catch (error) {
+      console.error('Toast: Failed to show toast', error);
+    }
   },
-  hideToast: () => set({ visible: false }),
+  hideToast: () => {
+    try {
+      set({ visible: false });
+    } catch (error) {
+      console.error('Toast: Failed to hide toast', error);
+    }
+  },
 }));
 
 export default useToastStore;

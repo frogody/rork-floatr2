@@ -29,10 +29,11 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       
       // Use mock data for now
       set({ 
-        matches: mockMatches, 
+        matches: mockMatches || [], 
         isLoading: false 
       });
     } catch (error) {
+      console.error('MatchStore: Failed to fetch matches', error);
       set({ 
         error: 'Failed to fetch matches', 
         isLoading: false 
@@ -86,6 +87,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         isLoading: false 
       }));
     } catch (error) {
+      console.error('MatchStore: Failed to fetch messages', error);
       set({ 
         error: 'Failed to fetch messages', 
         isLoading: false 
@@ -95,6 +97,10 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   
   sendMessage: async (matchId: string, content: string) => {
     try {
+      if (!matchId || !content) {
+        throw new Error('Match ID and content are required');
+      }
+
       // In a real app, this would send to an API
       const newMessage: Message = {
         id: Math.random().toString(),
@@ -134,11 +140,16 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       });
       
     } catch (error) {
+      console.error('MatchStore: Failed to send message', error);
       set({ error: 'Failed to send message' });
     }
   },
   
   clearError: () => {
-    set({ error: null });
+    try {
+      set({ error: null });
+    } catch (error) {
+      console.error('MatchStore: Error in clearError', error);
+    }
   },
 }));
