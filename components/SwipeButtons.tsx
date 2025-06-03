@@ -48,7 +48,7 @@ export default function SwipeButtons({ onWave, onPass, onAnchor, isAnchored = fa
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={[colors.gradient.sunset[0], colors.gradient.sunset[1]]}
+          colors={[colors.gradient.sunset[0], colors.gradient.sunset[1]] as readonly [string, string]}
           style={styles.waveButton}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
