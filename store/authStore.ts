@@ -68,6 +68,7 @@ export const useAuthStore = create<AuthState>()(
           
           const user: User = {
             id: Math.random().toString(36).substring(7),
+            email,
             displayName,
             createdAt: new Date(),
             verified: false,
