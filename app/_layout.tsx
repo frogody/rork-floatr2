@@ -8,7 +8,7 @@ import * as SystemUI from 'expo-system-ui';
 import colors from '@/constants/colors';
 
 export default function RootLayout() {
-  const { isAuthenticated, checkAuth, initialize, isInitialized } = useAuthStore();
+  const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
 
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
@@ -19,9 +19,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isInitialized) {
-      initialize();
+      checkAuth();
     }
-    checkAuth();
     
     // Set system UI colors
     SystemUI.setBackgroundColorAsync(colors.background.primary);
