@@ -66,13 +66,13 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.dislikeButton,
           { 
             backgroundColor: colors.surface.primary,
-            borderColor: colors.error,
+            borderColor: colors.pass,
           }
         ]}
         onPress={() => handlePress(onDislike)}
         activeOpacity={0.7}
       >
-        <X size={32} color={colors.error} />
+        <X size={32} color={colors.pass} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -82,13 +82,13 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.superlikeButton,
           { 
             backgroundColor: colors.surface.primary,
-            borderColor: colors.warning,
+            borderColor: colors.superLike,
           }
         ]}
         onPress={() => handlePress(onSuperlike)}
         activeOpacity={0.7}
       >
-        <Star size={32} color={colors.warning} fill={colors.warning} />
+        <Star size={32} color={colors.superLike} fill={colors.superLike} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -98,13 +98,13 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.likeButton,
           { 
             backgroundColor: colors.surface.primary,
-            borderColor: colors.success,
+            borderColor: colors.like,
           }
         ]}
         onPress={() => handlePress(onLike)}
         activeOpacity={0.7}
       >
-        <Heart size={32} color={colors.success} fill={colors.success} />
+        <Heart size={32} color={colors.like} fill={colors.like} />
       </TouchableOpacity>
     </View>
   );

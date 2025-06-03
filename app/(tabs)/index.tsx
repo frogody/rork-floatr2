@@ -10,6 +10,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
 import { 
   Search, 
   Filter, 
@@ -18,9 +19,13 @@ import {
   Anchor, 
   Navigation2,
   Compass,
-  Waves
+  Waves,
+  TrendingUp,
+  Calendar,
+  Star
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
+import { mockCrews } from '@/mocks/crews';
 
 export default function DiscoveryScreen() {
   const colorScheme = useColorScheme();
@@ -37,62 +42,51 @@ export default function DiscoveryScreen() {
     { id: 'nearby', label: 'Nearby', icon: MapPin },
   ];
 
-  const nearbyCrews = [
-    {
-      id: '1',
-      name: 'Sunset Sailors',
-      distance: '1.2 mi',
-      status: 'anchored',
-      photoUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=400',
-      crewSize: 4,
-    },
-    {
-      id: '2',
-      name: 'Ocean Explorers',
-      distance: '2.8 mi',
-      status: 'moving',
-      photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=400',
-      crewSize: 6,
-    },
-    {
-      id: '3',
-      name: 'Bay Cruisers',
-      distance: '0.8 mi',
-      status: 'docked',
-      photoUrl: 'https://images.unsplash.com/photo-1566024287286-457247b70310?q=80&w=400',
-      crewSize: 3,
-    },
-    {
-      id: '4',
-      name: 'Marina Masters',
-      distance: '3.1 mi',
-      status: 'anchored',
-      photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400',
-      crewSize: 5,
-    },
-    {
-      id: '5',
-      name: 'Coastal Cruisers',
-      distance: '0.5 mi',
-      status: 'moving',
-      photoUrl: 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?q=80&w=400',
-      crewSize: 2,
-    },
-  ];
+  const nearbyCrews = mockCrews.slice(0, 5).map(crew => ({
+    id: crew.id,
+    name: crew.name,
+    distance: `${crew.distance} mi`,
+    status: crew.isActive ? 'active' : 'offline',
+    photoUrl: crew.imageUrl,
+    crewSize: crew.memberCount,
+    verified: crew.verified,
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'anchored': return colors.accent;
-      case 'moving': return colors.primary;
-      case 'docked': return colors.secondary;
+      case 'active': return colors.success;
+      case 'offline': return colors.text.secondary;
       default: return colors.text.secondary;
     }
   };
 
   const filteredCrews = nearbyCrews.filter(crew => {
     if (selectedFilter === 'all') return true;
+    if (selectedFilter === 'nearby') return parseFloat(crew.distance) < 2;
     return crew.status === selectedFilter;
   });
+
+  const handleCrewPress = (crewId: string) => {
+    // Navigate to crew detail screen
+    router.push(`/crew/${crewId}`);
+  };
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'spots':
+        router.push('/spots');
+        break;
+      case 'weather':
+        router.push('/weather');
+        break;
+      case 'events':
+        router.push('/events');
+        break;
+      case 'trending':
+        router.push('/trending');
+        break;
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
@@ -101,7 +95,7 @@ export default function DiscoveryScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Discover</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>Find crews near you</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>Find crews and experiences</Text>
       </View>
 
       {/* Search */}
@@ -116,7 +110,10 @@ export default function DiscoveryScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}>
+        <TouchableOpacity 
+          style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
+          onPress={() => router.push('/filters')}
+        >
           <Filter size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -167,25 +164,91 @@ export default function DiscoveryScreen() {
             </Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>3</Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Anchored</Text>
+            <Text style={[styles.statNumber, { color: colors.text.primary }]}>12</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Active</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>2</Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Marinas</Text>
+            <Text style={[styles.statNumber, { color: colors.text.primary }]}>5</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Events</Text>
           </View>
         </View>
       </View>
 
-      {/* Crew List */}
-      <ScrollView style={styles.crewList} showsVerticalScrollIndicator={false}>
+      {/* Content */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity 
+            style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
+            onPress={() => handleQuickAction('spots')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <MapPin size={24} color={colors.primary} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Popular Spots</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Trending locations</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
+            onPress={() => handleQuickAction('weather')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <Waves size={24} color={colors.accent} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Weather</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Check conditions</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity 
+            style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
+            onPress={() => handleQuickAction('events')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <Calendar size={24} color={colors.secondary} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Events</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Upcoming meetups</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
+            onPress={() => handleQuickAction('trending')}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <TrendingUp size={24} color={colors.success} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Trending</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Hot topics</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Crew List */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Nearby Crews</Text>
+          <TouchableOpacity onPress={() => router.push('/crews')}>
+            <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.crewListContent}>
           {filteredCrews.map((crew) => (
-            <TouchableOpacity key={crew.id} style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}>
+            <TouchableOpacity 
+              key={crew.id} 
+              style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}
+              onPress={() => handleCrewPress(crew.id)}
+            >
               <Image source={{ uri: crew.photoUrl }} style={styles.crewImage} />
               <View style={styles.crewInfo}>
                 <View style={styles.crewHeader}>
-                  <Text style={[styles.crewName, { color: colors.text.primary }]}>{crew.name}</Text>
+                  <View style={styles.crewNameContainer}>
+                    <Text style={[styles.crewName, { color: colors.text.primary }]}>{crew.name}</Text>
+                    {crew.verified && (
+                      <Star size={14} color={colors.primary} fill={colors.primary} />
+                    )}
+                  </View>
                   <Text style={[styles.crewDistance, { color: colors.text.secondary }]}>{crew.distance}</Text>
                 </View>
                 <View style={styles.crewDetails}>
@@ -193,7 +256,7 @@ export default function DiscoveryScreen() {
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(crew.status) }]} />
                     <Text style={[styles.statusText, { color: colors.text.secondary }]}>{crew.status}</Text>
                   </View>
-                  <Text style={[styles.crewSizeText, { color: colors.text.secondary }]}>{crew.crewSize} crew</Text>
+                  <Text style={[styles.crewSizeText, { color: colors.text.secondary }]}>{crew.crewSize} members</Text>
                 </View>
               </View>
               <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}>
@@ -201,25 +264,6 @@ export default function DiscoveryScreen() {
               </TouchableOpacity>
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActionsGrid}>
-          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}>
-            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
-              <MapPin size={24} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Popular Spots</Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Discover trending locations</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}>
-            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
-              <Waves size={24} color={colors.accent} />
-            </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Weather</Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Check conditions</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -309,8 +353,53 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
   },
-  crewList: {
+  content: {
     flex: 1,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+    marginBottom: 16,
+  },
+  quickActionCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  quickActionSubtitle: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   crewListContent: {
     paddingHorizontal: 20,
@@ -337,6 +426,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6,
+  },
+  crewNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   crewName: {
     fontSize: 16,
@@ -374,34 +468,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 12,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
-    marginBottom: 20,
-  },
-  quickActionCard: {
-    flex: 1,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-  },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  quickActionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  quickActionSubtitle: {
-    fontSize: 12,
-    textAlign: 'center',
   },
 });

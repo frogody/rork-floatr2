@@ -33,18 +33,10 @@ const colors = {
   error: '#FF3B30',
   info: '#007AFF',
   
-  status: {
-    success: '#34C759',
-    warning: '#FF9500',
-    error: '#FF3B30',
-    info: '#007AFF',
-    disabled: '#48484A',
-  },
-  
   // Semantic colors
-  like: '#FF3B30',
+  like: '#34C759',
   superLike: '#007AFF',
-  pass: '#8E8E93',
+  pass: '#FF3B30',
   
   // Gradients
   gradients: {
@@ -91,18 +83,10 @@ const lightColors = {
   error: '#FF3B30',
   info: '#007AFF',
   
-  status: {
-    success: '#34C759',
-    warning: '#FF9500',
-    error: '#FF3B30',
-    info: '#007AFF',
-    disabled: '#8E8E93',
-  },
-  
   // Semantic colors
-  like: '#FF3B30',
+  like: '#34C759',
   superLike: '#007AFF',
-  pass: '#8E8E93',
+  pass: '#FF3B30',
   
   // Gradients
   gradients: {

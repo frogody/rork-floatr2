@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
@@ -22,7 +21,6 @@ const { width, height } = Dimensions.get('window');
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
-  const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
   const imageAnim = React.useRef(new Animated.Value(0)).current;
@@ -45,7 +43,7 @@ export default function WelcomeScreen() {
 
   React.useEffect(() => {
     if (isInitialized && isAuthenticated) {
-      router.replace('/(tabs)/nearby');
+      router.replace('/(tabs)/index');
     }
   }, [isAuthenticated, isInitialized]);
 
@@ -106,11 +104,11 @@ export default function WelcomeScreen() {
 
   if (!isInitialized) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.primary }]}>
         <StatusBar style="light" />
         <Animated.View style={[styles.loadingContent, { opacity: fadeAnim }]}>
-          <View style={styles.loadingIcon}>
-            <Anchor size={32} color={colors.primary} />
+          <View style={[styles.loadingIcon, { backgroundColor: colors.primary }]}>
+            <Anchor size={32} color={colors.background.primary} />
           </View>
           <Text style={[styles.loadingText, { color: colors.text.primary }]}>Floatr</Text>
         </Animated.View>
@@ -145,8 +143,8 @@ export default function WelcomeScreen() {
         style={[
           styles.content,
           {
-            paddingTop: insets.top + 60,
-            paddingBottom: insets.bottom + 32,
+            paddingTop: 60,
+            paddingBottom: 32,
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }]
           }
