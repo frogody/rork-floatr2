@@ -24,12 +24,12 @@ const colors = {
 
   // Gradient colors - properly typed as readonly tuples
   gradient: {
-    blue: ["#3B82F6", "#2563EB"] as readonly [string, string],
-    purple: ["#8B5CF6", "#6D28D9"] as readonly [string, string],
-    pink: ["#EC4899", "#DB2777"] as readonly [string, string],
-    sunset: ["#F59E0B", "#EC4899"] as readonly [string, string],
-    ocean: ["#0EA5E9", "#3B82F6"] as readonly [string, string],
+    blue: ["#3B82F6", "#2563EB"] as const,
+    purple: ["#8B5CF6", "#6D28D9"] as const,
+    pink: ["#EC4899", "#DB2777"] as const,
+    sunset: ["#F59E0B", "#EC4899"] as const,
+    ocean: ["#0EA5E9", "#3B82F6"] as const,
   },
-};
+} as const;
 
 export default colors;
