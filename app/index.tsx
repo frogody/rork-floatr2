@@ -9,7 +9,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 
