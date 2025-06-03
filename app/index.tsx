@@ -18,7 +18,7 @@ import { Anchor } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1527489377706-5bf97e608852?q=80&w=2959&auto=format&fit=crop';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;

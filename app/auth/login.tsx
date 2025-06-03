@@ -16,7 +16,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      showToast('Please fill in all fields', 'error');
+      showToast('Please fill in all fields');
       return;
     }
 
@@ -25,7 +25,7 @@ export default function LoginScreen() {
       await signIn(email, password);
       router.replace('/(tabs)');
     } catch (error) {
-      showToast('Invalid email or password', 'error');
+      showToast('Invalid email or password');
     } finally {
       setIsLoading(false);
     }
