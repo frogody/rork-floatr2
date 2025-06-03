@@ -27,7 +27,7 @@ import {
   Award,
   Shield
 } from 'lucide-react-native';
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 

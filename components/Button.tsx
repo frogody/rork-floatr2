@@ -13,7 +13,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'text';
 type ButtonSize = 'small' | 'medium' | 'large';
 
 interface ButtonProps {
@@ -129,6 +129,11 @@ export function Button({
           ...baseStyles,
           backgroundColor: 'transparent',
         };
+      case 'text':
+        return {
+          ...baseStyles,
+          backgroundColor: 'transparent',
+        };
       case 'destructive':
         return {
           ...baseStyles,
@@ -170,6 +175,7 @@ export function Button({
     switch (variant) {
       case 'outline':
       case 'ghost':
+      case 'text':
         return colors.primary;
       case 'destructive':
         return colors.text.primary;

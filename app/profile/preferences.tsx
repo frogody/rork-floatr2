@@ -21,7 +21,7 @@ import {
   Filter,
   Save
 } from 'lucide-react-native';
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
 
 export default function PreferencesScreen() {

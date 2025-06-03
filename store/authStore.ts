@@ -102,7 +102,7 @@ export const useAuthStore = create<AuthState>()(
             lastActive: new Date(),
             photos: [],
             preferences: {
-              ageRange: [25, 45],
+              ageRange: [25, 45] as [number, number],
               maxDistance: 50,
               showMe: 'everyone',
               boatTypes: [],
@@ -153,7 +153,7 @@ export const useAuthStore = create<AuthState>()(
             lastActive: new Date(),
             photos: [],
             preferences: {
-              ageRange: [25, 45],
+              ageRange: [25, 45] as [number, number],
               maxDistance: 50,
               showMe: 'everyone',
               boatTypes: [],

@@ -18,7 +18,7 @@ export interface User {
   createdAt: Date;
   lastActive: Date;
   photos?: UserPhoto[];
-  preferences?: UserPreferences;
+  preferences: UserPreferences;
 }
 
 export interface UserPhoto {
