@@ -1,22 +1,49 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList,
-  RefreshControl,
-  Platform
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
 import colors from '@/constants/colors';
-import { CrewCard } from '@/components/CrewCard';
-import { SwipeButtons } from '@/components/SwipeButtons';
-import { useSwipeStore } from '@/store/swipeStore';
-import { SkeletonLoader } from '@/components/SkeletonLoader';
-import { Filter, Bell } from 'lucide-react-native';
-import { Button } from '@/components/Button';
-import { useToastStore } from '@/hooks/useToast';
 
-// Rest of the file remains unchanged
+export default function HomeScreen() {
+  return (
+    <View style={styles.container}>
+      <Stack.Screen 
+        options={{
+          title: 'Discover',
+          headerStyle: {
+            backgroundColor: colors.background.primary,
+          },
+          headerTintColor: colors.text.primary,
+        }}
+      />
+      
+      <View style={styles.content}>
+        <Text style={styles.title}>Welcome to Floatr</Text>
+        <Text style={styles.subtitle}>Start exploring nearby boaters</Text>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+});
