@@ -43,7 +43,10 @@ export default function WelcomeScreen() {
 
   React.useEffect(() => {
     if (isInitialized && isAuthenticated) {
-      router.replace('/(tabs)/index');
+      // Use replace to avoid navigation stack issues
+      setTimeout(() => {
+        router.replace('/(tabs)/index');
+      }, 100);
     }
   }, [isAuthenticated, isInitialized]);
 

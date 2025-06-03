@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Crew } from '@/types';
+import { Crew } from '@/mocks/crews';
 import { mockCrews } from '@/mocks/crews';
 
 interface SwipeState {
@@ -44,9 +44,11 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
       // In a real app, this would fetch from an API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Use mock data for now
+      // Shuffle the crews for variety in matching
+      const shuffledCrews = [...mockCrews].sort(() => Math.random() - 0.5);
+      
       set({ 
-        crews: mockCrews, 
+        crews: shuffledCrews, 
         currentIndex: 0,
         isLoading: false 
       });

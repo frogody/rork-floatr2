@@ -33,14 +33,6 @@ export default function DiscoveryScreen() {
   const colors = getColors(isDark);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
-
-  const filters = [
-    { id: 'all', label: 'All', icon: Users },
-    { id: 'anchored', label: 'Anchored', icon: Anchor },
-    { id: 'moving', label: 'Moving', icon: Navigation2 },
-    { id: 'nearby', label: 'Nearby', icon: MapPin },
-  ];
 
   const nearbyCrews = mockCrews.slice(0, 5).map(crew => ({
     id: crew.id,
@@ -59,12 +51,6 @@ export default function DiscoveryScreen() {
       default: return colors.text.secondary;
     }
   };
-
-  const filteredCrews = nearbyCrews.filter(crew => {
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'nearby') return parseFloat(crew.distance) < 2;
-    return crew.status === selectedFilter;
-  });
 
   const handleCrewPress = (crewId: string) => {
     router.push(`/crew/${crewId}`);
@@ -117,49 +103,15 @@ export default function DiscoveryScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filter Tabs */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.filtersContainer}
-        contentContainerStyle={styles.filtersContent}
-      >
-        {filters.map((filter) => {
-          const IconComponent = filter.icon;
-          const isSelected = selectedFilter === filter.id;
-          return (
-            <TouchableOpacity
-              key={filter.id}
-              style={[
-                styles.filterTab, 
-                { backgroundColor: isSelected ? colors.primary : colors.surface.primary }
-              ]}
-              onPress={() => setSelectedFilter(filter.id)}
-            >
-              <IconComponent 
-                size={18} 
-                color={isSelected ? colors.text.primary : colors.text.secondary} 
-              />
-              <Text style={[
-                styles.filterTabText, 
-                { color: isSelected ? colors.text.primary : colors.text.secondary }
-              ]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
       {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={[styles.statsCard, { backgroundColor: colors.surface.primary }]}>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {filteredCrews.length}
+              {nearbyCrews.length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              {selectedFilter === 'all' ? 'Nearby' : selectedFilter}
+              Nearby
             </Text>
           </View>
           <View style={styles.statItem}>
@@ -214,13 +166,13 @@ export default function DiscoveryScreen() {
           
           <TouchableOpacity 
             style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
-            onPress={() => handleQuickAction('trending')}
+            onPress={() => router.push('/(tabs)/match')}
           >
             <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
               <TrendingUp size={24} color={colors.success} />
             </View>
-            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Trending</Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Hot crews</Text>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Match</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Find crews</Text>
           </TouchableOpacity>
         </View>
 
@@ -233,7 +185,7 @@ export default function DiscoveryScreen() {
         </View>
 
         <View style={styles.crewListContent}>
-          {filteredCrews.map((crew) => (
+          {nearbyCrews.map((crew) => (
             <TouchableOpacity 
               key={crew.id} 
               style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}
@@ -311,25 +263,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  filtersContainer: {
-    marginBottom: 20,
-  },
-  filtersContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  filterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 8,
-  },
-  filterTabText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   statsContainer: {
     paddingHorizontal: 20,

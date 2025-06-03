@@ -33,14 +33,24 @@ export default function NearbyScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
+  // Ensure mockCrews is always an array
+  const safeCrews = Array.isArray(mockCrews) ? mockCrews : [];
+
   const filters = [
-    { id: 'all', label: 'All Crews', count: mockCrews.length },
-    { id: 'active', label: 'Active Now', count: mockCrews.filter(c => c.isActive).length },
-    { id: 'nearby', label: 'Under 2 mi', count: mockCrews.filter(c => c.distance < 2).length },
-    { id: 'verified', label: 'Verified', count: mockCrews.filter(c => c.verified).length },
+    { id: 'all', label: 'All', icon: Users },
+    { id: 'anchored', label: 'Anchored', icon: Anchor },
+    { id: 'moving', label: 'Moving', icon: Navigation2 },
+    { id: 'nearby', label: 'Nearby', icon: MapPin },
   ];
 
-  const filteredCrews = mockCrews.filter(crew => {
+  const quickFilters = [
+    { id: 'all', label: 'All Crews', count: safeCrews.length },
+    { id: 'active', label: 'Active Now', count: safeCrews.filter(c => c.isActive).length },
+    { id: 'nearby', label: 'Under 2 mi', count: safeCrews.filter(c => c.distance < 2).length },
+    { id: 'verified', label: 'Verified', count: safeCrews.filter(c => c.verified).length },
+  ];
+
+  const filteredCrews = safeCrews.filter(crew => {
     switch (selectedFilter) {
       case 'active':
         return crew.isActive;
@@ -48,6 +58,10 @@ export default function NearbyScreen() {
         return crew.distance < 2;
       case 'verified':
         return crew.verified;
+      case 'anchored':
+        return !crew.isActive; // Assuming non-active crews are anchored
+      case 'moving':
+        return crew.isActive; // Assuming active crews are moving
       default:
         return true;
     }
@@ -101,7 +115,41 @@ export default function NearbyScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filters */}
+      {/* Quick Filter Tabs */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.quickFiltersContainer}
+        contentContainerStyle={styles.quickFiltersContent}
+      >
+        {filters.map((filter) => {
+          const IconComponent = filter.icon;
+          const isSelected = selectedFilter === filter.id;
+          return (
+            <TouchableOpacity
+              key={filter.id}
+              style={[
+                styles.quickFilterTab, 
+                { backgroundColor: isSelected ? colors.primary : colors.surface.primary }
+              ]}
+              onPress={() => setSelectedFilter(filter.id)}
+            >
+              <IconComponent 
+                size={14} 
+                color={isSelected ? colors.text.primary : colors.text.secondary} 
+              />
+              <Text style={[
+                styles.quickFilterTabText, 
+                { color: isSelected ? colors.text.primary : colors.text.secondary }
+              ]}>
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Detailed Filters */}
       {showFilters && (
         <View style={styles.filtersContainer}>
           <ScrollView 
@@ -109,7 +157,7 @@ export default function NearbyScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filtersContent}
           >
-            {filters.map((filter) => {
+            {quickFilters.map((filter) => {
               const isSelected = selectedFilter === filter.id;
               return (
                 <TouchableOpacity
@@ -274,6 +322,25 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  quickFiltersContainer: {
+    marginBottom: 8,
+  },
+  quickFiltersContent: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  quickFilterTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  quickFilterTabText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   filtersContainer: {
     paddingBottom: 16,
