@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, Boat } from '@/types';
+import { User, Boat, UserPreferences, UserPhoto } from '@/types';
 
 interface SignUpParams {
   email: string;
@@ -27,6 +27,10 @@ interface AuthState {
   signOut: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   updateBoat: (boatData: Partial<Boat>) => void;
+  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+  addPhoto: (photo: UserPhoto) => void;
+  removePhoto: (photoId: string) => void;
+  setMainPhoto: (photoId: string) => void;
   setOnboarded: (value: boolean) => void;
   setHasSeenTutorial: (value: boolean) => void;
   blockUser: (userId: string) => void;
@@ -96,6 +100,17 @@ export const useAuthStore = create<AuthState>()(
             displayName: email.split('@')[0],
             createdAt: new Date(),
             lastActive: new Date(),
+            photos: [],
+            preferences: {
+              ageRange: [25, 45],
+              maxDistance: 50,
+              showMe: 'everyone',
+              boatTypes: [],
+              experienceLevel: [],
+              activities: [],
+              onlyVerified: false,
+              onlyWithBoats: false,
+            },
           };
           
           set({ 
@@ -136,6 +151,17 @@ export const useAuthStore = create<AuthState>()(
             displayName: displayName.trim(),
             createdAt: new Date(),
             lastActive: new Date(),
+            photos: [],
+            preferences: {
+              ageRange: [25, 45],
+              maxDistance: 50,
+              showMe: 'everyone',
+              boatTypes: [],
+              experienceLevel: [],
+              activities: [],
+              onlyVerified: false,
+              onlyWithBoats: false,
+            },
           };
           
           set({ 
@@ -194,6 +220,65 @@ export const useAuthStore = create<AuthState>()(
         const { boat } = get();
         const updatedBoat = boat ? { ...boat, ...boatData } : boatData as Boat;
         set({ boat: updatedBoat });
+      },
+
+      updatePreferences: (preferences: Partial<UserPreferences>) => {
+        const { user } = get();
+        if (user) {
+          const updatedUser = {
+            ...user,
+            preferences: {
+              ...user.preferences,
+              ...preferences,
+            },
+            lastActive: new Date(),
+          };
+          set({ user: updatedUser });
+        }
+      },
+
+      addPhoto: (photo: UserPhoto) => {
+        const { user } = get();
+        if (user) {
+          const updatedPhotos = [...(user.photos || []), photo];
+          const updatedUser = {
+            ...user,
+            photos: updatedPhotos,
+            lastActive: new Date(),
+          };
+          set({ user: updatedUser });
+        }
+      },
+
+      removePhoto: (photoId: string) => {
+        const { user } = get();
+        if (user && user.photos) {
+          const updatedPhotos = user.photos.filter(photo => photo.id !== photoId);
+          const updatedUser = {
+            ...user,
+            photos: updatedPhotos,
+            lastActive: new Date(),
+          };
+          set({ user: updatedUser });
+        }
+      },
+
+      setMainPhoto: (photoId: string) => {
+        const { user } = get();
+        if (user && user.photos) {
+          const updatedPhotos = user.photos.map(photo => ({
+            ...photo,
+            isMain: photo.id === photoId,
+          }));
+          const mainPhoto = updatedPhotos.find(photo => photo.isMain);
+          const updatedUser = {
+            ...user,
+            photos: updatedPhotos,
+            avatarUrl: mainPhoto?.url,
+            lastActive: new Date(),
+          };
+          set({ user: updatedUser });
+        }
       },
 
       setOnboarded: (value: boolean) => {

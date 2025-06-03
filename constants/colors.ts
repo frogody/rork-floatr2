@@ -1,107 +1,88 @@
-const colors = {
+export interface ColorScheme {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: {
+    primary: string;
+    secondary: string;
+  };
+  surface: {
+    primary: string;
+    secondary: string;
+  };
+  text: {
+    primary: string;
+    secondary: string;
+    inverse: string;
+  };
+  border: {
+    primary: string;
+    secondary: string;
+  };
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
+}
+
+const lightColors: ColorScheme = {
   primary: '#007AFF',
-  secondary: '#5856D6',
-  accent: '#FF9500',
-  
+  secondary: '#5AC8FA',
+  accent: '#34C759',
+  background: {
+    primary: '#FFFFFF',
+    secondary: '#F2F2F7',
+  },
+  surface: {
+    primary: '#FFFFFF',
+    secondary: '#F2F2F7',
+  },
+  text: {
+    primary: '#000000',
+    secondary: '#8E8E93',
+    inverse: '#FFFFFF',
+  },
+  border: {
+    primary: '#E5E5EA',
+    secondary: '#D1D1D6',
+  },
+  success: '#34C759',
+  warning: '#FF9500',
+  error: '#FF3B30',
+  info: '#007AFF',
+};
+
+const darkColors: ColorScheme = {
+  primary: '#0A84FF',
+  secondary: '#64D2FF',
+  accent: '#30D158',
   background: {
     primary: '#000000',
     secondary: '#1C1C1E',
-    tertiary: '#2C2C2E',
-    card: '#1C1C1E',
   },
-  
   surface: {
     primary: '#1C1C1E',
     secondary: '#2C2C2E',
-    tertiary: '#3A3A3C',
   },
-  
   text: {
     primary: '#FFFFFF',
     secondary: '#8E8E93',
-    tertiary: '#48484A',
-    disabled: '#48484A',
+    inverse: '#000000',
   },
-  
   border: {
     primary: '#38383A',
     secondary: '#48484A',
   },
-  
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  info: '#007AFF',
-  
-  // Semantic colors
-  like: '#34C759',
-  superLike: '#007AFF',
-  pass: '#FF3B30',
-  
-  // Gradients
-  gradients: {
-    primary: ['#007AFF', '#5856D6'],
-    secondary: ['#FF9500', '#FF3B30'],
-    success: ['#34C759', '#30D158'],
-    premium: ['#FFD700', '#FFA500'],
-  },
+  success: '#30D158',
+  warning: '#FF9F0A',
+  error: '#FF453A',
+  info: '#0A84FF',
 };
 
-// Light theme colors
-const lightColors = {
-  primary: '#007AFF',
-  secondary: '#5856D6',
-  accent: '#FF9500',
-  
-  background: {
-    primary: '#FFFFFF',
-    secondary: '#F2F2F7',
-    tertiary: '#FFFFFF',
-    card: '#FFFFFF',
-  },
-  
-  surface: {
-    primary: '#FFFFFF',
-    secondary: '#F2F2F7',
-    tertiary: '#E5E5EA',
-  },
-  
-  text: {
-    primary: '#000000',
-    secondary: '#3C3C43',
-    tertiary: '#8E8E93',
-    disabled: '#8E8E93',
-  },
-  
-  border: {
-    primary: '#C6C6C8',
-    secondary: '#E5E5EA',
-  },
-  
-  success: '#34C759',
-  warning: '#FF9500',
-  error: '#FF3B30',
-  info: '#007AFF',
-  
-  // Semantic colors
-  like: '#34C759',
-  superLike: '#007AFF',
-  pass: '#FF3B30',
-  
-  // Gradients
-  gradients: {
-    primary: ['#007AFF', '#5856D6'],
-    secondary: ['#FF9500', '#FF3B30'],
-    success: ['#34C759', '#30D158'],
-    premium: ['#FFD700', '#FFA500'],
-  },
+export const getColors = (isDark: boolean): ColorScheme => {
+  return isDark ? darkColors : lightColors;
 };
 
-// Export both dark and light colors with the same structure
+// Legacy export for backward compatibility
+const colors = lightColors;
 export default colors;
-export { lightColors };
-
-// Helper function to get colors based on theme
-export const getColors = (isDark: boolean) => {
-  return isDark ? colors : lightColors;
-};

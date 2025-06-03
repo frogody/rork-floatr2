@@ -92,6 +92,20 @@ export default function RootLayout() {
               }} 
             />
             <Stack.Screen 
+              name="profile/photos" 
+              options={{ 
+                title: 'Manage Photos',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="profile/preferences" 
+              options={{ 
+                title: 'Preferences',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
               name="boat/edit" 
               options={{ 
                 title: 'Edit Boat',
@@ -113,23 +127,100 @@ export default function RootLayout() {
               }} 
             />
             <Stack.Screen 
-              name="settings" 
+              name="settings/index" 
               options={{ 
                 title: 'Settings',
                 headerShown: true 
               }} 
             />
             <Stack.Screen 
-              name="help" 
+              name="settings/account" 
               options={{ 
-                title: 'Help',
+                title: 'Account',
                 headerShown: true 
               }} 
             />
             <Stack.Screen 
-              name="legal" 
+              name="settings/privacy" 
+              options={{ 
+                title: 'Privacy & Safety',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="settings/notifications" 
+              options={{ 
+                title: 'Notifications',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="settings/blocked-users" 
+              options={{ 
+                title: 'Blocked Users',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="settings/analytics" 
+              options={{ 
+                title: 'Data & Analytics',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="help/index" 
+              options={{ 
+                title: 'Help & Support',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="help/faq" 
+              options={{ 
+                title: 'FAQ',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="help/safety" 
+              options={{ 
+                title: 'Safety Center',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="help/feedback" 
+              options={{ 
+                title: 'Feedback',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="help/emergency" 
+              options={{ 
+                title: 'Emergency',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="legal/index" 
               options={{ 
                 title: 'Legal',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="legal/terms" 
+              options={{ 
+                title: 'Terms of Service',
+                headerShown: true 
+              }} 
+            />
+            <Stack.Screen 
+              name="legal/privacy" 
+              options={{ 
+                title: 'Privacy Policy',
                 headerShown: true 
               }} 
             />
