@@ -41,19 +41,32 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   fetchCrews: async () => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would fetch from an API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Use mock data for now
-      set({ 
-        crews: mockCrews, 
-        currentIndex: 0,
-        isLoading: false 
-      });
+      if (mockCrews && mockCrews.length > 0) {
+        set({ 
+          crews: mockCrews, 
+          currentIndex: 0,
+          isLoading: false,
+          error: null,
+        });
+      } else {
+        set({ 
+          crews: [],
+          currentIndex: 0,
+          isLoading: false,
+          error: 'No crews available in your area',
+        });
+      }
     } catch (error) {
+      console.error('Failed to fetch crews:', error);
       set({ 
-        error: 'Failed to fetch crews', 
-        isLoading: false 
+        error: 'Failed to load crews. Please try again.', 
+        isLoading: false,
+        crews: [],
+        currentIndex: 0,
       });
     }
   },
@@ -140,6 +153,7 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         type: null,
         crewId: null,
       },
+      error: null,
     });
   },
   

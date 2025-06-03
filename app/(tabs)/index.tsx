@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, ActivityIndicator } from 'react-native';
 import { useSwipeStore } from '@/store/swipeStore';
 import { CrewCard } from '@/components/CrewCard';
 import { SwipeButtons } from '@/components/SwipeButtons';
 import HeartAnimation from '@/components/HeartAnimation';
 import MatchAnimation from '@/components/MatchAnimation';
+import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
+import { RefreshCw } from 'lucide-react-native';
 
 const { height } = Dimensions.get('window');
 
@@ -20,6 +22,7 @@ export default function DiscoveryScreen() {
     undoLastAction,
     lastAction,
     isLoading,
+    error,
   } = useSwipeStore();
 
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
@@ -43,10 +46,54 @@ export default function DiscoveryScreen() {
     setShowMatchAnimation(true);
   };
 
-  if (isLoading || !crews.length) {
+  const handleRetry = () => {
+    fetchCrews();
+  };
+
+  // Loading state
+  if (isLoading) {
     return (
-      <View style={styles.container}>
-        {/* Add loading state or empty state UI here */}
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Finding crews near you...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button
+          title="Try Again"
+          onPress={handleRetry}
+          variant="primary"
+          size="large"
+          style={styles.retryButton}
+          icon={<RefreshCw size={20} color={colors.background.primary} />}
+        />
+      </View>
+    );
+  }
+
+  // No crews available
+  if (!crews.length) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.emptyTitle}>No crews found</Text>
+        <Text style={styles.emptyText}>
+          We could not find any crews in your area. Try expanding your search radius or check back later.
+        </Text>
+        <Button
+          title="Refresh"
+          onPress={handleRetry}
+          variant="primary"
+          size="large"
+          style={styles.retryButton}
+          icon={<RefreshCw size={20} color={colors.background.primary} />}
+        />
       </View>
     );
   }
@@ -54,10 +101,22 @@ export default function DiscoveryScreen() {
   const currentCrew = crews[currentIndex];
   const canUndo = lastAction.type !== null && lastAction.crewId !== null;
 
+  // No more crews to show
   if (!currentCrew) {
     return (
-      <View style={styles.container}>
-        {/* Add no more crews UI here */}
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.emptyTitle}>That's everyone!</Text>
+        <Text style={styles.emptyText}>
+          You have seen all available crews in your area. Check back later for new members.
+        </Text>
+        <Button
+          title="Start Over"
+          onPress={handleRetry}
+          variant="primary"
+          size="large"
+          style={styles.retryButton}
+          icon={<RefreshCw size={20} color={colors.background.primary} />}
+        />
       </View>
     );
   }
@@ -96,6 +155,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.primary,
   },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
   cardContainer: {
     flex: 1,
     marginHorizontal: 16,
@@ -105,5 +169,45 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: colors.text.secondary,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: colors.text.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.secondary,
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: colors.text.primary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.secondary,
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  retryButton: {
+    minWidth: 140,
   },
 });

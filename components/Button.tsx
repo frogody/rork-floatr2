@@ -4,22 +4,17 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Platform,
   ViewStyle,
   TextStyle,
-  Animated,
+  View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
-
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
-type ButtonSize = 'small' | 'medium' | 'large';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'small' | 'medium' | 'large';
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
@@ -28,7 +23,7 @@ interface ButtonProps {
   iconPosition?: 'left' | 'right';
 }
 
-export function Button({
+export const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
   variant = 'primary',
@@ -39,164 +34,144 @@ export function Button({
   textStyle,
   icon,
   iconPosition = 'left',
-}: ButtonProps) {
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+}) => {
+  const buttonStyle = [
+    styles.base,
+    styles[variant],
+    styles[size],
+    (disabled || loading) && styles.disabled,
+    style,
+  ];
 
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
+  const textStyles = [
+    styles.text,
+    styles[`${variant}Text`],
+    styles[`${size}Text`],
+    (disabled || loading) && styles.disabledText,
+    textStyle,
+  ];
 
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
-
-  const handlePress = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    onPress();
-  };
-
-  const getVariantStyles = (): ViewStyle => {
-    switch (variant) {
-      case 'primary':
-        return {
-          backgroundColor: colors.primary,
-        };
-      case 'secondary':
-        return {
-          backgroundColor: colors.secondary,
-        };
-      case 'outline':
-        return {
-          backgroundColor: 'transparent',
-          borderWidth: 1,
-          borderColor: colors.primary,
-        };
-      case 'ghost':
-        return {
-          backgroundColor: 'transparent',
-        };
-      default:
-        return {};
+  const handlePress = () => {
+    if (!disabled && !loading) {
+      onPress();
     }
   };
-
-  const getSizeStyles = (): ViewStyle => {
-    switch (size) {
-      case 'small':
-        return {
-          paddingVertical: 8,
-          paddingHorizontal: 16,
-          borderRadius: 8,
-        };
-      case 'large':
-        return {
-          paddingVertical: 16,
-          paddingHorizontal: 24,
-          borderRadius: 14,
-        };
-      default:
-        return {
-          paddingVertical: 12,
-          paddingHorizontal: 20,
-          borderRadius: 12,
-        };
-    }
-  };
-
-  const getTextColor = (): string => {
-    if (disabled) return colors.text.disabled;
-    switch (variant) {
-      case 'outline':
-      case 'ghost':
-        return colors.primary;
-      default:
-        return colors.text.primary;
-    }
-  };
-
-  const buttonContent = (
-    <>
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} />
-      ) : (
-        <React.Fragment>
-          {icon && iconPosition === 'left' && icon}
-          <Text
-            style={[
-              styles.text,
-              { color: getTextColor() },
-              size === 'small' && styles.smallText,
-              size === 'large' && styles.largeText,
-              icon && (iconPosition === 'left' ? styles.textWithLeftIcon : styles.textWithRightIcon),
-              textStyle,
-            ]}
-          >
-            {title}
-          </Text>
-          {icon && iconPosition === 'right' && icon}
-        </React.Fragment>
-      )}
-    </>
-  );
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <TouchableOpacity
-        onPress={handlePress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={disabled || loading}
-        style={[
-          styles.button,
-          getVariantStyles(),
-          getSizeStyles(),
-          disabled && styles.disabled,
-          style,
-        ]}
-        activeOpacity={0.9}
-      >
-        {buttonContent}
-      </TouchableOpacity>
-    </Animated.View>
+    <TouchableOpacity
+      style={buttonStyle}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      disabled={disabled || loading}
+    >
+      <View style={styles.content}>
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={variant === 'primary' ? colors.background.primary : colors.primary}
+          />
+        ) : (
+          <>
+            {icon && iconPosition === 'left' && (
+              <View style={styles.iconLeft}>{icon}</View>
+            )}
+            <Text style={textStyles}>{title}</Text>
+            {icon && iconPosition === 'right' && (
+              <View style={styles.iconRight}>{icon}</View>
+            )}
+          </>
+        )}
+      </View>
+    </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  button: {
+  base: {
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  disabled: {
-    opacity: 0.5,
+  iconLeft: {
+    marginRight: 8,
   },
+  iconRight: {
+    marginLeft: 8,
+  },
+  
+  // Variants
+  primary: {
+    backgroundColor: colors.primary,
+  },
+  secondary: {
+    backgroundColor: colors.surface.secondary,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  danger: {
+    backgroundColor: colors.status.error,
+  },
+  
+  // Sizes
+  small: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 36,
+  },
+  medium: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minHeight: 44,
+  },
+  large: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    minHeight: 52,
+  },
+  
+  // Text styles
   text: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
   },
+  primaryText: {
+    color: colors.background.primary,
+  },
+  secondaryText: {
+    color: colors.text.primary,
+  },
+  ghostText: {
+    color: colors.primary,
+  },
+  dangerText: {
+    color: colors.background.primary,
+  },
+  
+  // Text sizes
   smallText: {
     fontSize: 14,
+  },
+  mediumText: {
+    fontSize: 16,
   },
   largeText: {
     fontSize: 18,
   },
-  textWithLeftIcon: {
-    marginLeft: 8,
+  
+  // States
+  disabled: {
+    opacity: 0.5,
   },
-  textWithRightIcon: {
-    marginRight: 8,
+  disabledText: {
+    opacity: 0.7,
   },
 });

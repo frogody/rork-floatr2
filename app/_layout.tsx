@@ -31,17 +31,26 @@ export default function RootLayout() {
   }, [isInitialized, checkAuth]);
 
   useEffect(() => {
-    if (!navigationState?.key || !isInitialized) return;
+    if (!navigationState?.key || !isInitialized || !fontsLoaded) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
 
-    if (isAuthenticated && (inAuthGroup || segments[0] === undefined)) {
+    console.log('Navigation check:', { 
+      isAuthenticated, 
+      segments, 
+      inAuthGroup, 
+      inOnboardingGroup 
+    });
+
+    if (isAuthenticated && (inAuthGroup || segments.length === 0)) {
+      console.log('Redirecting to tabs');
       router.replace('/(tabs)');
     } else if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+      console.log('Redirecting to login');
       router.replace('/auth/login');
     }
-  }, [isAuthenticated, segments, navigationState?.key, isInitialized]);
+  }, [isAuthenticated, segments, navigationState?.key, isInitialized, fontsLoaded]);
 
   if (!fontsLoaded || !isInitialized) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;
