@@ -6,8 +6,8 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TRPCProvider } from '@/lib/trpc';
-import { ToastProvider } from '@/hooks/useToast';
+import { trpc, trpcClient } from '@/lib/trpc';
+import { ToastProvider } from '@/components/Toast';
 import { useAuthStore } from '@/store/authStore';
 import colors from '@/constants/colors';
 
@@ -44,11 +44,6 @@ export default function RootLayout() {
         if (Platform.OS === 'android') {
           await SystemUI.setBackgroundColorAsync(colors.background.primary);
         }
-        
-        if (Platform.OS === 'ios') {
-          // SystemUI.setStatusBarStyle is available on iOS
-          // await SystemUI.setStatusBarStyle('light');
-        }
       } catch (e) {
         console.warn(e);
       } finally {
@@ -73,7 +68,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TRPCProvider>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <ToastProvider>
           <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
             <StatusBar style="light" backgroundColor={colors.background.primary} />
@@ -123,7 +118,7 @@ export default function RootLayout() {
             </Stack>
           </View>
         </ToastProvider>
-      </TRPCProvider>
+      </trpc.Provider>
     </QueryClientProvider>
   );
 }

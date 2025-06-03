@@ -1,121 +1,92 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
-import colors from '@/constants/colors';
+import { Stack, router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { 
-  HelpCircle, 
-  Shield, 
+  LifeBuoy, 
+  MessageCircleQuestion, 
   AlertTriangle, 
-  MessageSquare, 
-  ChevronRight,
-  LifeBuoy,
-  FileText,
-  Mail
+  MessageSquarePlus, 
+  ChevronRight 
 } from 'lucide-react-native';
+import colors from '@/constants/colors';
+import EmergencyButton from '@/components/EmergencyButton';
+
+const helpSections = [
+  {
+    id: 'faq',
+    title: 'Frequently Asked Questions',
+    description: 'Get answers to common questions',
+    icon: <MessageCircleQuestion size={24} color={colors.text.primary} />,
+    route: '/help/faq',
+  },
+  {
+    id: 'safety',
+    title: 'Safety Guidelines',
+    description: 'Important safety information for boating',
+    icon: <AlertTriangle size={24} color={colors.status.warning} />,
+    route: '/help/safety',
+  },
+  {
+    id: 'feedback',
+    title: 'Send Feedback',
+    description: 'Help us improve your experience',
+    icon: <MessageSquarePlus size={24} color={colors.text.primary} />,
+    route: '/help/feedback',
+  },
+];
 
 export default function HelpScreen() {
-  const router = useRouter();
-  
-  const helpSections = [
-    {
-      id: 'faq',
-      title: 'Frequently Asked Questions',
-      description: 'Find answers to common questions',
-      icon: <HelpCircle size={24} color={colors.primary} />,
-      route: '/help/faq',
-    },
-    {
-      id: 'safety',
-      title: 'Safety Tips',
-      description: 'Stay safe while using Floatr',
-      icon: <Shield size={24} color={colors.status.success} />,
-      route: '/help/safety',
-    },
-    {
-      id: 'emergency',
-      title: 'Emergency Services',
-      description: 'Get help in emergency situations',
-      icon: <AlertTriangle size={24} color={colors.status.error} />,
-      route: '/help/emergency',
-    },
-    {
-      id: 'feedback',
-      title: 'Send Feedback',
-      description: 'Help us improve Floatr',
-      icon: <MessageSquare size={24} color={colors.status.info} />,
-      route: '/help/feedback',
-    },
-    {
-      id: 'contact',
-      title: 'Contact Support',
-      description: 'Get in touch with our support team',
-      icon: <Mail size={24} color={colors.secondary} />,
-      route: '/help/feedback',
-    },
-    {
-      id: 'terms',
-      title: 'Terms of Service',
-      description: 'Read our terms of service',
-      icon: <FileText size={24} color={colors.text.tertiary} />,
-      route: '/legal/terms',
-    },
-    {
-      id: 'privacy',
-      title: 'Privacy Policy',
-      description: 'Read our privacy policy',
-      icon: <FileText size={24} color={colors.text.tertiary} />,
-      route: '/legal/privacy',
-    },
-  ];
-  
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen
         options={{
           title: "Help & Support",
+          headerRight: () => (
+            <EmergencyButton />
+          ),
         }}
       />
       
+      <StatusBar style="light" />
+      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <LifeBuoy size={32} color={colors.text.primary} />
-          </View>
-          <Text style={styles.title}>How can we help you?</Text>
-          <Text style={styles.subtitle}>
-            Find answers, get support, and share your feedback
+          <LifeBuoy size={32} color={colors.primary} />
+          <Text style={styles.headerTitle}>How can we help?</Text>
+          <Text style={styles.headerSubtitle}>
+            Get support and learn more about using Floatr
           </Text>
         </View>
-        
-        <View style={styles.sectionList}>
+
+        <View style={styles.sections}>
           {helpSections.map((section) => (
             <TouchableOpacity
               key={section.id}
-              style={styles.sectionItem}
+              style={styles.sectionCard}
               onPress={() => router.push(section.route)}
-              activeOpacity={0.7}
             >
-              <View style={styles.sectionIcon}>
-                {section.icon}
-              </View>
               <View style={styles.sectionContent}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                <Text style={styles.sectionDescription}>{section.description}</Text>
+                <View style={styles.sectionIcon}>
+                  {section.icon}
+                </View>
+                <View style={styles.sectionText}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Text style={styles.sectionDescription}>{section.description}</Text>
+                </View>
+                <ChevronRight size={20} color={colors.text.secondary} />
               </View>
-              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
           ))}
         </View>
-        
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>Floatr v1.0.0</Text>
+
+        <View style={styles.emergencySection}>
+          <Text style={styles.emergencyTitle}>Emergency?</Text>
+          <Text style={styles.emergencyDescription}>
+            If you're in immediate danger or need urgent assistance, tap below to contact emergency services.
+          </Text>
+          <EmergencyButton style={styles.emergencyButton} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -129,55 +100,42 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
   },
   header: {
-    padding: 24,
     alignItems: 'center',
+    paddingVertical: 24,
   },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.surface.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  title: {
+  headerTitle: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
     color: colors.text.primary,
+    marginTop: 12,
     marginBottom: 8,
-    textAlign: 'center',
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     textAlign: 'center',
-    maxWidth: '80%',
   },
-  sectionList: {
-    paddingHorizontal: 16,
+  sections: {
+    marginTop: 16,
   },
-  sectionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: colors.surface.primary,
+  sectionCard: {
+    backgroundColor: colors.surface.secondary,
     borderRadius: 12,
     marginBottom: 12,
-  },
-  sectionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.surface.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+    padding: 16,
   },
   sectionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sectionIcon: {
+    marginRight: 16,
+  },
+  sectionText: {
     flex: 1,
   },
   sectionTitle: {
@@ -191,13 +149,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
   },
-  versionContainer: {
-    padding: 24,
+  emergencySection: {
+    backgroundColor: colors.surface.secondary,
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 24,
+    marginBottom: 24,
     alignItems: 'center',
   },
-  versionText: {
+  emergencyTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: colors.status.error,
+    marginBottom: 8,
+  },
+  emergencyDescription: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: colors.text.tertiary,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  emergencyButton: {
+    marginTop: 8,
   },
 });
