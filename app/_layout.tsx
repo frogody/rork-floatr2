@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+import { Platform, View, Text, StyleSheet, LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
@@ -13,9 +13,37 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/hooks/useToast';
+import * as Updates from 'expo-updates';
+import * as Network from 'expo-network';
+import * as Application from 'expo-application';
+import * as Device from 'expo-device';
+import * as Localization from 'expo-localization';
+import { I18n } from 'i18n-js';
+import en from '@/localization/en';
+import es from '@/localization/es';
+import fr from '@/localization/fr';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
+
+// Ignore specific warnings in development
+if (__DEV__) {
+  LogBox.ignoreLogs([
+    'Animated: `useNativeDriver` was not specified',
+    'Non-serializable values were found in the navigation state',
+  ]);
+}
+
+// Setup internationalization
+const i18n = new I18n({
+  en,
+  es,
+  fr,
+});
+
+i18n.defaultLocale = 'en';
+i18n.locale = Localization.locale.split('-')[0];
+i18n.enableFallback = true;
 
 // Create a client
 const queryClient = new QueryClient({
@@ -24,9 +52,34 @@ const queryClient = new QueryClient({
       retry: 2,
       staleTime: 1000 * 60 * 5, // 5 minutes
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
     },
   },
 });
+
+// Configure deep linking
+const prefix = Linking.createURL('/');
+const config = {
+  screens: {
+    index: '',
+    'onboarding/index': 'onboarding',
+    '(tabs)': 'tabs',
+    'auth/login': 'login',
+    'auth/signup': 'signup',
+    'auth/forgot-password': 'forgot-password',
+    premium: 'premium',
+    'chat/[id]': 'chat/:id',
+    'meetups/[id]': 'meetup/:id',
+    'help': 'help',
+    'help/faq': 'faq',
+    'help/safety': 'safety',
+    'help/emergency': 'emergency',
+    'help/feedback': 'feedback',
+    'legal/privacy': 'privacy',
+    'legal/terms': 'terms',
+  },
+};
 
 export default function RootLayout() {
   const { isAuthenticated, checkAuth } = useAuthStore();
@@ -36,6 +89,92 @@ export default function RootLayout() {
     'Inter-SemiBold': require('@/assets/fonts/Inter-SemiBold.ttf'),
     'Inter-Bold': require('@/assets/fonts/Inter-Bold.ttf'),
   });
+
+  // Check for app updates
+  useEffect(() => {
+    async function checkForUpdates() {
+      if (!__DEV__ && Platform.OS !== 'web') {
+        try {
+          const update = await Updates.checkForUpdateAsync();
+          if (update.isAvailable) {
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+          }
+        } catch (error) {
+          console.log('Error checking for updates:', error);
+        }
+      }
+    }
+    
+    checkForUpdates();
+  }, []);
+
+  // Monitor network connectivity
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    
+    async function setupNetworkMonitoring() {
+      if (Platform.OS !== 'web') {
+        try {
+          // Initial network state
+          const networkState = await Network.getNetworkStateAsync();
+          console.log('Network state:', networkState);
+          
+          // Subscribe to network state changes
+          unsubscribe = Network.addEventListener(Network.NetworkStateChangeEvent, (event) => {
+            console.log('Network state changed:', event);
+            
+            // Refresh data when coming back online
+            if (event.isConnected && event.isInternetReachable) {
+              queryClient.invalidateQueries();
+            }
+          });
+        } catch (error) {
+          console.log('Error setting up network monitoring:', error);
+        }
+      }
+    }
+    
+    setupNetworkMonitoring();
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  // Log app and device info
+  useEffect(() => {
+    async function logAppInfo() {
+      if (Platform.OS !== 'web') {
+        try {
+          const appName = Application.applicationName;
+          const appVersion = Application.nativeApplicationVersion;
+          const buildVersion = Application.nativeBuildVersion;
+          const deviceName = await Device.getDeviceNameAsync();
+          const deviceType = Device.deviceType;
+          const osName = Device.osName;
+          const osVersion = Device.osVersion;
+          
+          console.log('App Info:', {
+            appName,
+            appVersion,
+            buildVersion,
+            deviceName,
+            deviceType,
+            osName,
+            osVersion,
+            locale: i18n.locale,
+          });
+        } catch (error) {
+          console.log('Error logging app info:', error);
+        }
+      }
+    }
+    
+    logAppInfo();
+  }, []);
 
   // Set system UI colors
   useEffect(() => {
@@ -49,8 +188,8 @@ export default function RootLayout() {
   useEffect(() => {
     const handleDeepLink = (event) => {
       const url = event.url;
-      // Handle the deep link URL here
       console.log('Deep link URL:', url);
+      // Handle the deep link URL here
     };
 
     // Add event listener for deep links
@@ -106,6 +245,10 @@ export default function RootLayout() {
                     backgroundColor: colors.background.primary,
                   },
                   animation: 'slide_from_right',
+                }}
+                linking={{
+                  prefixes: [prefix],
+                  config,
                 }}
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
