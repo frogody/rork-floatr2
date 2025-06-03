@@ -1,0 +1,159 @@
+import { Crew } from '@/types';
+
+export const mockCrews: Crew[] = [
+  {
+    id: '1',
+    name: 'Sunset Chasers',
+    bio: 'Looking for other boats to raft up with for sunset views and good vibes.',
+    location: 'Lake Michigan',
+    distance: 0.8,
+    photoUrls: [
+      'https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=1000',
+      'https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=1000',
+    ],
+    tags: ['Chill', 'Sunset', 'Music'],
+    memberCount: 4,
+    boatType: 'Pontoon',
+    boatLength: 24,
+    boatCapacity: 12,
+  },
+  {
+    id: '2',
+    name: 'Marina Crew',
+    bio: 'Weekend warriors looking for adventure on the water. We bring the drinks!',
+    location: 'Clear Lake',
+    distance: 1.2,
+    photoUrls: [
+      'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1000',
+      'https://images.unsplash.com/photo-1569263900347-06b1e8c825ab?q=80&w=1000',
+    ],
+    tags: ['Party', 'Social', 'Drinks'],
+    memberCount: 6,
+    boatType: 'Bowrider',
+    boatLength: 26,
+    boatCapacity: 8,
+  },
+  {
+    id: '3',
+    name: 'Island Hoppers',
+    bio: 'Exploring hidden coves and beaches. Join us for a day of adventure!',
+    location: 'Tampa Bay',
+    distance: 2.5,
+    photoUrls: [
+      'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=1000',
+      'https://images.unsplash.com/photo-1581688220500-a1f5a6deed5c?q=80&w=1000',
+    ],
+    tags: ['Adventure', 'Explore', 'Swimming'],
+    memberCount: 3,
+    boatType: 'Center Console',
+    boatLength: 28,
+    boatCapacity: 10,
+  },
+  {
+    id: '4',
+    name: 'Fishing Buddies',
+    bio: 'Early risers looking for the best catch. Experienced anglers welcome!',
+    location: 'Chesapeake Bay',
+    distance: 3.1,
+    photoUrls: [
+      'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000',
+      'https://images.unsplash.com/photo-1517126357915-196e7d7ce2b7?q=80&w=1000',
+    ],
+    tags: ['Fishing', 'Early Bird', 'Relaxed'],
+    memberCount: 2,
+    boatType: 'Sport Fishing',
+    boatLength: 32,
+    boatCapacity: 6,
+  },
+  {
+    id: '5',
+    name: 'Yacht Life',
+    bio: 'Luxury on the water. Looking for sophisticated crews to share the experience.',
+    location: 'Miami Harbor',
+    distance: 4.7,
+    photoUrls: [
+      'https://images.unsplash.com/photo-1566438480900-0609be27a4be?q=80&w=1000',
+      'https://images.unsplash.com/photo-1567899381693-17b31d57ffa0?q=80&w=1000',
+    ],
+    tags: ['Luxury', 'Upscale', 'Networking'],
+    memberCount: 8,
+    boatType: 'Motor Yacht',
+    boatLength: 58,
+    boatCapacity: 15,
+  },
+];
+
+export const mockMatches = [
+  {
+    id: 'm1',
+    crewId: '2',
+    crewName: 'Marina Crew',
+    location: 'Clear Lake',
+    matchedAt: new Date(Date.now() - 3600000),
+    lastMessage: {
+      content: "We're anchored at the south cove. Come join us!",
+      timestamp: new Date(Date.now() - 1800000),
+    },
+    photoUrl: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1000',
+  },
+  {
+    id: 'm2',
+    crewId: '3',
+    crewName: 'Island Hoppers',
+    location: 'Tampa Bay',
+    matchedAt: new Date(Date.now() - 86400000),
+    lastMessage: {
+      content: 'Are you guys heading to the sandbar tomorrow?',
+      timestamp: new Date(Date.now() - 43200000),
+    },
+    photoUrl: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=1000',
+  },
+];
+
+export const premiumFeatures = [
+  {
+    id: 'unlimited_swipes',
+    name: 'Unlimited Swipes',
+    description: 'Never run out of potential matches',
+    icon: 'infinity',
+  },
+  {
+    id: 'wave_first',
+    name: 'Wave First',
+    description: 'See who waved at you before you decide',
+    icon: 'hand',
+  },
+  {
+    id: 'meetup_zones',
+    name: 'Meet-Up Zones',
+    description: 'Create and join exclusive gathering spots',
+    icon: 'map-pin',
+  },
+  {
+    id: 'incognito',
+    name: 'Incognito Mode',
+    description: 'Browse without being seen',
+    icon: 'eye-off',
+  },
+  {
+    id: 'read_receipts',
+    name: 'Read Receipts',
+    description: 'Know when your messages are read',
+    icon: 'check-check',
+  },
+];
+
+export const boatTypes = [
+  'Pontoon',
+  'Bowrider',
+  'Center Console',
+  'Deck Boat',
+  'Cabin Cruiser',
+  'Sailboat',
+  'Jet Boat',
+  'Fishing Boat',
+  'Yacht',
+  'Houseboat',
+  'PWC/Jet Ski',
+  'Other',
+];

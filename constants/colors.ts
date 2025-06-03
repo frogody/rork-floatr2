@@ -1,0 +1,35 @@
+// Color palette for Floatr app
+const colors = {
+  // Core colors
+  primary: "#3B82F6", // Blue
+  secondary: "#EC4899", // Pink
+  accent: "#10B981", // Teal
+
+  // UI colors
+  background: {
+    dark: "#0F172A", // Navy blue
+    card: "#1E293B", // Slate
+    light: "#F8FAFC", // Light gray
+  },
+  text: {
+    primary: "#FFFFFF",
+    secondary: "#94A3B8",
+    dark: "#0F172A",
+  },
+
+  // Status colors
+  success: "#10B981",
+  warning: "#F59E0B",
+  error: "#EF4444",
+
+  // Gradient colors
+  gradient: {
+    blue: ["#3B82F6", "#2563EB"],
+    purple: ["#8B5CF6", "#6D28D9"],
+    pink: ["#EC4899", "#DB2777"],
+    sunset: ["#F59E0B", "#EC4899"],
+    ocean: ["#0EA5E9", "#3B82F6"],
+  },
+};
+
+export default colors;
