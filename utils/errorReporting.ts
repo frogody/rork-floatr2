@@ -29,7 +29,7 @@ interface ErrorReport {
 
 class ErrorReporting {
   private enabled: boolean = true;
-  private userId: string | undefined = undefined; // Changed from string | null to string | undefined
+  private userId: string | undefined = undefined;
   private sessionId: string = '';
   private reports: ErrorReport[] = [];
   private MAX_REPORTS = 50;
@@ -101,7 +101,7 @@ class ErrorReporting {
     return this.enabled;
   }
   
-  public setUserId(userId: string | undefined) { // Changed from string | null to string | undefined
+  public setUserId(userId: string | undefined) {
     this.userId = userId;
   }
   

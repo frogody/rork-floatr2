@@ -10,7 +10,7 @@ import * as Linking from 'expo-linking';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { trpc } from '@/lib/trpc';
+import { trpc, trpcClient } from '@/lib/trpc';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/hooks/useToast';
 import * as Updates from 'expo-updates';
@@ -123,7 +123,7 @@ export default function RootLayout() {
           const appName = Application.applicationName;
           const appVersion = Application.nativeApplicationVersion;
           const buildVersion = Application.nativeBuildVersion;
-          // Fix: Use Device.deviceName instead of getDeviceNameAsync
+          // Use Device.deviceName instead of getDeviceNameAsync
           const deviceName = Device.deviceName || 'Unknown Device';
           const deviceType = Device.deviceType;
           const osName = Device.osName;
@@ -199,7 +199,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <trpc.Provider queryClient={queryClient}>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <SafeAreaProvider>
           <ToastProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -207,7 +207,7 @@ export default function RootLayout() {
               <Stack
                 screenOptions={{
                   headerStyle: {
-                    backgroundColor: colors.background.dark,
+                    backgroundColor: colors.background.primary,
                   },
                   headerTintColor: colors.text.primary,
                   headerTitleStyle: {
