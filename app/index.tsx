@@ -19,7 +19,7 @@ import { useAuthStore } from '@/store/authStore';
 
 const { width, height } = Dimensions.get('window');
 
-// Hero image with FLOATR floaties
+// FLOATR floaties image
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
@@ -180,7 +180,7 @@ export default function WelcomeScreen() {
           </Animated.View>
           
           <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: colors.text.primary }]}>Floatr</Text>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Connect</Text>
             <Text style={[styles.subtitle, { color: colors.text.secondary }]}>Meet on the Water</Text>
             <Text style={[styles.description, { color: colors.text.secondary }]}>
               Connect with nearby boaters, raft-up, and share amazing experiences on the water. 
@@ -208,7 +208,7 @@ export default function WelcomeScreen() {
           <Button
             title="Sign In"
             onPress={handleSignIn}
-            variant="ghost"
+            variant="secondary"
             size="large"
             style={styles.secondaryButton}
             accessibilityLabel="Sign in to existing account"
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 32,
-    paddingTop: height * 0.15, // Move content down significantly
+    paddingTop: height * 0.25, // Move content down significantly
     paddingBottom: 48,
     justifyContent: 'space-between',
   },
@@ -329,6 +329,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     gap: 16,
     paddingTop: 20,
+    alignItems: 'flex-start', // Left align buttons
   },
   primaryButton: {
     width: '100%',
@@ -340,5 +341,8 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
