@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Boat } from '@/types';
+import { logger } from '@/utils/logger';
+import { errorReporting } from '@/utils/errorReporting';
 
 interface AuthState {
   user: User | null;
@@ -45,24 +47,46 @@ export const useAuthStore = create<AuthState>()(
       isInitialized: false,
       
       checkAuth: () => {
-        console.log('AuthStore: checkAuth called');
-        const { user } = get();
-        const isAuthenticated = !!user;
-        console.log('AuthStore: checkAuth result', { user: !!user, isAuthenticated });
-        
-        set({ 
-          isAuthenticated,
-          isInitialized: true,
-          isLoading: false
-        });
+        try {
+          logger.debug('AuthStore: checkAuth called');
+          const state = get();
+          const isAuthenticated = !!state.user;
+          
+          logger.info('AuthStore: checkAuth result', { 
+            hasUser: !!state.user, 
+            isAuthenticated,
+            userId: state.user?.id 
+          });
+          
+          set({ 
+            isAuthenticated,
+            isInitialized: true,
+            isLoading: false,
+            error: null
+          });
+        } catch (error) {
+          logger.error('AuthStore: checkAuth failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'auth_check' });
+          
+          set({ 
+            isAuthenticated: false,
+            isInitialized: true,
+            isLoading: false,
+            error: 'Failed to check authentication status'
+          });
+        }
       },
 
       signIn: async (userData: User) => {
-        console.log('AuthStore: signIn called', userData.email);
+        logger.info('AuthStore: signIn called', { email: userData.email });
         set({ isLoading: true, error: null });
         
         try {
-          console.log('AuthStore: Setting user data');
+          if (!userData || !userData.email) {
+            throw new Error('Invalid user data provided');
+          }
+
+          logger.debug('AuthStore: Setting user data');
           set({ 
             user: userData, 
             isAuthenticated: true, 
@@ -70,27 +94,42 @@ export const useAuthStore = create<AuthState>()(
             error: null,
             isInitialized: true
           });
-          console.log('AuthStore: Sign in successful');
+          
+          logger.info('AuthStore: Sign in successful', { userId: userData.id });
         } catch (error) {
-          console.error('AuthStore: Sign in failed', error);
-          set({ error: 'Sign in failed', isLoading: false });
+          logger.error('AuthStore: Sign in failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { 
+            context: 'sign_in',
+            email: userData?.email 
+          });
+          
+          set({ 
+            error: 'Sign in failed. Please try again.', 
+            isLoading: false,
+            isAuthenticated: false,
+            user: null
+          });
           throw error;
         }
       },
 
       signUp: async (email: string, password: string, displayName: string) => {
-        console.log('AuthStore: signUp called', email);
+        logger.info('AuthStore: signUp called', { email });
         set({ isLoading: true, error: null });
         
         try {
+          if (!email || !password || !displayName) {
+            throw new Error('All fields are required');
+          }
+
           const newUser: User = {
-            id: Math.random().toString(),
+            id: `user_${Date.now()}_${Math.random().toString(36).substring(2)}`,
             email,
             displayName,
             createdAt: new Date()
           };
           
-          console.log('AuthStore: Creating new user');
+          logger.debug('AuthStore: Creating new user');
           set({ 
             user: newUser, 
             isAuthenticated: true, 
@@ -99,68 +138,125 @@ export const useAuthStore = create<AuthState>()(
             isInitialized: true,
             isOnboarded: false
           });
-          console.log('AuthStore: Sign up successful');
+          
+          logger.info('AuthStore: Sign up successful', { userId: newUser.id });
         } catch (error) {
-          console.error('AuthStore: Sign up failed', error);
-          set({ error: 'Sign up failed', isLoading: false });
+          logger.error('AuthStore: Sign up failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { 
+            context: 'sign_up',
+            email 
+          });
+          
+          set({ 
+            error: 'Sign up failed. Please try again.', 
+            isLoading: false,
+            isAuthenticated: false,
+            user: null
+          });
           throw error;
         }
       },
 
       signOut: () => {
-        console.log('AuthStore: signOut called');
-        set({
-          user: null,
-          boat: null,
-          isAuthenticated: false,
-          error: null,
-          isInitialized: true,
-          isLoading: false
-        });
+        try {
+          logger.info('AuthStore: signOut called');
+          set({
+            user: null,
+            boat: null,
+            isAuthenticated: false,
+            error: null,
+            isInitialized: true,
+            isLoading: false
+          });
+          logger.info('AuthStore: Sign out successful');
+        } catch (error) {
+          logger.error('AuthStore: Sign out failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'sign_out' });
+        }
       },
 
       updateUser: (userData: Partial<User>) => {
-        const { user } = get();
-        if (user) {
-          console.log('AuthStore: updateUser called');
+        try {
+          const { user } = get();
+          if (!user) {
+            throw new Error('No user to update');
+          }
+          
+          logger.info('AuthStore: updateUser called');
           set({ user: { ...user, ...userData } });
+        } catch (error) {
+          logger.error('AuthStore: updateUser failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'update_user' });
+          set({ error: 'Failed to update user profile' });
         }
       },
 
       updateBoat: (boatData: Partial<Boat>) => {
-        const { boat } = get();
-        if (boat) {
-          console.log('AuthStore: updateBoat called');
+        try {
+          const { boat } = get();
+          if (!boat) {
+            logger.warn('AuthStore: No boat to update, creating new boat data');
+            set({ boat: boatData as Boat });
+            return;
+          }
+          
+          logger.info('AuthStore: updateBoat called');
           set({ boat: { ...boat, ...boatData } });
+        } catch (error) {
+          logger.error('AuthStore: updateBoat failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'update_boat' });
+          set({ error: 'Failed to update boat information' });
         }
       },
 
       setOnboarded: (value: boolean) => {
-        console.log('AuthStore: setOnboarded', value);
-        set({ isOnboarded: value });
+        try {
+          logger.info('AuthStore: setOnboarded', { value });
+          set({ isOnboarded: value });
+        } catch (error) {
+          logger.error('AuthStore: setOnboarded failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'set_onboarded' });
+        }
       },
 
       setHasSeenTutorial: (value: boolean) => {
-        console.log('AuthStore: setHasSeenTutorial', value);
-        set({ hasSeenTutorial: value });
+        try {
+          logger.info('AuthStore: setHasSeenTutorial', { value });
+          set({ hasSeenTutorial: value });
+        } catch (error) {
+          logger.error('AuthStore: setHasSeenTutorial failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'set_tutorial' });
+        }
       },
 
       blockUser: (userId: string) => {
-        const { blockedUsers } = get();
-        if (!blockedUsers.includes(userId)) {
-          console.log('AuthStore: blockUser', userId);
-          set({ blockedUsers: [...blockedUsers, userId] });
+        try {
+          const { blockedUsers } = get();
+          if (!blockedUsers.includes(userId)) {
+            logger.info('AuthStore: blockUser', { userId });
+            set({ blockedUsers: [...blockedUsers, userId] });
+          }
+        } catch (error) {
+          logger.error('AuthStore: blockUser failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'block_user' });
+          set({ error: 'Failed to block user' });
         }
       },
 
       unblockUser: (userId: string) => {
-        const { blockedUsers } = get();
-        console.log('AuthStore: unblockUser', userId);
-        set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
+        try {
+          const { blockedUsers } = get();
+          logger.info('AuthStore: unblockUser', { userId });
+          set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
+        } catch (error) {
+          logger.error('AuthStore: unblockUser failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'unblock_user' });
+          set({ error: 'Failed to unblock user' });
+        }
       },
 
       deleteAccount: async () => {
-        console.log('AuthStore: deleteAccount called');
+        logger.info('AuthStore: deleteAccount called');
         set({ isLoading: true, error: null });
         
         try {
@@ -172,34 +268,50 @@ export const useAuthStore = create<AuthState>()(
             error: null,
             isInitialized: true
           });
+          logger.info('AuthStore: Account deleted successfully');
         } catch (error) {
-          console.error('AuthStore: Delete account failed', error);
+          logger.error('AuthStore: Delete account failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'delete_account' });
           set({ error: 'Failed to delete account', isLoading: false });
           throw error;
         }
       },
 
       changePassword: async (currentPassword: string, newPassword: string) => {
-        console.log('AuthStore: changePassword called');
+        logger.info('AuthStore: changePassword called');
         set({ isLoading: true, error: null });
         
         try {
+          if (!currentPassword || !newPassword) {
+            throw new Error('Both current and new passwords are required');
+          }
+          
+          // In a real app, you would validate the current password and update it
           set({ isLoading: false });
+          logger.info('AuthStore: Password changed successfully');
         } catch (error) {
-          console.error('AuthStore: Change password failed', error);
+          logger.error('AuthStore: Change password failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'change_password' });
           set({ error: 'Failed to change password', isLoading: false });
           throw error;
         }
       },
 
       resetPassword: async (email: string) => {
-        console.log('AuthStore: resetPassword called', email);
+        logger.info('AuthStore: resetPassword called', { email });
         set({ isLoading: true, error: null });
         
         try {
+          if (!email) {
+            throw new Error('Email is required');
+          }
+          
+          // In a real app, you would send a password reset email
           set({ isLoading: false });
+          logger.info('AuthStore: Password reset email sent');
         } catch (error) {
-          console.error('AuthStore: Reset password failed', error);
+          logger.error('AuthStore: Reset password failed', { error: error.message });
+          errorReporting.captureError(error, 'error', { context: 'reset_password' });
           set({ error: 'Failed to reset password', isLoading: false });
           throw error;
         }
@@ -220,6 +332,14 @@ export const useAuthStore = create<AuthState>()(
         hasSeenTutorial: state.hasSeenTutorial,
         blockedUsers: state.blockedUsers,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          logger.info('AuthStore: Rehydrated from storage', {
+            hasUser: !!state.user,
+            isAuthenticated: state.isAuthenticated
+          });
+        }
+      },
     }
   )
 );

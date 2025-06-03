@@ -1,9 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// This is a simple logging implementation
-// In a production app, you would use a service like Datadog, LogRocket, or a custom backend
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogEntry {
@@ -19,10 +16,20 @@ class Logger {
   private logs: LogEntry[] = [];
   private MAX_LOGS = 200;
   private STORAGE_KEY = '@floatr_logs';
+  private isInitialized = false;
   
   constructor() {
-    this.loadSettings();
-    this.loadLogs();
+    this.initialize();
+  }
+
+  private async initialize() {
+    try {
+      await this.loadSettings();
+      await this.loadLogs();
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Logger: Failed to initialize', error);
+    }
   }
   
   private async loadSettings() {
@@ -34,7 +41,7 @@ class Logger {
         this.minLevel = minLevel;
       }
     } catch (error) {
-      console.error('Error loading logger settings:', error);
+      console.error('Logger: Error loading settings', error);
     }
   }
   
@@ -45,7 +52,7 @@ class Logger {
         this.logs = JSON.parse(logs);
       }
     } catch (error) {
-      console.error('Error loading logs:', error);
+      console.error('Logger: Error loading logs', error);
     }
   }
   
@@ -53,7 +60,7 @@ class Logger {
     try {
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.logs));
     } catch (error) {
-      console.error('Error saving logs:', error);
+      console.error('Logger: Error saving logs', error);
     }
   }
   
@@ -75,7 +82,7 @@ class Logger {
         minLevel: this.minLevel 
       }));
     } catch (error) {
-      console.error('Error saving logger settings:', error);
+      console.error('Logger: Error saving settings', error);
     }
   }
   
@@ -87,7 +94,7 @@ class Logger {
         minLevel: level 
       }));
     } catch (error) {
-      console.error('Error saving logger settings:', error);
+      console.error('Logger: Error saving settings', error);
     }
   }
   
@@ -102,33 +109,35 @@ class Logger {
   private log(level: LogLevel, message: string, tags: Record<string, string | number | boolean> = {}) {
     if (!this.shouldLog(level)) return;
     
-    const entry: LogEntry = {
-      level,
-      message,
-      timestamp: Date.now(),
-      tags: {
-        ...tags,
-        platform: Platform.OS,
-      },
-    };
-    
-    this.logs.push(entry);
-    
-    // Keep only the last MAX_LOGS logs
-    if (this.logs.length > this.MAX_LOGS) {
-      this.logs = this.logs.slice(-this.MAX_LOGS);
-    }
-    
-    this.saveLogs();
-    
-    // Also log to console in development
-    if (__DEV__) {
+    try {
+      const entry: LogEntry = {
+        level,
+        message,
+        timestamp: Date.now(),
+        tags: {
+          ...tags,
+          platform: Platform.OS,
+        },
+      };
+      
+      this.logs.push(entry);
+      
+      // Keep only the last MAX_LOGS logs
+      if (this.logs.length > this.MAX_LOGS) {
+        this.logs = this.logs.slice(-this.MAX_LOGS);
+      }
+      
+      this.saveLogs();
+      
+      // Also log to console
       const consoleMethod = level === 'debug' ? console.debug :
                            level === 'info' ? console.info :
                            level === 'warn' ? console.warn :
                            console.error;
       
       consoleMethod(`[${level.toUpperCase()}] ${message}`, tags);
+    } catch (error) {
+      console.error('Logger: Failed to log message', error);
     }
   }
   
@@ -151,12 +160,11 @@ class Logger {
   public async flush() {
     if (!this.enabled || this.logs.length === 0) return;
     
-    // In a real implementation, you would send the logs to your logging service
-    // and clear the logs array after successful sending
-    
     if (__DEV__) {
-      console.log('Flushing logs:', this.logs);
+      console.log('Logger: Flushing logs', this.logs);
     }
+    
+    // In production, send logs to your logging service here
     
     // Clear logs after sending
     this.logs = [];
@@ -171,12 +179,10 @@ class Logger {
   public getLogs(): LogEntry[] {
     return [...this.logs];
   }
+
+  public getIsInitialized(): boolean {
+    return this.isInitialized;
+  }
 }
 
 export const logger = new Logger();
-
-// Usage example:
-// logger.debug('App started', { version: '1.0.0' });
-// logger.info('User logged in', { userId: '123', method: 'email' });
-// logger.warn('API rate limit approaching', { endpoint: '/users', remaining: 10 });
-// logger.error('Failed to load profile', { userId: '123', error: 'Network error' });
