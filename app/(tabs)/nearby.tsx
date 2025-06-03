@@ -1,14 +1,8 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Platform, View, ActivityIndicator } from 'react-native';
 import colors from '@/constants/colors';
-
-// Web component - always available
 import WebMapScreen from '@/components/WebMapScreen';
-
-// Native component - lazy loaded only on native platforms
-const NativeMapScreen = Platform.OS !== 'web' 
-  ? React.lazy(() => import('@/components/NativeMapScreen'))
-  : null;
+import NativeMapScreen from '@/components/NativeMapScreen';
 
 function LoadingScreen() {
   return (
@@ -28,13 +22,5 @@ export default function MapScreen() {
     return <WebMapScreen />;
   }
 
-  if (!NativeMapScreen) {
-    return <LoadingScreen />;
-  }
-
-  return (
-    <Suspense fallback={<LoadingScreen />}>
-      <NativeMapScreen />
-    </Suspense>
-  );
+  return <NativeMapScreen />;
 }

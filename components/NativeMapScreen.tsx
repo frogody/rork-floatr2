@@ -3,7 +3,7 @@ import { View, StyleSheet, Platform, Text } from 'react-native';
 import { mockCrews } from '@/mocks/crews';
 import colors from '@/constants/colors';
 
-// Import react-native-maps normally - Metro config will handle web exclusion
+// Import react-native-maps - Metro config will handle web fallback
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 const INITIAL_REGION = {
@@ -16,7 +16,7 @@ const INITIAL_REGION = {
 export default function NativeMapScreen(): React.ReactElement {
   const [region, setRegion] = useState(INITIAL_REGION);
 
-  // This should only run on native platforms due to lazy loading
+  // Fallback for web (though this component should only be used on native)
   if (Platform.OS === 'web') {
     return (
       <View style={styles.container}>
