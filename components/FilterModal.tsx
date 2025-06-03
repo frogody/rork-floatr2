@@ -133,7 +133,7 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Boat Types</Text>
             <View style={styles.optionsGrid}>
-              {boatTypes.map((type) => (
+              {boatTypes.map((type: string) => (
                 <TouchableOpacity
                   key={type}
                   style={[

@@ -20,6 +20,7 @@ const colors = {
     primary: '#F8FAFC',
     secondary: '#CBD5E1',
     tertiary: '#64748B',
+    disabled: '#52525B',
   },
   
   border: {
