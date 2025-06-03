@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { useSwipeStore } from '@/store/swipeStore';
 import CrewCard from '@/components/CrewCard';
 import SwipeButtons from '@/components/SwipeButtons';
+import UndoButton from '@/components/UndoButton';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import colors from '@/constants/colors';
 import { Crew } from '@/types';
@@ -24,7 +25,18 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
 
 export default function DiscoverScreen() {
-  const { crews, fetchCrews, swipeLeft, swipeRight, isLoading, error, setAnchor, isAnchored } = useSwipeStore();
+  const { 
+    crews, 
+    fetchCrews, 
+    swipeLeft, 
+    swipeRight, 
+    undoLastSwipe,
+    swipeHistory,
+    isLoading, 
+    error, 
+    setAnchor, 
+    isAnchored 
+  } = useSwipeStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const position = useRef(new Animated.ValueXY()).current;
@@ -104,7 +116,7 @@ export default function DiscoverScreen() {
       duration: 250,
       useNativeDriver: false,
     }).start(() => {
-      useSwipeStore.getState().swipeLeft(crews[currentIndex].id);
+      swipeLeft(crews[currentIndex].id);
       setCurrentIndex(prevIndex => prevIndex + 1);
       position.setValue({ x: 0, y: 0 });
     });
@@ -122,7 +134,7 @@ export default function DiscoverScreen() {
       duration: 250,
       useNativeDriver: false,
     }).start(() => {
-      useSwipeStore.getState().swipeRight(crews[currentIndex].id);
+      swipeRight(crews[currentIndex].id);
       setCurrentIndex(prevIndex => prevIndex + 1);
       position.setValue({ x: 0, y: 0 });
       
@@ -146,6 +158,11 @@ export default function DiscoverScreen() {
 
   const handlePass = () => {
     handleSwipeLeftGesture(0);
+  };
+
+  const handleUndo = () => {
+    undoLastSwipe();
+    setCurrentIndex(Math.max(currentIndex - 1, 0));
   };
 
   const handleAnchor = async () => {
@@ -252,6 +269,11 @@ export default function DiscoverScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
+      
+      <UndoButton 
+        onUndo={handleUndo} 
+        disabled={swipeHistory.length === 0} 
+      />
       
       <View style={styles.cardsContainer}>
         {renderCards()}
