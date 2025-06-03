@@ -9,23 +9,18 @@ export default function IndexScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('IndexScreen: Auth state changed', { isAuthenticated, isInitialized });
-    
     if (!isInitialized) {
-      console.log('IndexScreen: Not initialized yet, waiting...');
       return;
     }
 
     try {
       if (isAuthenticated) {
-        console.log('IndexScreen: User authenticated, redirecting to tabs');
         router.replace('/(tabs)');
       } else {
-        console.log('IndexScreen: User not authenticated, redirecting to login');
         router.replace('/auth/login');
       }
     } catch (error) {
-      console.error('IndexScreen: Navigation error', error);
+      console.error('Navigation error:', error);
     }
   }, [isAuthenticated, isInitialized, router]);
 

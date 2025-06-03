@@ -1,7 +1,6 @@
-const colors = {
+export default {
   primary: '#007AFF',
-  secondary: '#5AC8FA',
-  accent: '#FF9500',
+  secondary: '#5856D6',
   
   background: {
     primary: '#000000',
@@ -9,17 +8,10 @@ const colors = {
     tertiary: '#2C2C2E',
   },
   
-  surface: {
-    primary: '#1C1C1E',
-    secondary: '#2C2C2E',
-    tertiary: '#3A3A3C',
-  },
-  
   text: {
     primary: '#FFFFFF',
-    secondary: '#EBEBF5',
-    tertiary: '#EBEBF599',
-    inverse: '#000000',
+    secondary: '#8E8E93',
+    tertiary: '#48484A',
   },
   
   border: {
@@ -29,10 +21,10 @@ const colors = {
   
   status: {
     success: '#30D158',
-    warning: '#FF9F0A',
     error: '#FF453A',
+    warning: '#FF9F0A',
     info: '#007AFF',
   },
-} as const;
-
-export default colors;
+  
+  overlay: 'rgba(0, 0, 0, 0.5)',
+};

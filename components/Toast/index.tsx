@@ -6,7 +6,7 @@ import colors from '@/constants/colors';
 import { CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react-native';
 
 export const ToastProvider: React.FC = () => {
-  const { visible, message, type, hideToast } = useToastStore();
+  const { visible, message, type } = useToastStore();
   const insets = useSafeAreaInsets();
   const translateY = React.useRef(new Animated.Value(-100)).current;
   const opacity = React.useRef(new Animated.Value(0)).current;

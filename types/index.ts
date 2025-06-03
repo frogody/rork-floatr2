@@ -99,4 +99,13 @@ export interface Match {
   unreadCount?: number;
 }
 
+export interface Message {
+  id: string;
+  matchId: string;
+  senderId: string;
+  content: string;
+  sentAt: Date;
+  isRead?: boolean;
+}
+
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

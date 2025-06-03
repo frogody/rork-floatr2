@@ -24,16 +24,14 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   fetchMatches: async () => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would fetch from an API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Use mock data for now
       set({ 
         matches: mockMatches || [], 
         isLoading: false 
       });
     } catch (error) {
-      console.error('MatchStore: Failed to fetch matches', error);
+      console.error('Failed to fetch matches:', error);
       set({ 
         error: 'Failed to fetch matches', 
         isLoading: false 
@@ -44,10 +42,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
   fetchMessages: async (matchId: string) => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would fetch from an API
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Mock messages
       const mockMessages: Message[] = [
         {
           id: '1',
@@ -87,7 +83,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         isLoading: false 
       }));
     } catch (error) {
-      console.error('MatchStore: Failed to fetch messages', error);
+      console.error('Failed to fetch messages:', error);
       set({ 
         error: 'Failed to fetch messages', 
         isLoading: false 
@@ -101,7 +97,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         throw new Error('Match ID and content are required');
       }
 
-      // In a real app, this would send to an API
       const newMessage: Message = {
         id: Math.random().toString(),
         matchId,
@@ -110,7 +105,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         sentAt: new Date(),
       };
       
-      // Optimistically update UI
       set(state => {
         const currentMessages = state.messages[matchId] || [];
         return {
@@ -121,7 +115,6 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         };
       });
       
-      // Update the last message in matches
       set(state => {
         const updatedMatches = state.matches.map(match => {
           if (match.id === matchId) {
@@ -140,7 +133,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       });
       
     } catch (error) {
-      console.error('MatchStore: Failed to send message', error);
+      console.error('Failed to send message:', error);
       set({ error: 'Failed to send message' });
     }
   },
@@ -149,7 +142,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     try {
       set({ error: null });
     } catch (error) {
-      console.error('MatchStore: Error in clearError', error);
+      console.error('Error in clearError:', error);
     }
   },
 }));

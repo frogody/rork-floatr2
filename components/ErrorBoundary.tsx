@@ -3,8 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { logger } from '@/utils/logger';
-import { errorReporting } from '@/utils/errorReporting';
 import { router } from 'expo-router';
 
 interface Props {
@@ -15,47 +13,32 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-  errorInfo: any;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    logger.error('ErrorBoundary: Caught error', {
-      error: error?.message || 'Unknown error',
-      stack: error?.stack,
-      componentStack: errorInfo?.componentStack
-    });
-
-    errorReporting.captureError(error, 'fatal', {
-      componentStack: errorInfo?.componentStack,
-      context: 'error_boundary'
-    });
-
-    this.setState({
-      error,
-      errorInfo
-    });
+    console.error('ErrorBoundary caught error:', error, errorInfo);
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    this.setState({ hasError: false, error: null });
   };
 
   handleGoHome = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    this.setState({ hasError: false, error: null });
     try {
       router.replace('/(tabs)');
     } catch (error) {
-      console.error('ErrorBoundary: Failed to navigate home', error);
+      console.error('Failed to navigate home:', error);
     }
   };
 
@@ -74,18 +57,8 @@ export class ErrorBoundary extends Component<Props, State> {
             
             <Text style={styles.title}>Something went wrong</Text>
             <Text style={styles.message}>
-              We encountered an unexpected error. This has been reported to our team.
+              We encountered an unexpected error. Please try again.
             </Text>
-
-            {__DEV__ && this.state.error && (
-              <View style={styles.errorDetails}>
-                <Text style={styles.errorTitle}>Error Details (Development Only):</Text>
-                <Text style={styles.errorText}>{this.state.error.message}</Text>
-                {this.state.error.stack && (
-                  <Text style={styles.stackTrace}>{this.state.error.stack}</Text>
-                )}
-              </View>
-            )}
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.retryButton} onPress={this.handleRetry}>
@@ -135,30 +108,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
-  },
-  errorDetails: {
-    backgroundColor: colors.background.secondary,
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 32,
-    width: '100%',
-  },
-  errorTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.text.primary,
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: colors.status.error,
-    marginBottom: 8,
-  },
-  stackTrace: {
-    fontSize: 10,
-    fontFamily: 'Inter-Regular',
-    color: colors.text.secondary,
   },
   buttonContainer: {
     width: '100%',

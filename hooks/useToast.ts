@@ -24,14 +24,14 @@ const useToastStore = create<ToastState>((set, get) => ({
         }
       }, 3000);
     } catch (error) {
-      console.error('Toast: Failed to show toast', error);
+      console.error('Failed to show toast:', error);
     }
   },
   hideToast: () => {
     try {
       set({ visible: false });
     } catch (error) {
-      console.error('Toast: Failed to hide toast', error);
+      console.error('Failed to hide toast:', error);
     }
   },
 }));

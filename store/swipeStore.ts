@@ -39,18 +39,12 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   error: null,
   
   fetchCrews: async () => {
-    console.log('SwipeStore: fetchCrews called');
     set({ isLoading: true, error: null });
     
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      console.log('SwipeStore: Mock crews available:', mockCrews?.length || 0);
-      
-      // Use mock data for now
       if (mockCrews && mockCrews.length > 0) {
-        console.log('SwipeStore: Setting crews data');
         set({ 
           crews: mockCrews, 
           currentIndex: 0,
@@ -58,7 +52,6 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
           error: null,
         });
       } else {
-        console.log('SwipeStore: No crews available');
         set({ 
           crews: [],
           currentIndex: 0,
@@ -67,7 +60,7 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('SwipeStore: Failed to fetch crews:', error);
+      console.error('Failed to fetch crews:', error);
       set({ 
         error: 'Failed to load crews. Please try again.', 
         isLoading: false,
@@ -80,20 +73,15 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   likeCrewAtIndex: (index: number) => {
     try {
       const { crews } = get();
-      console.log('SwipeStore: likeCrewAtIndex', index, crews.length);
       
       if (index >= crews.length || index < 0) {
-        console.log('SwipeStore: Index out of bounds');
         return;
       }
       
       const crewId = crews[index]?.id;
       if (!crewId) {
-        console.log('SwipeStore: No crew ID found');
         return;
       }
-      
-      console.log('SwipeStore: Liking crew', crewId);
       
       set(state => ({
         likedCrews: [...state.likedCrews, crewId],
@@ -104,27 +92,22 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         },
       }));
     } catch (error) {
-      console.error('SwipeStore: Error in likeCrewAtIndex', error);
+      console.error('Error in likeCrewAtIndex:', error);
     }
   },
   
   dislikeCrewAtIndex: (index: number) => {
     try {
       const { crews } = get();
-      console.log('SwipeStore: dislikeCrewAtIndex', index, crews.length);
       
       if (index >= crews.length || index < 0) {
-        console.log('SwipeStore: Index out of bounds');
         return;
       }
       
       const crewId = crews[index]?.id;
       if (!crewId) {
-        console.log('SwipeStore: No crew ID found');
         return;
       }
-      
-      console.log('SwipeStore: Disliking crew', crewId);
       
       set(state => ({
         dislikedCrews: [...state.dislikedCrews, crewId],
@@ -135,27 +118,22 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         },
       }));
     } catch (error) {
-      console.error('SwipeStore: Error in dislikeCrewAtIndex', error);
+      console.error('Error in dislikeCrewAtIndex:', error);
     }
   },
   
   superlikeCrewAtIndex: (index: number) => {
     try {
       const { crews } = get();
-      console.log('SwipeStore: superlikeCrewAtIndex', index, crews.length);
       
       if (index >= crews.length || index < 0) {
-        console.log('SwipeStore: Index out of bounds');
         return;
       }
       
       const crewId = crews[index]?.id;
       if (!crewId) {
-        console.log('SwipeStore: No crew ID found');
         return;
       }
-      
-      console.log('SwipeStore: Superliking crew', crewId);
       
       set(state => ({
         superlikedCrews: [...state.superlikedCrews, crewId],
@@ -166,17 +144,15 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         },
       }));
     } catch (error) {
-      console.error('SwipeStore: Error in superlikeCrewAtIndex', error);
+      console.error('Error in superlikeCrewAtIndex:', error);
     }
   },
   
   undoLastAction: () => {
     try {
       const { lastAction, currentIndex } = get();
-      console.log('SwipeStore: undoLastAction', lastAction, currentIndex);
       
       if (!lastAction.type || !lastAction.crewId || currentIndex <= 0) {
-        console.log('SwipeStore: Cannot undo - no valid last action');
         return;
       }
       
@@ -199,13 +175,12 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         return newState;
       });
     } catch (error) {
-      console.error('SwipeStore: Error in undoLastAction', error);
+      console.error('Error in undoLastAction:', error);
     }
   },
   
   resetSwipes: () => {
     try {
-      console.log('SwipeStore: resetSwipes');
       set({
         currentIndex: 0,
         likedCrews: [],
@@ -218,7 +193,7 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
         error: null,
       });
     } catch (error) {
-      console.error('SwipeStore: Error in resetSwipes', error);
+      console.error('Error in resetSwipes:', error);
     }
   },
   
@@ -226,7 +201,7 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
     try {
       set({ error: null });
     } catch (error) {
-      console.error('SwipeStore: Error in clearError', error);
+      console.error('Error in clearError:', error);
     }
   },
 }));
