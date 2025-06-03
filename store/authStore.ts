@@ -48,7 +48,8 @@ export const useAuthStore = create<AuthState>()(
         const { user } = get();
         set({ 
           isAuthenticated: !!user,
-          isInitialized: true
+          isInitialized: true,
+          isLoading: false
         });
       },
 
@@ -83,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
             isInitialized: true,
-            isOnboarded: false // Ensure user goes through onboarding
+            isOnboarded: false
           });
         } catch (error) {
           set({ error: 'Sign up failed', isLoading: false });
@@ -97,7 +98,8 @@ export const useAuthStore = create<AuthState>()(
           boat: null,
           isAuthenticated: false,
           error: null,
-          isInitialized: true
+          isInitialized: true,
+          isLoading: false
         });
       },
 

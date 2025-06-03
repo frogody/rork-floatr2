@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, useRouter, useSegments, Slot } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -29,31 +29,28 @@ export default function RootLayout() {
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
     }
-    
-    // Set mounted flag after initial render
-    setIsMounted(true);
   }, [isInitialized, checkAuth]);
 
   useEffect(() => {
-    // Only run navigation logic after mount and fonts are loaded
+    // Set mounted flag after initial render
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!isMounted || !fontsLoaded || !isInitialized) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
 
-    // Delay navigation to next tick to ensure proper mounting
-    const timer = setTimeout(() => {
-      if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-        router.replace('/auth/login');
-      } else if (isAuthenticated && inAuthGroup) {
-        router.replace('/(tabs)');
-      }
-    }, 0);
+    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+      router.replace('/auth/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, segments, fontsLoaded, isInitialized, isMounted, router]);
 
-    return () => clearTimeout(timer);
-  }, [isAuthenticated, segments, fontsLoaded, isInitialized, isMounted]);
-
-  if (!fontsLoaded && !fontError) {
+  // Show loading state
+  if (!fontsLoaded || !isInitialized || !isMounted) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;
   }
 
@@ -66,11 +63,11 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background.primary }
         }}
       >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
-      <Slot />
     </View>
   );
 }
