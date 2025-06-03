@@ -14,7 +14,7 @@ interface AuthState {
   blockedUsers: string[];
   
   // Actions
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (userData: User) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => void;
   updateUser: (userData: Partial<User>) => void;
@@ -41,36 +41,20 @@ export const useAuthStore = create<AuthState>()(
       hasSeenTutorial: false,
       blockedUsers: [],
       
-      signIn: async (email, password) => {
+      signIn: async (userData) => {
         set({ isLoading: true, error: null });
         try {
-          // Mock authentication for now
-          // In a real app, this would call an API
+          // Mock authentication delay
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          if (email === 'demo@floatr.com' && password === 'password') {
-            // Mock user data
-            const user: User = {
-              id: '1',
-              displayName: 'John Doe',
-              bio: 'Passionate boater looking for adventure',
-              avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000',
-              createdAt: new Date(),
-              verified: true,
-              isPremium: false,
-            };
-            
-            set({ 
-              user, 
-              isAuthenticated: true, 
-              isLoading: false 
-            });
-          } else {
-            throw new Error('Invalid credentials');
-          }
+          set({ 
+            user: userData, 
+            isAuthenticated: true, 
+            isLoading: false 
+          });
         } catch (error) {
           set({ 
-            error: 'Invalid email or password', 
+            error: 'Authentication failed', 
             isLoading: false 
           });
         }
@@ -84,9 +68,8 @@ export const useAuthStore = create<AuthState>()(
           
           const user: User = {
             id: Math.random().toString(36).substring(7),
+            email,
             displayName,
-            createdAt: new Date(),
-            verified: false,
             isPremium: false,
           };
           
@@ -131,14 +114,11 @@ export const useAuthStore = create<AuthState>()(
         } else {
           // Create new boat if none exists
           const newBoat: Boat = {
-            id: Math.random().toString(36).substring(7),
-            ownerId: get().user?.id || '',
             name: boatData.name || 'My Boat',
             type: boatData.type || 'Other',
             length: boatData.length || 0,
             capacity: boatData.capacity || 0,
             verified: false,
-            createdAt: new Date(),
             ...boatData,
           };
           set({ boat: newBoat });

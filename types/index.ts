@@ -68,7 +68,7 @@ export interface PremiumFeature {
   icon: string;
 }
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'match' | 'boost';
+export type ToastType = 'success' | 'error' | 'info' | 'match' | 'boost';
 
 export interface FilterOptions {
   distance: number;
