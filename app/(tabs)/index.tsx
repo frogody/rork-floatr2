@@ -8,14 +8,13 @@ import {
   Dimensions,
   Alert,
   Platform,
-  RefreshControl,
   TouchableOpacity,
-  ScrollView
+  SafeAreaView
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
-import { Filter, RotateCcw, Zap, Heart, X, Crown } from 'lucide-react-native';
+import { Filter, RotateCcw, Zap, Heart, X, Crown, RefreshCw } from 'lucide-react-native';
 import { useSwipeStore } from '@/store/swipeStore';
 import { useAuthStore } from '@/store/authStore';
 import CrewCard from '@/components/CrewCard';
@@ -27,6 +26,7 @@ import colors from '@/constants/colors';
 import { Crew } from '@/types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SWIPE_THRESHOLD = 120;
 const BOOST_THRESHOLD = -150; // Swipe up threshold for boost
 
@@ -99,7 +99,11 @@ export default function DiscoverScreen() {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        // Only respond to gestures if they're significant enough
+        return Math.abs(gesture.dx) > 5 || Math.abs(gesture.dy) > 5;
+      },
+      onPanResponderTerminationRequest: () => false, // Don't allow other components to steal the gesture
       onPanResponderGrant: () => {
         // Add haptic feedback when starting to drag
         if (Platform.OS !== 'web') {
@@ -381,7 +385,7 @@ export default function DiscoverScreen() {
           <Text style={styles.emptyStateText}>No more crews nearby</Text>
           <Text style={styles.emptyStateSubtext}>Check back later or expand your search radius</Text>
           <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
-            <RotateCcw size={16} color={colors.primary} />
+            <RefreshCw size={16} color={colors.primary} />
             <Text style={styles.retryText}>Refresh</Text>
           </TouchableOpacity>
         </View>
@@ -489,18 +493,8 @@ export default function DiscoverScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      <ScrollView
-        style={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
+      {/* Fixed header controls */}
+      <SafeAreaView style={styles.headerContainer}>
         <View style={styles.topControls}>
           <UndoButton 
             onUndo={handleUndo} 
@@ -516,11 +510,15 @@ export default function DiscoverScreen() {
             <Filter size={20} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
-        
-        <View style={styles.cardsContainer}>
-          {renderCards()}
-        </View>
-        
+      </SafeAreaView>
+      
+      {/* Main card area - no scroll view to prevent gesture conflicts */}
+      <View style={styles.cardsContainer}>
+        {renderCards()}
+      </View>
+      
+      {/* Fixed bottom controls */}
+      <View style={styles.bottomContainer}>
         <SwipeButtons
           onWave={handleWave}
           onPass={handlePass}
@@ -528,7 +526,7 @@ export default function DiscoverScreen() {
           isAnchored={isAnchored}
           boostsRemaining={boostsRemaining}
         />
-      </ScrollView>
+      </View>
       
       <FilterModal
         visible={showFilters}
@@ -546,20 +544,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.dark,
   },
-  scrollContainer: {
-    flex: 1,
+  headerContainer: {
+    backgroundColor: colors.background.dark,
+    zIndex: 10,
   },
   topControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingVertical: 8,
   },
   whoLikedButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
@@ -571,9 +570,9 @@ const styles = StyleSheet.create({
     right: -2,
   },
   filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
@@ -582,14 +581,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 600,
+    paddingHorizontal: 16,
   },
   cardContainer: {
     position: 'absolute',
     width: '100%',
-    height: '80%',
+    height: '85%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  bottomContainer: {
+    backgroundColor: colors.background.dark,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 16, // Account for iPhone home indicator
   },
   emptyStateContainer: {
     alignItems: 'center',
@@ -617,6 +620,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     gap: 8,
+    minHeight: 44, // Ensure proper touch target
   },
   retryText: {
     color: colors.primary,
@@ -721,6 +725,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     marginTop: 16,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   tutorialButtonText: {
     color: colors.text.primary,

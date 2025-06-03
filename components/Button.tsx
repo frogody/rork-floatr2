@@ -6,9 +6,11 @@ import {
   ActivityIndicator,
   ViewStyle,
   TextStyle,
-  TouchableOpacityProps
+  TouchableOpacityProps,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 
 interface ButtonProps extends TouchableOpacityProps {
@@ -24,6 +26,7 @@ interface ButtonProps extends TouchableOpacityProps {
   textStyle?: TextStyle;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  haptic?: boolean;
 }
 
 export default function Button({
@@ -39,6 +42,7 @@ export default function Button({
   textStyle,
   icon,
   iconPosition = 'left',
+  haptic = true,
   ...rest
 }: ButtonProps) {
   const buttonStyles: ViewStyle[] = [
@@ -63,6 +67,13 @@ export default function Button({
       ? [colors.gradient.sunset[0], colors.gradient.sunset[1]] as readonly [string, string, ...string[]]
       : ['transparent', 'transparent'] as readonly [string, string, ...string[]];
 
+  const handlePress = async () => {
+    if (haptic && Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onPress();
+  };
+
   const ButtonContent = () => (
     <>
       {loading ? (
@@ -83,7 +94,7 @@ export default function Button({
   if (gradient && !disabled && variant !== 'outline' && variant !== 'text') {
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         disabled={disabled || loading}
         style={[styles.buttonContainer, style]}
         activeOpacity={0.8}
@@ -103,7 +114,7 @@ export default function Button({
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={[...buttonStyles]}
       activeOpacity={0.8}
@@ -125,6 +136,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 12,
     gap: 8,
+    minHeight: 44, // Ensure proper touch target size for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   text: {
     fontWeight: '600',
@@ -134,14 +151,17 @@ const styles = StyleSheet.create({
   smallButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
+    minHeight: 36,
   },
   mediumButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
+    minHeight: 44,
   },
   largeButton: {
     paddingVertical: 16,
     paddingHorizontal: 32,
+    minHeight: 52,
   },
   smallText: {
     fontSize: 14,
@@ -168,6 +188,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingVertical: 4,
     paddingHorizontal: 8,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   primaryText: {
     color: colors.text.primary,
@@ -186,6 +208,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.text.secondary,
     opacity: 0.5,
     borderColor: 'transparent',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   disabledText: {
     color: colors.text.primary,

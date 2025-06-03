@@ -1,94 +1,56 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity,
-  Platform
-} from 'react-native';
-import { Stack, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { router } from 'expo-router';
 import { FileText, Shield, ChevronRight } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 export default function LegalScreen() {
-  const handleNavigation = async (path: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push(path as any);
-  };
-
   const legalItems = [
     {
-      id: 'terms',
       title: 'Terms of Service',
       description: 'Our terms and conditions for using Floatr',
-      icon: <FileText size={20} color={colors.text.primary} />,
-      path: '/legal/terms',
+      icon: <FileText size={24} color={colors.primary} />,
+      route: '/legal/terms',
     },
     {
-      id: 'privacy',
       title: 'Privacy Policy',
-      description: 'How we collect, use, and protect your data',
-      icon: <Shield size={20} color={colors.text.primary} />,
-      path: '/legal/privacy',
+      description: 'How we protect and use your data',
+      icon: <Shield size={24} color={colors.primary} />,
+      route: '/legal/privacy',
     },
   ];
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      <Stack.Screen
-        options={{
-          title: 'Legal',
-          headerStyle: {
-            backgroundColor: colors.background.dark,
-          },
-          headerTintColor: colors.text.primary,
-        }}
-      />
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Legal Information</Text>
-          <Text style={styles.description}>
-            Important legal documents and policies for using Floatr
-          </Text>
-        </View>
-
-        <View style={styles.itemsList}>
-          {legalItems.map((item) => (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Legal Information</Text>
+        <Text style={styles.subtitle}>
+          Important legal documents and policies for Floatr
+        </Text>
+        
+        <View style={styles.itemsContainer}>
+          {legalItems.map((item, index) => (
             <TouchableOpacity
-              key={item.id}
+              key={index}
               style={styles.item}
-              onPress={() => handleNavigation(item.path)}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.7}
             >
-              <View style={styles.itemIcon}>
-                {item.icon}
-              </View>
-              <View style={styles.itemContent}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemDescription}>{item.description}</Text>
+              <View style={styles.itemLeft}>
+                <View style={styles.iconContainer}>
+                  {item.icon}
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={styles.itemTitle}>{item.title}</Text>
+                  <Text style={styles.itemDescription}>{item.description}</Text>
+                </View>
               </View>
               <ChevronRight size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           ))}
         </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By using Floatr, you agree to our Terms of Service and Privacy Policy.
-          </Text>
-          <Text style={styles.footerText}>
-            Last updated: January 1, 2024
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -98,38 +60,41 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.dark,
   },
   content: {
-    flex: 1,
     padding: 16,
   },
-  header: {
-    marginBottom: 32,
-  },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
   },
-  description: {
+  subtitle: {
     fontSize: 16,
     color: colors.text.secondary,
-    lineHeight: 24,
-  },
-  itemsList: {
-    gap: 1,
     marginBottom: 32,
+    lineHeight: 22,
+  },
+  itemsContainer: {
+    gap: 12,
   },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.background.card,
+    borderRadius: 12,
     padding: 16,
   },
-  itemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  itemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -146,15 +111,6 @@ const styles = StyleSheet.create({
   itemDescription: {
     fontSize: 14,
     color: colors.text.secondary,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  footerText: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: 4,
+    lineHeight: 18,
   },
 });

@@ -9,6 +9,7 @@ interface SwipeState {
   error: string | null;
   isAnchored: boolean;
   boostsRemaining: number;
+  isGestureActive: boolean; // Track if user is actively swiping
   
   // Actions
   fetchCrews: () => Promise<void>;
@@ -18,6 +19,7 @@ interface SwipeState {
   setAnchor: (anchored: boolean) => void;
   boostProfile: (crewId: string) => void;
   clearHistory: () => void;
+  setGestureActive: (active: boolean) => void;
 }
 
 export const useSwipeStore = create<SwipeState>((set, get) => ({
@@ -27,6 +29,7 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   error: null,
   isAnchored: false,
   boostsRemaining: 3, // Free users get 3 boosts
+  isGestureActive: false,
   
   fetchCrews: async () => {
     set({ isLoading: true, error: null });
@@ -105,5 +108,9 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   
   clearHistory: () => {
     set({ swipeHistory: [] });
+  },
+  
+  setGestureActive: (active) => {
+    set({ isGestureActive: active });
   },
 }));

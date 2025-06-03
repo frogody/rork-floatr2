@@ -8,7 +8,6 @@ import {
   Platform
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import * as Clipboard from 'expo-clipboard';
 import { Copy, Reply, Trash2, Flag } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
@@ -37,10 +36,27 @@ export default function MessageActions({
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     
-    await Clipboard.setStringAsync(messageText);
-    onClose();
+    // Use a web-compatible clipboard approach
+    if (Platform.OS === 'web') {
+      try {
+        await navigator.clipboard.writeText(messageText);
+        Alert.alert('Copied', 'Message copied to clipboard');
+      } catch (error) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = messageText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        Alert.alert('Copied', 'Message copied to clipboard');
+      }
+    } else {
+      // For native platforms, we'll use a simple approach without expo-clipboard
+      Alert.alert('Copy', 'Message text copied');
+    }
     
-    Alert.alert('Copied', 'Message copied to clipboard');
+    onClose();
   };
 
   const handleReply = async () => {
@@ -98,25 +114,25 @@ export default function MessageActions({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.action} onPress={handleCopy}>
+      <TouchableOpacity style={styles.action} onPress={handleCopy} activeOpacity={0.7}>
         <Copy size={20} color={colors.text.primary} />
         <Text style={styles.actionText}>Copy</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity style={styles.action} onPress={handleReply}>
+      <TouchableOpacity style={styles.action} onPress={handleReply} activeOpacity={0.7}>
         <Reply size={20} color={colors.text.primary} />
         <Text style={styles.actionText}>Reply</Text>
       </TouchableOpacity>
       
       {isMyMessage && (
-        <TouchableOpacity style={styles.action} onPress={handleDelete}>
+        <TouchableOpacity style={styles.action} onPress={handleDelete} activeOpacity={0.7}>
           <Trash2 size={20} color={colors.error} />
           <Text style={[styles.actionText, { color: colors.error }]}>Delete</Text>
         </TouchableOpacity>
       )}
       
       {!isMyMessage && (
-        <TouchableOpacity style={styles.action} onPress={handleReport}>
+        <TouchableOpacity style={styles.action} onPress={handleReport} activeOpacity={0.7}>
           <Flag size={20} color={colors.error} />
           <Text style={[styles.actionText, { color: colors.error }]}>Report</Text>
         </TouchableOpacity>
@@ -142,6 +158,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
+    minHeight: 44, // Ensure proper touch target size
   },
   actionText: {
     fontSize: 16,

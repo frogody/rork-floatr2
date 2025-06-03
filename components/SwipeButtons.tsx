@@ -34,7 +34,7 @@ export default function SwipeButtons({
         onPress={() => handlePress(onPass)}
         activeOpacity={0.7}
       >
-        <X size={24} color={colors.error} />
+        <X size={28} color={colors.error} />
       </TouchableOpacity>
       
       <TouchableOpacity 
@@ -42,7 +42,7 @@ export default function SwipeButtons({
         onPress={() => handlePress(onAnchor)}
         activeOpacity={0.7}
       >
-        <Anchor size={20} color={isAnchored ? colors.text.primary : colors.text.secondary} />
+        <Anchor size={22} color={isAnchored ? colors.text.primary : colors.text.secondary} />
       </TouchableOpacity>
       
       <TouchableOpacity 
@@ -50,7 +50,7 @@ export default function SwipeButtons({
         onPress={() => handlePress(() => {})} // Boost handled in parent
         activeOpacity={0.7}
       >
-        <Zap size={20} color={colors.warning} fill={colors.warning} />
+        <Zap size={22} color={colors.warning} fill={colors.warning} />
         {boostsRemaining > 0 && (
           <View style={styles.boostBadge}>
             <Text style={styles.boostBadgeText}>{boostsRemaining}</Text>
@@ -63,7 +63,7 @@ export default function SwipeButtons({
         onPress={() => handlePress(onWave)}
         activeOpacity={0.7}
       >
-        <Heart size={24} color={colors.success} fill={colors.success} />
+        <Heart size={28} color={colors.success} fill={colors.success} />
       </TouchableOpacity>
     </View>
   );
@@ -75,51 +75,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 24,
-    gap: 20,
+    paddingVertical: 20,
+    gap: 24,
   },
   passButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.error,
+    shadowColor: colors.error,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   anchorButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   anchoredButton: {
     backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.3,
   },
   boostButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: 'rgba(245, 158, 11, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.warning,
     position: 'relative',
+    shadowColor: colors.warning,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   boostBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -6,
+    right: -6,
     backgroundColor: colors.warning,
-    borderRadius: 10,
-    width: 20,
-    height: 20,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.background.dark,
   },
   boostBadgeText: {
     fontSize: 12,
@@ -127,13 +146,18 @@ const styles = StyleSheet.create({
     color: colors.background.dark,
   },
   waveButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: colors.success,
+    shadowColor: colors.success,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });
