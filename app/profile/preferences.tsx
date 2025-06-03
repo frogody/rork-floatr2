@@ -18,8 +18,8 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function PreferencesScreen() {
   const { user, updateUser } = useAuthStore();
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme === 'dark');
+  const systemColorScheme = useColorScheme();
+  const colors = getColors(systemColorScheme === 'dark');
   const [preferences, setPreferences] = React.useState(user?.preferences || {
     ageRange: [21, 35] as [number, number],
     maxDistance: 25,

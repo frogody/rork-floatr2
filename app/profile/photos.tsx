@@ -24,8 +24,8 @@ const PHOTO_SIZE = (width - 48 - 16) / 3; // 3 photos per row with margins
 
 export default function ManagePhotosScreen() {
   const { user, updateUser } = useAuthStore();
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme === 'dark');
+  const systemColorScheme = useColorScheme();
+  const colors = getColors(systemColorScheme === 'dark');
   const [photos, setPhotos] = React.useState<string[]>(user?.photos || []);
   const [isLoading, setIsLoading] = React.useState(false);
 

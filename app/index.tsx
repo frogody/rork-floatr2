@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Image,
+  useColorScheme,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -27,6 +28,7 @@ export default function WelcomeScreen() {
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
   
   const { isAuthenticated, isInitialized, checkAuth } = useAuthStore();
+  const systemColorScheme = useColorScheme();
   const colors = getColors(true); // Use dark colors for welcome screen
 
   React.useEffect(() => {
@@ -54,7 +56,7 @@ export default function WelcomeScreen() {
     const animations = Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 1200,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
@@ -155,8 +157,6 @@ export default function WelcomeScreen() {
         style={[
           styles.content,
           {
-            paddingTop: 60,
-            paddingBottom: 32,
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }]
           }
@@ -274,62 +274,69 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 32,
+    paddingTop: height * 0.15, // Move content down significantly
+    paddingBottom: 48,
     justifyContent: 'space-between',
   },
   header: {
-    alignItems: 'flex-start',
+    alignItems: 'flex-start', // Left align everything
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 72,
+    height: 72,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
-    position: 'relative',
+    marginBottom: 40,
     shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 16,
+    elevation: 12,
   },
   appIcon: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
   },
   textContainer: {
-    maxWidth: width * 0.9,
+    maxWidth: width * 0.85,
+    alignItems: 'flex-start', // Left align text container
   },
   title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 56,
+    fontWeight: '800',
+    marginBottom: 12,
     textAlign: 'left',
-    letterSpacing: -1,
+    letterSpacing: -2,
+    lineHeight: 60,
   },
   subtitle: {
-    fontSize: 22,
-    marginBottom: 20,
+    fontSize: 24,
+    marginBottom: 24,
     textAlign: 'left',
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: -0.5,
   },
   description: {
-    fontSize: 16,
+    fontSize: 17,
     textAlign: 'left',
-    lineHeight: 24,
+    lineHeight: 26,
     opacity: 0.9,
+    fontWeight: '400',
+    maxWidth: width * 0.8,
   },
   buttonContainer: {
     gap: 16,
+    paddingTop: 20,
   },
   primaryButton: {
     width: '100%',
     shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
   },
   secondaryButton: {
     width: '100%',

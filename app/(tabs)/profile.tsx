@@ -32,8 +32,8 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme === 'dark');
+  const systemColorScheme = useColorScheme();
+  const colors = getColors(systemColorScheme === 'dark');
 
   const handleHaptic = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={systemColorScheme === 'dark' ? 'light' : 'dark'} />
       
       <ScrollView 
         style={styles.scrollView}

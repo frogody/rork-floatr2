@@ -15,8 +15,8 @@ import { BarChart3, TrendingUp, Eye, Shield, Info } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 
 export default function AnalyticsSettingsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme === 'dark');
+  const systemColorScheme = useColorScheme();
+  const colors = getColors(systemColorScheme === 'dark');
   const [settings, setSettings] = React.useState({
     shareUsageData: true,
     sharePerformanceData: false,
