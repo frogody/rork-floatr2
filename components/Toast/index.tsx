@@ -5,11 +5,11 @@ import colors from '@/constants/colors';
 import { useToastStore } from '@/hooks/useToast';
 
 export function ToastProvider() {
-  const store = useToastStore();
+  const { visible, message, type, duration } = useToastStore();
   const translateY = new Animated.Value(-100);
 
   useEffect(() => {
-    if (store.visible) {
+    if (visible) {
       Animated.spring(translateY, {
         toValue: Platform.OS === 'ios' ? 60 : 20,
         useNativeDriver: true,
@@ -26,10 +26,10 @@ export function ToastProvider() {
         stiffness: 120,
       }).start();
     }
-  }, [store.visible]);
+  }, [visible]);
 
   const getIcon = () => {
-    switch (store.type) {
+    switch (type) {
       case 'success':
         return <Check size={20} color={colors.status.success} />;
       case 'error':
@@ -44,7 +44,7 @@ export function ToastProvider() {
   };
 
   const getBackgroundColor = () => {
-    switch (store.type) {
+    switch (type) {
       case 'success':
         return colors.status.success + '20';
       case 'error':
@@ -58,7 +58,7 @@ export function ToastProvider() {
     }
   };
 
-  if (!store.visible) return null;
+  if (!visible) return null;
 
   return (
     <Animated.View 
@@ -69,7 +69,7 @@ export function ToastProvider() {
     >
       <View style={styles.content}>
         {getIcon()}
-        <Text style={styles.message}>{store.message}</Text>
+        <Text style={styles.message}>{message}</Text>
       </View>
     </Animated.View>
   );
