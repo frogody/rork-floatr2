@@ -76,6 +76,7 @@ function RootLayoutNav() {
         animation: Platform.OS === 'ios' ? 'slide_from_right' : 'fade',
         gestureEnabled: Platform.OS === 'ios', // Enable swipe-back on iOS
         gestureDirection: 'horizontal',
+        headerBackTitle: "", // Clean back button on iOS
       }}
     >
       {!isAuthenticated ? (
@@ -129,98 +130,84 @@ function RootLayoutNav() {
             name="chat/[id]" 
             options={{ 
               title: "Chat",
-              headerBackTitleVisible: false, // Clean back button on iOS
             }} 
           />
           <Stack.Screen 
             name="profile/edit" 
             options={{ 
               title: "Edit Profile",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="boat/edit" 
             options={{ 
               title: "Edit Boat",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="settings/index" 
             options={{ 
               title: "Settings",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="settings/account" 
             options={{ 
               title: "Account Settings",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="settings/notifications" 
             options={{ 
               title: "Notifications",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="settings/blocked-users" 
             options={{ 
               title: "Blocked Users",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="help" 
             options={{ 
               title: "Help & Support",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="help/faq" 
             options={{ 
               title: "FAQ",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="help/safety" 
             options={{ 
               title: "Safety Tips",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="privacy" 
             options={{ 
               title: "Privacy & Safety",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="legal/index" 
             options={{ 
               title: "Legal",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="legal/terms" 
             options={{ 
               title: "Terms of Service",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
             name="legal/privacy" 
             options={{ 
               title: "Privacy Policy",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
@@ -235,7 +222,6 @@ function RootLayoutNav() {
             name="meetups/[id]" 
             options={{ 
               title: "Meetup Details",
-              headerBackTitleVisible: false,
             }} 
           />
           <Stack.Screen 
