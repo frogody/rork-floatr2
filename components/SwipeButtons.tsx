@@ -1,60 +1,69 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { X, Heart, Anchor } from 'lucide-react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { X, Heart, Zap, Anchor } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface SwipeButtonsProps {
-  onWave: () => void;
   onPass: () => void;
+  onWave: () => void;
   onAnchor: () => void;
-  isAnchored?: boolean;
+  isAnchored: boolean;
+  boostsRemaining?: number;
 }
 
-export default function SwipeButtons({ onWave, onPass, onAnchor, isAnchored = false }: SwipeButtonsProps) {
-  const handlePress = async (callback: () => void) => {
+export default function SwipeButtons({ 
+  onPass, 
+  onWave, 
+  onAnchor, 
+  isAnchored,
+  boostsRemaining = 0 
+}: SwipeButtonsProps) {
+  
+  const handlePress = async (action: () => void) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    callback();
+    action();
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity 
-        style={[styles.button, styles.passButton]} 
+        style={styles.passButton} 
         onPress={() => handlePress(onPass)}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
         <X size={24} color={colors.error} />
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[
-          styles.button, 
-          styles.anchorButton,
-          isAnchored && styles.anchorButtonActive
-        ]} 
+        style={[styles.anchorButton, isAnchored && styles.anchoredButton]} 
         onPress={() => handlePress(onAnchor)}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <Anchor size={24} color={isAnchored ? colors.text.primary : colors.primary} />
+        <Anchor size={20} color={isAnchored ? colors.text.primary : colors.text.secondary} />
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={styles.waveButtonContainer}
-        onPress={() => handlePress(onWave)}
-        activeOpacity={0.8}
+        style={styles.boostButton} 
+        onPress={() => handlePress(() => {})} // Boost handled in parent
+        activeOpacity={0.7}
       >
-        <LinearGradient
-          colors={[...colors.gradient.sunset]}
-          style={styles.waveButton}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Heart size={24} color={colors.text.primary} fill={colors.text.primary} />
-        </LinearGradient>
+        <Zap size={20} color={colors.warning} fill={colors.warning} />
+        {boostsRemaining > 0 && (
+          <View style={styles.boostBadge}>
+            <Text style={styles.boostBadgeText}>{boostsRemaining}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={styles.waveButton} 
+        onPress={() => handlePress(onWave)}
+        activeOpacity={0.7}
+      >
+        <Heart size={24} color={colors.success} fill={colors.success} />
       </TouchableOpacity>
     </View>
   );
@@ -65,50 +74,66 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 16,
-    marginVertical: 16,
-  },
-  button: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    paddingHorizontal: 32,
+    paddingVertical: 24,
+    gap: 20,
   },
   passButton: {
-    backgroundColor: 'white',
-    borderWidth: 1,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
     borderColor: colors.error,
   },
   anchorButton: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  anchorButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  waveButtonContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  waveButton: {
-    width: '100%',
-    height: '100%',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.background.card,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  anchoredButton: {
+    backgroundColor: colors.primary,
+  },
+  boostButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.warning,
+    position: 'relative',
+  },
+  boostBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: colors.warning,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  boostBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.background.dark,
+  },
+  waveButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.success,
   },
 });

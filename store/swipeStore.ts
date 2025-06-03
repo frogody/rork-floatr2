@@ -1,114 +1,109 @@
 import { create } from 'zustand';
-import { Crew } from '@/types';
+import { Crew, SwipeAction } from '@/types';
 import { mockCrews } from '@/mocks/crews';
 
 interface SwipeState {
   crews: Crew[];
-  currentIndex: number;
-  swipedCrews: Set<string>;
-  likedCrews: Set<string>;
-  swipeHistory: string[];
+  swipeHistory: SwipeAction[];
   isLoading: boolean;
   error: string | null;
+  isAnchored: boolean;
+  boostsRemaining: number;
   
   // Actions
   fetchCrews: () => Promise<void>;
   swipeLeft: (crewId: string) => void;
   swipeRight: (crewId: string) => void;
   undoLastSwipe: () => void;
-  resetSwipes: () => void;
-  setAnchor: (value: boolean) => void;
-  isAnchored: boolean;
+  setAnchor: (anchored: boolean) => void;
+  boostProfile: (crewId: string) => void;
+  clearHistory: () => void;
 }
 
 export const useSwipeStore = create<SwipeState>((set, get) => ({
   crews: [],
-  currentIndex: 0,
-  swipedCrews: new Set<string>(),
-  likedCrews: new Set<string>(),
   swipeHistory: [],
   isLoading: false,
   error: null,
   isAnchored: false,
+  boostsRemaining: 3, // Free users get 3 boosts
   
   fetchCrews: async () => {
     set({ isLoading: true, error: null });
     try {
-      // In a real app, this would fetch from an API
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Use mock data for now
-      set({ 
-        crews: mockCrews, 
-        isLoading: false 
-      });
+      // Filter out crews that have been swiped on
+      const swipedCrewIds = get().swipeHistory.map(action => action.crewId);
+      const availableCrews = mockCrews.filter(crew => !swipedCrewIds.includes(crew.id));
+      
+      set({ crews: availableCrews, isLoading: false });
     } catch (error) {
-      set({ 
-        error: 'Failed to fetch crews', 
-        isLoading: false 
-      });
+      set({ error: 'Failed to load crews', isLoading: false });
     }
   },
   
-  swipeLeft: (crewId: string) => {
-    const { swipedCrews, currentIndex, crews, swipeHistory } = get();
-    const newSwiped = new Set(swipedCrews);
-    newSwiped.add(crewId);
+  swipeLeft: (crewId) => {
+    const swipeAction: SwipeAction = {
+      id: Math.random().toString(36).substring(7),
+      crewId,
+      action: 'pass',
+      timestamp: new Date(),
+    };
     
-    set({ 
-      swipedCrews: newSwiped,
-      currentIndex: Math.min(currentIndex + 1, crews.length - 1),
-      swipeHistory: [...swipeHistory, crewId]
-    });
+    set(state => ({
+      swipeHistory: [...state.swipeHistory, swipeAction],
+    }));
   },
   
-  swipeRight: (crewId: string) => {
-    const { swipedCrews, likedCrews, currentIndex, crews, swipeHistory } = get();
-    const newSwiped = new Set(swipedCrews);
-    const newLiked = new Set(likedCrews);
+  swipeRight: (crewId) => {
+    const swipeAction: SwipeAction = {
+      id: Math.random().toString(36).substring(7),
+      crewId,
+      action: 'like',
+      timestamp: new Date(),
+    };
     
-    newSwiped.add(crewId);
-    newLiked.add(crewId);
-    
-    set({ 
-      swipedCrews: newSwiped,
-      likedCrews: newLiked,
-      currentIndex: Math.min(currentIndex + 1, crews.length - 1),
-      swipeHistory: [...swipeHistory, crewId]
-    });
+    set(state => ({
+      swipeHistory: [...state.swipeHistory, swipeAction],
+    }));
   },
   
   undoLastSwipe: () => {
-    const { swipeHistory, swipedCrews, likedCrews, currentIndex } = get();
-    
-    if (swipeHistory.length === 0) return;
-    
-    const lastSwipedId = swipeHistory[swipeHistory.length - 1];
-    const newSwiped = new Set(swipedCrews);
-    const newLiked = new Set(likedCrews);
-    const newHistory = swipeHistory.slice(0, -1);
-    
-    newSwiped.delete(lastSwipedId);
-    newLiked.delete(lastSwipedId);
-    
-    set({
-      swipedCrews: newSwiped,
-      likedCrews: newLiked,
-      swipeHistory: newHistory,
-      currentIndex: Math.max(currentIndex - 1, 0)
+    set(state => {
+      if (state.swipeHistory.length === 0) return state;
+      
+      const newHistory = [...state.swipeHistory];
+      newHistory.pop();
+      
+      return { swipeHistory: newHistory };
     });
   },
   
-  resetSwipes: () => {
-    set({ 
-      swipedCrews: new Set(),
-      likedCrews: new Set(),
-      swipeHistory: [],
-      currentIndex: 0
+  setAnchor: (anchored) => {
+    set({ isAnchored: anchored });
+  },
+  
+  boostProfile: (crewId) => {
+    set(state => {
+      if (state.boostsRemaining <= 0) return state;
+      
+      const swipeAction: SwipeAction = {
+        id: Math.random().toString(36).substring(7),
+        crewId,
+        action: 'boost',
+        timestamp: new Date(),
+      };
+      
+      return {
+        swipeHistory: [...state.swipeHistory, swipeAction],
+        boostsRemaining: state.boostsRemaining - 1,
+      };
     });
   },
   
-  setAnchor: (value: boolean) => {
-    set({ isAnchored: value });
+  clearHistory: () => {
+    set({ swipeHistory: [] });
   },
 }));

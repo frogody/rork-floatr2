@@ -4,6 +4,8 @@ export interface User {
   bio?: string;
   avatarUrl?: string;
   createdAt: Date;
+  verified?: boolean;
+  isPremium?: boolean;
 }
 
 export interface Boat {
@@ -13,58 +15,80 @@ export interface Boat {
   type: string;
   length: number;
   capacity: number;
-  verified: boolean;
   photoUrl?: string;
+  verified?: boolean;
   createdAt: Date;
 }
 
 export interface Crew {
   id: string;
   name: string;
-  bio: string;
+  description: string;
+  photoUrl: string;
   location: string;
   distance: number;
-  photoUrls: string[];
-  tags: string[];
-  memberCount: number;
   boatType: string;
   boatLength: number;
-  boatCapacity: number;
+  crewSize: number;
+  tags: string[];
+  verified?: boolean;
+  lastActive?: Date;
 }
 
 export interface Match {
   id: string;
   crewId: string;
   crewName: string;
+  photoUrl: string;
   location: string;
   matchedAt: Date;
-  lastMessage?: {
-    content: string;
-    timestamp: Date;
-  };
-  photoUrl: string;
+  lastMessage?: string;
+  lastMessageAt?: Date;
+  unreadCount?: number;
 }
 
 export interface Message {
   id: string;
-  matchId: string;
   senderId: string;
   content: string;
   sentAt: Date;
+  readAt?: Date;
+  type?: 'text' | 'image' | 'location';
 }
 
-export type BoostDuration = '1h' | '2h' | '4h' | '24h';
-
-export interface PremiumFeature {
+export interface SwipeAction {
   id: string;
-  name: string;
-  description: string;
-  icon: string;
+  crewId: string;
+  action: 'like' | 'pass' | 'boost';
+  timestamp: Date;
 }
 
 export interface OnboardingStep {
   id: string;
   title: string;
   description: string;
-  imageUrl?: string;
+  imageUrl: string;
+}
+
+export interface PremiumFeature {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  available: boolean;
+}
+
+export interface Meetup {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  date: string;
+  time: string;
+  maxAttendees?: number;
+  currentAttendees: number;
+  tags: string[];
+  organizerId: string;
+  attendeeIds: string[];
+  createdAt: Date;
 }

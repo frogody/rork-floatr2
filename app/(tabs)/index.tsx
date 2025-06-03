@@ -15,8 +15,9 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
-import { Filter, RotateCcw, Zap } from 'lucide-react-native';
+import { Filter, RotateCcw, Zap, Heart, X, Crown } from 'lucide-react-native';
 import { useSwipeStore } from '@/store/swipeStore';
+import { useAuthStore } from '@/store/authStore';
 import CrewCard from '@/components/CrewCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import UndoButton from '@/components/UndoButton';
@@ -40,8 +41,11 @@ export default function DiscoverScreen() {
     isLoading, 
     error, 
     setAnchor, 
-    isAnchored 
+    isAnchored,
+    boostProfile,
+    boostsRemaining 
   } = useSwipeStore();
+  const { user, hasSeenTutorial, setHasSeenTutorial } = useAuthStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -54,6 +58,7 @@ export default function DiscoverScreen() {
   });
   const position = useRef(new Animated.ValueXY()).current;
   const scale = useRef(new Animated.Value(1)).current;
+  const rotation = useRef(new Animated.Value(0)).current;
   
   const rotate = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
@@ -110,11 +115,13 @@ export default function DiscoverScreen() {
         scale.setValue(scaleValue);
       },
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dy < BOOST_THRESHOLD) {
+        const velocity = Math.sqrt(gesture.vx * gesture.vx + gesture.vy * gesture.vy);
+        
+        if (gesture.dy < BOOST_THRESHOLD && velocity > 0.5) {
           handleBoostGesture();
-        } else if (gesture.dx > SWIPE_THRESHOLD) {
+        } else if (gesture.dx > SWIPE_THRESHOLD || (gesture.dx > 50 && gesture.vx > 0.5)) {
           handleSwipeRightGesture(gesture.dx);
-        } else if (gesture.dx < -SWIPE_THRESHOLD) {
+        } else if (gesture.dx < -SWIPE_THRESHOLD || (gesture.dx < -50 && gesture.vx < -0.5)) {
           handleSwipeLeftGesture(gesture.dx);
         } else {
           // Snap back with spring animation
@@ -141,7 +148,6 @@ export default function DiscoverScreen() {
     fetchCrews();
     
     // Show tutorial for first-time users
-    const hasSeenTutorial = false; // In real app, check AsyncStorage
     if (!hasSeenTutorial) {
       setTimeout(() => setShowTutorial(true), 1000);
     }
@@ -228,21 +234,32 @@ export default function DiscoverScreen() {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     }
     
-    Alert.alert(
-      'Boost This Profile',
-      'Use a boost to get priority visibility with this crew?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Use Boost', 
-          onPress: () => {
-            // In real app, this would use a boost credit
-            Alert.alert('Boosted!', 'Your profile will be shown first to this crew.');
-            handleSwipeRightGesture(0);
-          }
-        },
-      ]
-    );
+    if (boostsRemaining > 0) {
+      Alert.alert(
+        'Boost This Profile',
+        `Use a boost to get priority visibility with ${crews[currentIndex].name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: `Use Boost (${boostsRemaining} left)`, 
+            onPress: () => {
+              boostProfile(crews[currentIndex].id);
+              Alert.alert('Boosted!', 'Your profile will be shown first to this crew.');
+              handleSwipeRightGesture(0);
+            }
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'No Boosts Left',
+        'Get more boosts with Floatr Premium!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Go Premium', onPress: () => router.push('/premium') },
+        ]
+      );
+    }
     
     // Reset position
     Animated.parallel([
@@ -271,6 +288,15 @@ export default function DiscoverScreen() {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    
+    if (swipeHistory.length === 0) {
+      Alert.alert('No More Undos', 'Get unlimited undos with Floatr Premium!', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Go Premium', onPress: () => router.push('/premium') },
+      ]);
+      return;
+    }
+    
     undoLastSwipe();
     setCurrentIndex(Math.max(currentIndex - 1, 0));
   };
@@ -295,6 +321,25 @@ export default function DiscoverScreen() {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setShowFilters(true);
+  };
+
+  const handleWhoLikedYou = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
+    if (user?.isPremium) {
+      router.push('/who-liked-you');
+    } else {
+      Alert.alert(
+        'Premium Feature',
+        'See who liked you with Floatr Premium!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Go Premium', onPress: () => router.push('/premium') },
+        ]
+      );
+    }
   };
 
   const handleApplyFilters = (newFilters: FilterOptions) => {
@@ -365,15 +410,17 @@ export default function DiscoverScreen() {
               {...panResponder.panHandlers}
             >
               <Animated.View style={[styles.likeContainer, { opacity: likeOpacity }]}>
+                <Heart size={24} color={colors.success} fill={colors.success} />
                 <Text style={styles.likeText}>WAVE</Text>
               </Animated.View>
               
               <Animated.View style={[styles.nopeContainer, { opacity: nopeOpacity }]}>
+                <X size={24} color={colors.error} />
                 <Text style={styles.nopeText}>PASS</Text>
               </Animated.View>
               
               <Animated.View style={[styles.boostContainer, { opacity: boostOpacity }]}>
-                <Zap size={24} color={colors.warning} />
+                <Zap size={24} color={colors.warning} fill={colors.warning} />
                 <Text style={styles.boostText}>BOOST</Text>
               </Animated.View>
               
@@ -413,17 +460,23 @@ export default function DiscoverScreen() {
         <View style={styles.tutorialContent}>
           <Text style={styles.tutorialTitle}>How to Use Floatr</Text>
           <View style={styles.tutorialStep}>
-            <Text style={styles.tutorialText}>👈 Swipe left to pass</Text>
+            <X size={20} color={colors.error} />
+            <Text style={styles.tutorialText}>Swipe left or tap ✕ to pass</Text>
           </View>
           <View style={styles.tutorialStep}>
-            <Text style={styles.tutorialText}>👉 Swipe right to wave</Text>
+            <Heart size={20} color={colors.success} fill={colors.success} />
+            <Text style={styles.tutorialText}>Swipe right or tap ♥ to wave</Text>
           </View>
           <View style={styles.tutorialStep}>
-            <Text style={styles.tutorialText}>👆 Swipe up to boost</Text>
+            <Zap size={20} color={colors.warning} fill={colors.warning} />
+            <Text style={styles.tutorialText}>Swipe up or tap ⚡ to boost</Text>
           </View>
           <TouchableOpacity 
             style={styles.tutorialButton}
-            onPress={() => setShowTutorial(false)}
+            onPress={() => {
+              setShowTutorial(false);
+              setHasSeenTutorial(true);
+            }}
           >
             <Text style={styles.tutorialButtonText}>Got it!</Text>
           </TouchableOpacity>
@@ -454,6 +507,11 @@ export default function DiscoverScreen() {
             disabled={swipeHistory.length === 0} 
           />
           
+          <TouchableOpacity style={styles.whoLikedButton} onPress={handleWhoLikedYou}>
+            <Heart size={20} color={user?.isPremium ? colors.warning : colors.text.primary} />
+            {!user?.isPremium && <Crown size={12} color={colors.warning} style={styles.premiumIcon} />}
+          </TouchableOpacity>
+          
           <TouchableOpacity style={styles.filterButton} onPress={handleFiltersPress}>
             <Filter size={20} color={colors.text.primary} />
           </TouchableOpacity>
@@ -468,6 +526,7 @@ export default function DiscoverScreen() {
           onPass={handlePass}
           onAnchor={handleAnchor}
           isAnchored={isAnchored}
+          boostsRemaining={boostsRemaining}
         />
       </ScrollView>
       
@@ -496,6 +555,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 16,
+  },
+  whoLikedButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  premiumIcon: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
   },
   filterButton: {
     width: 40,
@@ -557,12 +630,16 @@ const styles = StyleSheet.create({
     zIndex: 1,
     transform: [{ rotate: '20deg' }],
     borderWidth: 4,
-    borderRadius: 8,
-    padding: 8,
+    borderRadius: 12,
+    padding: 12,
     borderColor: colors.success,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   likeText: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.success,
   },
@@ -573,12 +650,16 @@ const styles = StyleSheet.create({
     zIndex: 1,
     transform: [{ rotate: '-20deg' }],
     borderWidth: 4,
-    borderRadius: 8,
-    padding: 8,
+    borderRadius: 12,
+    padding: 12,
     borderColor: colors.error,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   nopeText: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.error,
   },
@@ -625,12 +706,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tutorialStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
+    gap: 12,
   },
   tutorialText: {
     fontSize: 16,
     color: colors.text.primary,
-    textAlign: 'center',
   },
   tutorialButton: {
     backgroundColor: colors.primary,

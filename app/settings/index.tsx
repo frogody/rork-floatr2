@@ -27,7 +27,11 @@ import {
   CreditCard,
   Moon,
   Sun,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Key,
+  UserX,
+  LogOut
 } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
@@ -41,10 +45,11 @@ interface SettingItem {
   value?: boolean;
   onPress?: () => void;
   onToggle?: (value: boolean) => void;
+  destructive?: boolean;
 }
 
 export default function SettingsScreen() {
-  const { user } = useAuthStore();
+  const { user, signOut, deleteAccount, isLoading } = useAuthStore();
   const [notifications, setNotifications] = useState(true);
   const [locationSharing, setLocationSharing] = useState(true);
   const [incognitoMode, setIncognitoMode] = useState(false);
@@ -79,7 +84,61 @@ export default function SettingsScreen() {
         Alert.alert('Send Feedback', 'This would open a feedback form or email client.');
         break;
       case 'replay-onboarding':
-        Alert.alert('Replay Tutorial', 'This would restart the onboarding flow.');
+        Alert.alert(
+          'Replay Tutorial',
+          'This will restart the onboarding flow. Continue?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Continue', 
+              onPress: () => {
+                // Reset onboarding state and navigate
+                router.push('/onboarding');
+              }
+            },
+          ]
+        );
+        break;
+      case 'change-password':
+        handleNavigation('/settings/account');
+        break;
+      case 'delete-account':
+        Alert.alert(
+          'Delete Account',
+          'This action cannot be undone. All your data will be permanently deleted.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Delete Account', 
+              style: 'destructive',
+              onPress: async () => {
+                if (Platform.OS !== 'web') {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                }
+                await deleteAccount();
+              }
+            },
+          ]
+        );
+        break;
+      case 'sign-out':
+        Alert.alert(
+          'Sign Out',
+          'Are you sure you want to sign out?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Sign Out', 
+              onPress: async () => {
+                if (Platform.OS !== 'web') {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }
+                signOut();
+              }, 
+              style: 'destructive' 
+            },
+          ]
+        );
         break;
       default:
         break;
@@ -158,12 +217,28 @@ export default function SettingsScreen() {
       onToggle: (value) => handleToggle(setHapticFeedback, hapticFeedback),
     },
     {
+      id: 'blocked-users',
+      title: 'Blocked Users',
+      description: 'Manage your blocked users list',
+      icon: <UserX size={20} color={colors.text.primary} />,
+      type: 'navigation',
+      onPress: () => handleNavigation('/settings/blocked-users'),
+    },
+    {
       id: 'privacy',
       title: 'Privacy & Safety',
       description: 'Manage your privacy settings',
       icon: <Shield size={20} color={colors.text.primary} />,
       type: 'navigation',
       onPress: () => handleNavigation('/privacy'),
+    },
+    {
+      id: 'change-password',
+      title: 'Change Password',
+      description: 'Update your account password',
+      icon: <Key size={20} color={colors.text.primary} />,
+      type: 'action',
+      onPress: () => handleAction('change-password'),
     },
     {
       id: 'replay-tutorial',
@@ -187,7 +262,7 @@ export default function SettingsScreen() {
       description: 'Read our terms and privacy policy',
       icon: <FileText size={20} color={colors.text.primary} />,
       type: 'navigation',
-      onPress: () => handleNavigation('/legal'),
+      onPress: () => handleNavigation('/legal/terms'),
     },
     {
       id: 'rate',
@@ -197,15 +272,33 @@ export default function SettingsScreen() {
       type: 'action',
       onPress: () => handleAction('rate'),
     },
+    {
+      id: 'sign-out',
+      title: 'Sign Out',
+      description: 'Sign out of your account',
+      icon: <LogOut size={20} color={colors.error} />,
+      type: 'action',
+      onPress: () => handleAction('sign-out'),
+      destructive: true,
+    },
+    {
+      id: 'delete-account',
+      title: 'Delete Account',
+      description: 'Permanently delete your account and data',
+      icon: <Trash2 size={20} color={colors.error} />,
+      type: 'action',
+      onPress: () => handleAction('delete-account'),
+      destructive: true,
+    },
   ];
 
   const renderSettingItem = (item: SettingItem) => {
     return (
       <TouchableOpacity
         key={item.id}
-        style={styles.settingItem}
+        style={[styles.settingItem, item.destructive && styles.destructiveItem]}
         onPress={item.onPress}
-        disabled={item.type === 'toggle'}
+        disabled={item.type === 'toggle' || isLoading}
         activeOpacity={item.type === 'toggle' ? 1 : 0.7}
       >
         <View style={styles.settingIcon}>
@@ -213,7 +306,9 @@ export default function SettingsScreen() {
         </View>
         
         <View style={styles.settingContent}>
-          <Text style={styles.settingTitle}>{item.title}</Text>
+          <Text style={[styles.settingTitle, item.destructive && styles.destructiveText]}>
+            {item.title}
+          </Text>
           {item.description && (
             <Text style={styles.settingDescription}>{item.description}</Text>
           )}
@@ -226,6 +321,7 @@ export default function SettingsScreen() {
               onValueChange={item.onToggle}
               trackColor={{ false: colors.text.secondary, true: colors.primary }}
               thumbColor={colors.text.primary}
+              disabled={item.id === 'incognito' && !user?.isPremium}
             />
           ) : (
             <ChevronRight size={20} color={colors.text.secondary} />
@@ -253,6 +349,11 @@ export default function SettingsScreen() {
         <View style={styles.profileSection}>
           <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
           <Text style={styles.profileEmail}>Manage your Floatr experience</Text>
+          {user?.isPremium && (
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumText}>Premium Member</Text>
+            </View>
+          )}
         </View>
         
         <View style={styles.section}>
@@ -266,8 +367,18 @@ export default function SettingsScreen() {
         </View>
         
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Privacy & Security</Text>
+          {settings.slice(8, 11).map(renderSettingItem)}
+        </View>
+        
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          {settings.slice(8).map(renderSettingItem)}
+          {settings.slice(11, 15).map(renderSettingItem)}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Actions</Text>
+          {settings.slice(15).map(renderSettingItem)}
         </View>
         
         <View style={styles.footer}>
@@ -304,6 +415,18 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     color: colors.text.secondary,
+    marginBottom: 8,
+  },
+  premiumBadge: {
+    backgroundColor: colors.warning,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  premiumText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.background.dark,
   },
   section: {
     marginBottom: 32,
@@ -324,6 +447,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 1,
   },
+  destructiveItem: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  },
   settingIcon: {
     width: 40,
     height: 40,
@@ -341,6 +467,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.text.primary,
     marginBottom: 2,
+  },
+  destructiveText: {
+    color: colors.error,
   },
   settingDescription: {
     fontSize: 14,
