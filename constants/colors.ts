@@ -1,54 +1,59 @@
 const colors = {
-  primary: '#3B82F6',
-  secondary: '#EC4899',
-  accent: '#10B981',
+  primary: '#007AFF',
+  secondary: '#5856D6',
+  accent: '#FF9500',
   
   background: {
-    primary: '#0A0A0A',
-    secondary: '#18181B',
-    tertiary: '#27272A',
-    card: '#1F1F23',
-    disabled: '#3F3F46',
-  },
-  
-  surface: {
-    primary: '#0A0A0A',
-    secondary: '#18181B',
-    tertiary: '#27272A',
+    primary: '#000000',
+    secondary: '#1C1C1E',
+    tertiary: '#2C2C2E',
   },
   
   text: {
-    primary: '#F8FAFC',
-    secondary: '#CBD5E1',
-    tertiary: '#64748B',
-    disabled: '#52525B',
+    primary: '#FFFFFF',
+    secondary: '#8E8E93',
+    tertiary: '#48484A',
   },
   
   border: {
-    primary: '#27272A',
-    secondary: '#3F3F46',
+    primary: '#38383A',
+    secondary: '#48484A',
   },
   
-  status: {
-    success: '#10B981',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    info: '#3B82F6',
-    disabled: '#3F3F46',
+  success: '#34C759',
+  warning: '#FF9500',
+  error: '#FF3B30',
+  info: '#007AFF',
+  
+  // Light theme colors
+  light: {
+    background: {
+      primary: '#FFFFFF',
+      secondary: '#F2F2F7',
+      tertiary: '#FFFFFF',
+    },
+    text: {
+      primary: '#000000',
+      secondary: '#3C3C43',
+      tertiary: '#8E8E93',
+    },
+    border: {
+      primary: '#C6C6C8',
+      secondary: '#E5E5EA',
+    },
   },
   
-  gradient: {
-    primary: ['#3B82F6', '#1D4ED8'],
-    secondary: ['#EC4899', '#BE185D'],
-    accent: ['#10B981', '#047857'],
-  },
+  // Semantic colors
+  like: '#FF3B30',
+  superLike: '#007AFF',
+  pass: '#8E8E93',
   
-  map: {
-    water: '#1e3a8a',
-    land: '#1f2937',
-    marker: '#3B82F6',
-    userLocation: '#10B981',
-    cluster: '#EC4899',
+  // Gradients
+  gradients: {
+    primary: ['#007AFF', '#5856D6'],
+    secondary: ['#FF9500', '#FF3B30'],
+    success: ['#34C759', '#30D158'],
+    premium: ['#FFD700', '#FFA500'],
   },
 };
 
