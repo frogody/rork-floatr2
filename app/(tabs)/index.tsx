@@ -1,312 +1,55 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
-  Text, 
-  Animated, 
-  PanResponder,
-  Dimensions,
-  Alert
+  FlatList, 
+  Dimensions, 
+  ViewToken,
+  NativeSyntheticEvent,
+  NativeScrollEvent
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useSwipeStore } from '@/store/swipeStore';
-import CrewCard from '@/components/CrewCard';
-import SwipeButtons from '@/components/SwipeButtons';
+import Button from '@/components/Button';
+import OnboardingStep from '@/components/OnboardingStep';
+import ProgressDots from '@/components/ProgressDots';
 import colors from '@/constants/colors';
-import { Crew } from '@/types';
+import { OnboardingStep as OnboardingStepType } from '@/types';
+import { useAuthStore } from '@/store/authStore';
+import { boatTypes } from '@/mocks/crews';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SWIPE_THRESHOLD = 120;
+const { width } = Dimensions.get('window');
 
-export default function DiscoverScreen() {
-  const { crews, fetchCrews, swipeLeft, swipeRight, isLoading, error, setAnchor, isAnchored } = useSwipeStore();
+const onboardingSteps: OnboardingStepType[] = [
+  {
+    id: '1',
+    title: 'Welcome to Floatr',
+    description: 'Connect with fellow boaters, raft-up, and share amazing experiences on the water.',
+    imageUrl: 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000',
+  },
+  {
+    id: '2',
+    title: 'Discover Nearby Crews',
+    description: 'Swipe through profiles of boaters in your area and find your perfect match.',
+    imageUrl: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1000',
+  },
+  {
+    id: '3',
+    title: 'Chat & Meet Up',
+    description: 'Connect through chat and coordinate meet-ups on the water.',
+    imageUrl: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=1000',
+  },
+  {
+    id: '4',
+    title: 'Drop Anchor',
+    description: "Let others know when you're stationary and open to raft-ups.",
+    imageUrl: 'https://images.unsplash.com/photo-1566438480900-0609be27a4be?q=80&w=1000',
+  },
+];
+
+export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const position = useRef(new Animated.ValueXY()).current;
-  const rotate = position.x.interpolate({
-    inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
-    outputRange: ['-10deg', '0deg', '10deg'],
-    extrapolate: 'clamp',
-  });
+  const flatListRef = useRef<FlatList>(null);
+  const { setOnboarded, updateBoat } = useAuthStore();
 
-  const likeOpacity = position.x.interpolate({
-    inputRange: [0, SCREEN_WIDTH / 4],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
-  const nopeOpacity = position.x.interpolate({
-    inputRange: [-SCREEN_WIDTH / 4, 0],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
-  const nextCardOpacity = position.x.interpolate({
-    inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
-    outputRange: [1, 0.5, 1],
-    extrapolate: 'clamp',
-  });
-
-  const nextCardScale = position.x.interpolate({
-    inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
-    outputRange: [1, 0.9, 1],
-    extrapolate: 'clamp',
-  });
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gesture) => {
-        position.setValue({ x: gesture.dx, y: gesture.dy });
-      },
-      onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > SWIPE_THRESHOLD) {
-          swipeRight(gesture.dx);
-        } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          swipeLeft(gesture.dx);
-        } else {
-          Animated.spring(position, {
-            toValue: { x: 0, y: 0 },
-            friction: 5,
-            useNativeDriver: false,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
-  useEffect(() => {
-    fetchCrews();
-  }, []);
-
-  const swipeLeft = (dx: number) => {
-    if (crews.length <= currentIndex) return;
-    
-    Animated.timing(position, {
-      toValue: { x: -SCREEN_WIDTH * 1.5, y: dx },
-      duration: 250,
-      useNativeDriver: false,
-    }).start(() => {
-      useSwipeStore.getState().swipeLeft(crews[currentIndex].id);
-      setCurrentIndex(prevIndex => prevIndex + 1);
-      position.setValue({ x: 0, y: 0 });
-    });
-  };
-
-  const swipeRight = (dx: number) => {
-    if (crews.length <= currentIndex) return;
-    
-    Animated.timing(position, {
-      toValue: { x: SCREEN_WIDTH * 1.5, y: dx },
-      duration: 250,
-      useNativeDriver: false,
-    }).start(() => {
-      useSwipeStore.getState().swipeRight(crews[currentIndex].id);
-      setCurrentIndex(prevIndex => prevIndex + 1);
-      position.setValue({ x: 0, y: 0 });
-      
-      // Show match alert (in a real app, this would check for mutual matches)
-      if (Math.random() > 0.7) {
-        Alert.alert(
-          'It\'s a Match!',
-          `You and ${crews[currentIndex].name} have waved at each other.`,
-          [
-            { text: 'Send Message', onPress: () => router.push('/chat/new') },
-            { text: 'Keep Swiping', style: 'cancel' },
-          ]
-        );
-      }
-    });
-  };
-
-  const handleWave = () => {
-    swipeRight(0);
-  };
-
-  const handlePass = () => {
-    swipeLeft(0);
-  };
-
-  const handleAnchor = () => {
-    setAnchor(!isAnchored);
-    Alert.alert(
-      isAnchored ? 'Anchor Lifted' : 'Anchor Dropped',
-      isAnchored 
-        ? 'You are now moving. Other boaters will see you as underway.' 
-        : 'You are now visible as anchored. Nearby boaters can see you are stationary.',
-      [{ text: 'OK' }]
-    );
-  };
-
-  const renderCards = () => {
-    if (isLoading) {
-      return (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Loading crews...</Text>
-        </View>
-      );
-    }
-
-    if (error) {
-      return (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Error: {error}</Text>
-        </View>
-      );
-    }
-
-    if (crews.length === 0) {
-      return (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>No crews found nearby</Text>
-        </View>
-      );
-    }
-
-    if (currentIndex >= crews.length) {
-      return (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>No more crews nearby</Text>
-          <Text style={styles.emptyStateSubtext}>Check back later or expand your search radius</Text>
-        </View>
-      );
-    }
-
-    return crews
-      .map((crew, index) => {
-        if (index < currentIndex) return null;
-
-        if (index === currentIndex) {
-          return (
-            <Animated.View
-              key={crew.id}
-              style={[
-                styles.cardContainer,
-                {
-                  transform: [
-                    { translateX: position.x },
-                    { translateY: position.y },
-                    { rotate },
-                  ],
-                },
-              ]}
-              {...panResponder.panHandlers}
-            >
-              <Animated.View style={[styles.likeContainer, { opacity: likeOpacity }]}>
-                <Text style={styles.likeText}>WAVE</Text>
-              </Animated.View>
-              
-              <Animated.View style={[styles.nopeContainer, { opacity: nopeOpacity }]}>
-                <Text style={styles.nopeText}>PASS</Text>
-              </Animated.View>
-              
-              <CrewCard crew={crew} />
-            </Animated.View>
-          );
-        }
-
-        if (index === currentIndex + 1) {
-          return (
-            <Animated.View
-              key={crew.id}
-              style={[
-                styles.cardContainer,
-                {
-                  opacity: nextCardOpacity,
-                  transform: [{ scale: nextCardScale }],
-                  zIndex: -1,
-                },
-              ]}
-            >
-              <CrewCard crew={crew} />
-            </Animated.View>
-          );
-        }
-
-        return null;
-      })
-      .reverse();
-  };
-
-  return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      <View style={styles.cardsContainer}>{renderCards()}</View>
-      
-      <SwipeButtons
-        onWave={handleWave}
-        onPass={handlePass}
-        onAnchor={handleAnchor}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background.dark,
-  },
-  cardsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardContainer: {
-    position: 'absolute',
-    width: '100%',
-    height: '80%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyStateContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  emptyStateText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    textAlign: 'center',
-  },
-  likeContainer: {
-    position: 'absolute',
-    top: 50,
-    right: 40,
-    zIndex: 1,
-    transform: [{ rotate: '20deg' }],
-    borderWidth: 4,
-    borderRadius: 8,
-    padding: 8,
-    borderColor: colors.success,
-  },
-  likeText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.success,
-  },
-  nopeContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 40,
-    zIndex: 1,
-    transform: [{ rotate: '-20deg' }],
-    borderWidth: 4,
-    borderRadius: 8,
-    padding: 8,
-    borderColor: colors.error,
-  },
-  nopeText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.error,
-  },
-});
+  const handleViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[]
