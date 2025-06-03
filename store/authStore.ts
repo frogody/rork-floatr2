@@ -47,7 +47,6 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: () => {
         set({ isLoading: true });
         try {
-          // Here you would typically check for stored auth token
           const { user } = get();
           set({ 
             isAuthenticated: !!user,
@@ -63,7 +62,115 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Rest of the store implementation remains unchanged
+      signIn: async (userData: User) => {
+        set({ isLoading: true, error: null });
+        try {
+          set({ user: userData, isAuthenticated: true, isLoading: false });
+        } catch (error) {
+          set({ error: 'Sign in failed', isLoading: false });
+          throw error;
+        }
+      },
+
+      signUp: async (email: string, password: string, displayName: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const newUser: User = {
+            id: Math.random().toString(),
+            email,
+            displayName,
+            createdAt: new Date()
+          };
+          set({ user: newUser, isAuthenticated: true, isLoading: false });
+        } catch (error) {
+          set({ error: 'Sign up failed', isLoading: false });
+          throw error;
+        }
+      },
+
+      signOut: () => {
+        set({
+          user: null,
+          boat: null,
+          isAuthenticated: false,
+          error: null
+        });
+      },
+
+      updateUser: (userData: Partial<User>) => {
+        const { user } = get();
+        if (user) {
+          set({ user: { ...user, ...userData } });
+        }
+      },
+
+      updateBoat: (boatData: Partial<Boat>) => {
+        const { boat } = get();
+        if (boat) {
+          set({ boat: { ...boat, ...boatData } });
+        }
+      },
+
+      setOnboarded: (value: boolean) => {
+        set({ isOnboarded: value });
+      },
+
+      setHasSeenTutorial: (value: boolean) => {
+        set({ hasSeenTutorial: value });
+      },
+
+      blockUser: (userId: string) => {
+        const { blockedUsers } = get();
+        if (!blockedUsers.includes(userId)) {
+          set({ blockedUsers: [...blockedUsers, userId] });
+        }
+      },
+
+      unblockUser: (userId: string) => {
+        const { blockedUsers } = get();
+        set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
+      },
+
+      deleteAccount: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          set({
+            user: null,
+            boat: null,
+            isAuthenticated: false,
+            isLoading: false
+          });
+        } catch (error) {
+          set({ error: 'Failed to delete account', isLoading: false });
+          throw error;
+        }
+      },
+
+      changePassword: async (currentPassword: string, newPassword: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Implementation would go here
+          set({ isLoading: false });
+        } catch (error) {
+          set({ error: 'Failed to change password', isLoading: false });
+          throw error;
+        }
+      },
+
+      resetPassword: async (email: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Implementation would go here
+          set({ isLoading: false });
+        } catch (error) {
+          set({ error: 'Failed to reset password', isLoading: false });
+          throw error;
+        }
+      },
+
+      clearError: () => {
+        set({ error: null });
+      }
     }),
     {
       name: 'floatr-auth-storage',

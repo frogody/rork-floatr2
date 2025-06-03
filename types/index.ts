@@ -1,4 +1,4 @@
-// Keep all existing types and add unreadCount to Match interface
+// Keep all existing types and add ToastType
 export interface User {
   id: string;
   email: string;
@@ -97,7 +97,7 @@ export interface Match {
   photoUrl: string;
   isRead?: boolean;
   isSuperMatch?: boolean;
-  unreadCount?: number; // Added this property
+  unreadCount?: number;
 }
 
-// Rest of the types remain unchanged
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
