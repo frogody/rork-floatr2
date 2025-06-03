@@ -6,7 +6,7 @@ interface ToastState {
   message: string;
   type: ToastType;
   duration: number;
-  showToast: (params: { message: string; type: ToastType; duration?: number }) => void;
+  showToast: (message: string, type?: ToastType, duration?: number) => void;
   hideToast: () => void;
 }
 
@@ -15,7 +15,7 @@ export const useToastStore = create<ToastState>((set) => ({
   message: '',
   type: 'info',
   duration: 3000,
-  showToast: ({ message, type, duration = 3000 }) => {
+  showToast: (message: string, type: ToastType = 'info', duration: number = 3000) => {
     set({ visible: true, message, type, duration });
     setTimeout(() => {
       set({ visible: false });
@@ -24,7 +24,6 @@ export const useToastStore = create<ToastState>((set) => ({
   hideToast: () => set({ visible: false }),
 }));
 
-// Hook for component use
 export const useToast = () => {
   const showToast = useToastStore((state) => state.showToast);
   const hideToast = useToastStore((state) => state.hideToast);

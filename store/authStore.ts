@@ -3,6 +3,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Boat } from '@/types';
 
+interface SignUpParams {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
 interface AuthState {
   user: User | null;
   boat: Boat | null;
@@ -17,7 +23,7 @@ interface AuthState {
   // Actions
   checkAuth: () => void;
   signIn: (userData: User) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signUp: (params: SignUpParams) => Promise<void>;
   signOut: () => void;
   updateUser: (userData: Partial<User>) => void;
   updateBoat: (boatData: Partial<Boat>) => void;
@@ -77,7 +83,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signUp: async (email: string, password: string, displayName: string) => {
+      signUp: async ({ email, password, displayName }: SignUpParams) => {
         set({ isLoading: true, error: null });
         try {
           const newUser: User = {
