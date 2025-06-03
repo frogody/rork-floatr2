@@ -72,8 +72,8 @@ export default function NativeMapScreen(): React.ReactElement {
     });
   }, []);
 
-  // Fallback for web or when maps are not available
-  if (Platform.OS === 'web' || !MapView) {
+  // Fallback for when maps are not available
+  if (!MapView) {
     return (
       <View style={styles.container}>
         <View style={styles.fallback}>

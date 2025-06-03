@@ -96,7 +96,6 @@ export const useAuthStore = create<AuthState>()(
             displayName: email.split('@')[0],
             createdAt: new Date(),
             lastActive: new Date(),
-            lastActiveAt: new Date(),
           };
           
           set({ 
@@ -137,7 +136,6 @@ export const useAuthStore = create<AuthState>()(
             displayName: displayName.trim(),
             createdAt: new Date(),
             lastActive: new Date(),
-            lastActiveAt: new Date(),
           };
           
           set({ 
@@ -187,7 +185,6 @@ export const useAuthStore = create<AuthState>()(
             ...user, 
             ...userData,
             lastActive: new Date(),
-            lastActiveAt: new Date(),
           };
           set({ user: updatedUser });
         }
@@ -288,7 +285,6 @@ export const useAuthStore = create<AuthState>()(
           const updatedUser = {
             ...user,
             lastActive: new Date(),
-            lastActiveAt: new Date(),
           };
           
           set({ user: updatedUser });
