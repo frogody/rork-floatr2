@@ -186,7 +186,7 @@ export default function NearbyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+    backgroundColor: colors.background.primary,
   },
   searchContainer: {
     padding: 16,
