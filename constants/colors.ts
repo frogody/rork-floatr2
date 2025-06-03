@@ -33,12 +33,6 @@ const colors = {
     error: '#FF453A',
     info: '#007AFF',
   },
-  
-  // Legacy support - using status values
-  success: '#30D158',
-  warning: '#FF9F0A',
-  error: '#FF453A',
-  info: '#007AFF',
 };
 
 export default colors;
