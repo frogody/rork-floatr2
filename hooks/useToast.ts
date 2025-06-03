@@ -10,7 +10,7 @@ interface ToastState {
   hideToast: () => void;
 }
 
-const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>((set) => ({
   visible: false,
   message: '',
   type: 'info',
@@ -24,13 +24,13 @@ const useToastStore = create<ToastState>((set) => ({
   hideToast: () => set({ visible: false }),
 }));
 
-export { useToastStore };
-
 // Hook for component use
 export const useToast = () => {
-  const store = useToastStore();
+  const showToast = useToastStore((state) => state.showToast);
+  const hideToast = useToastStore((state) => state.hideToast);
+  
   return {
-    showToast: store.showToast,
-    hideToast: store.hideToast,
+    showToast,
+    hideToast,
   };
 };

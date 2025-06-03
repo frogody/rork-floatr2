@@ -5,13 +5,16 @@ import colors from '@/constants/colors';
 export default function AuthLayout() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
-      <Stack screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background.primary,
-        },
-        headerTintColor: colors.text.primary,
-        headerShadowVisible: false,
-      }}>
+      <Stack 
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: colors.background.primary,
+          },
+          headerTintColor: colors.text.primary,
+          headerShadowVisible: false,
+          headerBackTitle: 'Back',
+        }}
+      >
         <Stack.Screen 
           name="signup"
           options={{
