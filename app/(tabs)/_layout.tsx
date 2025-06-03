@@ -2,8 +2,16 @@ import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { Compass, Heart, MessageCircle, Map, Settings } from 'lucide-react-native';
 import colors from '@/constants/colors';
+import { useAuthStore } from '@/store/authStore';
 
 export default function TabLayout() {
+  const { isAuthenticated } = useAuthStore();
+
+  // If not authenticated, don't render tabs
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <Tabs
       screenOptions={{

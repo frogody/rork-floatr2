@@ -1,4 +1,3 @@
-// Keep all existing types and add ToastType
 export interface User {
   id: string;
   email: string;
