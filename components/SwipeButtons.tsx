@@ -4,7 +4,7 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Platform,
-  Animated,
+  useColorScheme,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
@@ -25,6 +25,10 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
   onUndo,
   canUndo,
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const currentColors = isDark ? colors : colors.light;
+  
   const handlePress = async (action: () => void) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -35,39 +39,68 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.button, styles.smallButton, !canUndo && styles.disabledButton]}
+        style={[
+          styles.button, 
+          styles.smallButton, 
+          { backgroundColor: currentColors.surface.primary },
+          !canUndo && styles.disabledButton
+        ]}
         onPress={() => canUndo && handlePress(onUndo)}
         activeOpacity={0.7}
         disabled={!canUndo}
       >
         <RotateCcw 
           size={24} 
-          color={canUndo ? colors.text.secondary : colors.text.disabled} 
+          color={canUndo ? currentColors.text.secondary : currentColors.text.disabled} 
         />
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={[styles.button, styles.largeButton, styles.dislikeButton]}
+        style={[
+          styles.button, 
+          styles.largeButton, 
+          styles.dislikeButton,
+          { 
+            backgroundColor: currentColors.surface.primary,
+            borderColor: currentColors.status.error,
+          }
+        ]}
         onPress={() => handlePress(onDislike)}
         activeOpacity={0.7}
       >
-        <X size={32} color={colors.status.error} />
+        <X size={32} color={currentColors.status.error} />
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={[styles.button, styles.largeButton, styles.superlikeButton]}
+        style={[
+          styles.button, 
+          styles.largeButton, 
+          styles.superlikeButton,
+          { 
+            backgroundColor: currentColors.surface.primary,
+            borderColor: currentColors.status.warning,
+          }
+        ]}
         onPress={() => handlePress(onSuperlike)}
         activeOpacity={0.7}
       >
-        <Star size={32} color={colors.status.warning} fill={colors.status.warning} />
+        <Star size={32} color={currentColors.status.warning} fill={currentColors.status.warning} />
       </TouchableOpacity>
       
       <TouchableOpacity
-        style={[styles.button, styles.largeButton, styles.likeButton]}
+        style={[
+          styles.button, 
+          styles.largeButton, 
+          styles.likeButton,
+          { 
+            backgroundColor: currentColors.surface.primary,
+            borderColor: currentColors.status.success,
+          }
+        ]}
         onPress={() => handlePress(onLike)}
         activeOpacity={0.7}
       >
-        <Heart size={32} color={colors.status.success} fill={colors.status.success} />
+        <Heart size={32} color={currentColors.status.success} fill={currentColors.status.success} />
       </TouchableOpacity>
     </View>
   );
@@ -90,7 +123,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    backgroundColor: colors.surface.primary,
     margin: 8,
   },
   smallButton: {
@@ -103,15 +135,12 @@ const styles = StyleSheet.create({
   },
   dislikeButton: {
     borderWidth: 2,
-    borderColor: colors.status.error,
   },
   likeButton: {
     borderWidth: 2,
-    borderColor: colors.status.success,
   },
   superlikeButton: {
     borderWidth: 2,
-    borderColor: colors.status.warning,
   },
   disabledButton: {
     opacity: 0.5,

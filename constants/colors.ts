@@ -32,7 +32,6 @@ const colors = {
   error: '#FF3B30',
   info: '#007AFF',
   
-  // Status colors for semantic usage
   status: {
     success: '#34C759',
     warning: '#FF9500',
@@ -42,26 +41,39 @@ const colors = {
   
   // Light theme colors
   light: {
+    primary: '#007AFF',
+    secondary: '#5856D6',
+    accent: '#FF9500',
+    
     background: {
       primary: '#FFFFFF',
       secondary: '#F2F2F7',
       tertiary: '#FFFFFF',
     },
+    
     surface: {
       primary: '#FFFFFF',
       secondary: '#F2F2F7',
       tertiary: '#E5E5EA',
     },
+    
     text: {
       primary: '#000000',
       secondary: '#3C3C43',
       tertiary: '#8E8E93',
       disabled: '#8E8E93',
     },
+    
     border: {
       primary: '#C6C6C8',
       secondary: '#E5E5EA',
     },
+    
+    success: '#34C759',
+    warning: '#FF9500',
+    error: '#FF3B30',
+    info: '#007AFF',
+    
     status: {
       success: '#34C759',
       warning: '#FF9500',
