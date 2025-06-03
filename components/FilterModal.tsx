@@ -9,10 +9,22 @@ import {
   Platform
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { X, Filter, Sliders } from 'lucide-react-native';
+import { X, Filter } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
-import { boatTypes } from '@/mocks/crews';
+
+const boatTypes = [
+  'Sailboat',
+  'Center Console',
+  'Motor Yacht',
+  'Sport Fisherman',
+  'Bowrider',
+  'Catamaran',
+  'Pontoon',
+  'Cabin Cruiser',
+  'Trawler',
+  'Speedboat'
+];
 
 interface FilterModalProps {
   visible: boolean;
@@ -40,15 +52,15 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
   const [crewSize, setCrewSize] = useState({ min: 1, max: 12 });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const handleBoatTypeToggle = async (type: string) => {
+  const handleBoatTypeToggle = async (boatType: string) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     
     setSelectedBoatTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter((t: string) => t !== type)
-        : [...prev, type]
+      prev.includes(boatType) 
+        ? prev.filter((t: string) => t !== boatType)
+        : [...prev, boatType]
     );
   };
 

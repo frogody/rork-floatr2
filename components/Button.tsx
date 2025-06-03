@@ -68,33 +68,35 @@ export function Button({
   };
 
   const getVariantStyles = (): ViewStyle => {
-    if (disabled) {
-      return {
-        backgroundColor: colors.background.disabled,
-      };
-    }
+    const baseStyles: ViewStyle = {
+      opacity: disabled ? 0.5 : 1,
+    };
 
     switch (variant) {
       case 'primary':
         return {
+          ...baseStyles,
           backgroundColor: colors.primary,
         };
       case 'secondary':
         return {
+          ...baseStyles,
           backgroundColor: colors.secondary,
         };
       case 'outline':
         return {
+          ...baseStyles,
           backgroundColor: 'transparent',
           borderWidth: 1,
           borderColor: colors.primary,
         };
       case 'ghost':
         return {
+          ...baseStyles,
           backgroundColor: 'transparent',
         };
       default:
-        return {};
+        return baseStyles;
     }
   };
 

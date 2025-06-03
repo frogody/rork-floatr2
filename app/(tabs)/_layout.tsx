@@ -1,52 +1,43 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Compass, Heart, MessageCircle, Map, Settings } from 'lucide-react-native';
+import { useColorScheme } from 'react-native';
+import { Compass, MessageCircle, User } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 export default function TabLayout() {
+  const colorScheme = useColorScheme();
+
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.background.primary,
-          borderTopColor: colors.border.primary,
-          height: Platform.OS === 'ios' ? 88 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-          paddingTop: 8,
+          backgroundColor: colorScheme === 'dark' ? colors.background.primary : '#ffffff',
+          borderTopColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
         },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.text.secondary,
-        tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 11,
-        },
+        tabBarInactiveTintColor: colorScheme === 'dark' ? colors.text.secondary : '#64748B',
         headerStyle: {
-          backgroundColor: colors.background.primary,
-          borderBottomWidth: 0,
-          shadowOpacity: 0,
-          elevation: 0,
+          backgroundColor: colorScheme === 'dark' ? colors.background.primary : '#ffffff',
         },
-        headerTitleStyle: {
-          fontFamily: 'Inter-SemiBold',
-          fontSize: 17,
-          color: colors.text.primary,
-        },
-        headerTintColor: colors.text.primary,
+        headerTintColor: colorScheme === 'dark' ? colors.text.primary : '#0A0A0A',
+        // Disable native animations on web
+        ...Platform.select({
+          web: {
+            tabBarShowLabel: true,
+            tabBarLabelPosition: 'below-icon',
+          },
+          default: {
+            tabBarShowLabel: true,
+            tabBarLabelPosition: 'below-icon',
+          },
+        }),
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="nearby"
         options={{
-          title: 'Discover',
+          title: 'Nearby',
           tabBarIcon: ({ color, size }) => <Compass size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="matches"
-        options={{
-          title: 'Matches',
-          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -57,17 +48,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="nearby"
+        name="profile"
         options={{
-          title: 'Map',
-          tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>
