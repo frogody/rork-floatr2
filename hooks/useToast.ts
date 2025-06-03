@@ -1,51 +1,30 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { create } from 'zustand';
 import { ToastType } from '@/types';
-import AnimatedToast from '@/components/AnimatedToast';
 
-interface ToastData {
-  type: ToastType;
+interface ToastState {
+  visible: boolean;
   message: string;
-  duration?: number;
+  type: ToastType;
+  duration: number;
+  showToast: (params: { message: string; type: ToastType; duration?: number }) => void;
+  hideToast: () => void;
 }
 
-interface ToastContextType {
-  showToast: (data: ToastData) => void;
-}
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
-
-interface ToastProviderProps {
-  children: ReactNode;
-}
-
-export function ToastProvider({ children }: ToastProviderProps) {
-  const [toast, setToast] = useState<ToastData | null>(null);
-
-  const showToast = (data: ToastData) => {
-    setToast(data);
+export const useToastStore = create<ToastState>((set) => ({
+  visible: false,
+  message: '',
+  type: 'info',
+  duration: 3000,
+  showToast: ({ message, type, duration = 3000 }) => {
+    set({ visible: true, message, type, duration });
     setTimeout(() => {
-      setToast(null);
-    }, data.duration || 3000);
-  };
+      set({ visible: false });
+    }, duration);
+  },
+  hideToast: () => set({ visible: false }),
+}));
 
-  return (
-    <ToastContext.Provider value={{ showToast }}>
-      {children}
-      {toast && (
-        <AnimatedToast
-          type={toast.type}
-          message={toast.message}
-          onHide={() => setToast(null)}
-        />
-      )}
-    </ToastContext.Provider>
-  );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-}
+export const useToast = () => {
+  const { showToast, hideToast } = useToastStore();
+  return { showToast, hideToast };
+};

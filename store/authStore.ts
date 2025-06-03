@@ -12,8 +12,10 @@ interface AuthState {
   error: string | null;
   hasSeenTutorial: boolean;
   blockedUsers: string[];
+  isInitialized: boolean;
   
   // Actions
+  initialize: () => Promise<void>;
   signIn: (userData: User) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
   signOut: () => void;
@@ -37,11 +39,36 @@ export const useAuthStore = create<AuthState>()(
       boat: null,
       isAuthenticated: false,
       isOnboarded: false,
-      isLoading: false,
+      isLoading: true,
       error: null,
       hasSeenTutorial: false,
       blockedUsers: [],
+      isInitialized: false,
       
+      initialize: async () => {
+        try {
+          // Here you would typically:
+          // 1. Check for stored auth token
+          // 2. Validate token with backend
+          // 3. Fetch user data if token is valid
+          // 4. Update state accordingly
+          
+          // For now, we'll just simulate a delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          set({ 
+            isLoading: false,
+            isInitialized: true
+          });
+        } catch (error) {
+          set({ 
+            error: 'Failed to initialize app',
+            isLoading: false,
+            isInitialized: true
+          });
+        }
+      },
+
       signIn: async (userData) => {
         set({ isLoading: true, error: null });
         try {

@@ -67,7 +67,11 @@ export default function MatchCard({ match, onPress }: MatchCardProps) {
         )}
       </View>
       
-      <View style={styles.indicator} />
+      {match.unreadCount && match.unreadCount > 0 && (
+        <View style={styles.indicator}>
+          <Text style={styles.unreadCount}>{match.unreadCount}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -134,9 +138,17 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   indicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
     backgroundColor: colors.primary,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  unreadCount: {
+    color: colors.text.primary,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
