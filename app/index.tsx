@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   iconContainer: {
     width: 80,
@@ -123,19 +123,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   subtitle: {
     fontSize: 20,
     color: colors.text.secondary,
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: 'left',
     fontWeight: '500',
   },
   description: {
     fontSize: 16,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 24,
     maxWidth: 320,
   },

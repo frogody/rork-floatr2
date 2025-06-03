@@ -27,9 +27,9 @@ export const mockCrews: Crew[] = [
     bio: 'Weekend warriors looking for adventure on the water. We bring the drinks!',
     location: 'Clear Lake',
     distance: 1.2,
-    photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+    photoUrl: 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?q=80&w=1000',
     photoUrls: [
-      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+      'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?q=80&w=1000',
       'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000',
     ],
     tags: ['Party', 'Social', 'Drinks'],
@@ -46,9 +46,9 @@ export const mockCrews: Crew[] = [
     bio: 'Exploring hidden coves and beaches. Join us for a day of adventure!',
     location: 'Tampa Bay',
     distance: 2.5,
-    photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+    photoUrl: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1000',
     photoUrls: [
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+      'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1000',
       'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000',
     ],
     tags: ['Adventure', 'Explore', 'Swimming'],
@@ -96,6 +96,44 @@ export const mockCrews: Crew[] = [
     boatLength: 58,
     boatCapacity: 15,
   },
+  {
+    id: '6',
+    name: 'Beach Vibes',
+    description: 'Anchored at the sandbar, music playing, good times rolling!',
+    bio: 'Anchored at the sandbar, music playing, good times rolling!',
+    location: 'Key Largo',
+    distance: 5.2,
+    photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+    photoUrls: [
+      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000',
+    ],
+    tags: ['Beach', 'Music', 'Sandbar'],
+    memberCount: 5,
+    crewSize: 5,
+    boatType: 'Deck Boat',
+    boatLength: 22,
+    boatCapacity: 10,
+  },
+  {
+    id: '7',
+    name: 'Wakeboard Squad',
+    description: 'High energy crew looking for wake sports and water fun!',
+    bio: 'High energy crew looking for wake sports and water fun!',
+    location: 'Lake Austin',
+    distance: 6.1,
+    photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+    photoUrls: [
+      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000',
+    ],
+    tags: ['Wakeboard', 'Sports', 'Active'],
+    memberCount: 4,
+    crewSize: 4,
+    boatType: 'Wake Boat',
+    boatLength: 24,
+    boatCapacity: 12,
+  },
 ];
 
 export const mockMatches = [
@@ -109,7 +147,7 @@ export const mockMatches = [
       content: "We are anchored at the south cove. Come join us!",
       timestamp: new Date(Date.now() - 1800000),
     },
-    photoUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+    photoUrl: 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?q=80&w=1000',
   },
   {
     id: 'm2',
@@ -121,7 +159,7 @@ export const mockMatches = [
       content: 'Are you guys heading to the sandbar tomorrow?',
       timestamp: new Date(Date.now() - 43200000),
     },
-    photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+    photoUrl: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1000',
   },
 ];
 

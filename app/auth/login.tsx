@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { 
   View, 
-  StyleSheet, 
   Text, 
+  StyleSheet, 
   TextInput, 
-  TouchableOpacity, 
+  TouchableOpacity,
   Alert,
   Platform
 } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
 import Button from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
-import { useToast } from '@/hooks/useToast';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -23,39 +23,28 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signIn } = useAuthStore();
-  const { showSuccess, showError } = useToast();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      showError('Missing Information', 'Please enter both email and password');
+      Alert.alert('Error', 'Please fill in all fields');
       return;
-    }
-
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     setIsLoading(true);
     
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mock successful login
-      await signIn({
-        id: '1',
-        email,
-        displayName: 'Captain Mike',
-        avatarUrl: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000',
-        bio: 'Weekend warrior looking for adventure on the water',
-        isPremium: false,
-      });
-      
-      showSuccess('Welcome Back!', 'Successfully signed in to your account');
-      
-      // Navigation is handled by the auth store
+      await signIn(email, password);
+      router.replace('/(tabs)');
     } catch (error) {
-      showError('Login Failed', 'Invalid email or password. Please try again.');
+      Alert.alert('Login Failed', 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -84,108 +73,85 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
-      <Stack.Screen
-        options={{
-          headerLeft: () => (
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <ArrowLeft size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          ),
-          headerTitle: '',
-          headerTransparent: true,
-        }}
-      />
-      
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to continue your boating adventures</Text>
-        </View>
+      <LinearGradient
+        colors={['#f8fafc', '#f1f5f9']}
+        style={styles.gradient}
+      >
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <ArrowLeft size={24} color={colors.text.primary} />
+        </TouchableOpacity>
         
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.text.secondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue your boating adventures</Text>
           </View>
           
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
+          <View style={styles.form}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.passwordInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
+                style={styles.input}
+                placeholder="Enter your email"
                 placeholderTextColor={colors.text.secondary}
-                secureTextEntry={!showPassword}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <TouchableOpacity 
-                onPress={togglePasswordVisibility}
-                style={styles.eyeButton}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color={colors.text.secondary} />
-                ) : (
-                  <Eye size={20} color={colors.text.secondary} />
-                )}
+            </View>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Enter your password"
+                  placeholderTextColor={colors.text.secondary}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton} 
+                  onPress={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color={colors.text.secondary} />
+                  ) : (
+                    <Eye size={20} color={colors.text.secondary} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <TouchableOpacity onPress={handleForgotPassword}>
+              <Text style={styles.forgotPassword}>Forgot Password?</Text>
+            </TouchableOpacity>
+            
+            <Button
+              title="Sign In"
+              onPress={handleLogin}
+              variant="primary"
+              size="large"
+              loading={isLoading}
+              style={styles.loginButton}
+            />
+            
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+                <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
-          
-          <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-          
-          <Button
-            title="Sign In"
-            onPress={handleLogin}
-            variant="primary"
-            size="large"
-            gradient
-            loading={isLoading}
-            style={styles.loginButton}
-          />
         </View>
-        
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Don't have an account?{' '}
-            <Text 
-              style={styles.signUpLink}
-              onPress={() => router.push('/auth/signup')}
-            >
-              Sign Up
-            </Text>
-          </Text>
-        </View>
-        
-        <View style={styles.demoSection}>
-          <Text style={styles.demoTitle}>Demo Credentials</Text>
-          <TouchableOpacity 
-            style={styles.demoButton}
-            onPress={() => {
-              setEmail('demo@floatr.com');
-              setPassword('demo123');
-              showSuccess('Demo Loaded', 'Demo credentials have been filled in');
-            }}
-          >
-            <Text style={styles.demoButtonText}>Use Demo Account</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -193,23 +159,30 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+  },
+  gradient: {
+    flex: 1,
   },
   backButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   content: {
     flex: 1,
     padding: 24,
-    paddingTop: 120,
+    justifyContent: 'center',
   },
   header: {
-    marginBottom: 32,
+    alignItems: 'flex-start',
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,
@@ -220,39 +193,41 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: colors.text.secondary,
+    lineHeight: 24,
   },
   form: {
-    marginBottom: 32,
+    gap: 20,
   },
   inputContainer: {
-    marginBottom: 20,
+    gap: 8,
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
     color: colors.text.primary,
-    marginBottom: 8,
   },
   input: {
-    backgroundColor: colors.background.card,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: 16,
     color: colors.text.primary,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.card,
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   passwordInput: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     fontSize: 16,
     color: colors.text.primary,
   },
@@ -260,49 +235,25 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
     color: colors.primary,
     fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'right',
   },
   loginButton: {
-    width: '100%',
+    marginTop: 8,
   },
-  footer: {
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 16,
   },
-  footerText: {
-    fontSize: 16,
+  signupText: {
     color: colors.text.secondary,
-  },
-  signUpLink: {
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  demoSection: {
-    marginTop: 32,
-    padding: 16,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-  },
-  demoTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: 8,
-    textAlign: 'center',
   },
-  demoButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-  },
-  demoButtonText: {
+  signupLink: {
     color: colors.primary,
     fontSize: 14,
     fontWeight: '500',

@@ -27,19 +27,19 @@ const onboardingSteps: OnboardingStepType[] = [
     id: '1',
     title: 'Welcome to Floatr',
     description: 'Connect with fellow boaters, raft-up, and share amazing experiences on the water.',
-    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?q=80&w=1000',
   },
   {
     id: '2',
     title: 'Discover Nearby Crews',
     description: 'Swipe through profiles of boaters in your area and find your perfect match.',
-    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?q=80&w=1000',
   },
   {
     id: '3',
     title: 'Chat & Meet Up',
     description: 'Connect through chat and coordinate meet-ups on the water.',
-    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
   },
   {
     id: '4',
