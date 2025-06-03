@@ -140,13 +140,10 @@ export default function ManagePhotosScreen() {
         <View style={[styles.infoCard, { backgroundColor: colors.surface.primary }]}>
           <Text style={[styles.infoTitle, { color: colors.text.primary }]}>Photo Tips</Text>
           <Text style={[styles.infoText, { color: colors.text.secondary }]}>
-            • Add up to {maxPhotos} photos to show your personality{'
-'}
-            • Your first photo will be your main profile picture{'
-'}
-            • Include photos of you on the water for best results{'
-'}
-            • Clear, well-lit photos get more matches
+            {`• Add up to ${maxPhotos} photos to show your personality
+• Your first photo will be your main profile picture
+• Include photos of you on the water for best results
+• Clear, well-lit photos get more matches`}
           </Text>
         </View>
         
@@ -206,26 +203,20 @@ export default function ManagePhotosScreen() {
           <View style={styles.guideline}>
             <Text style={[styles.guidelineTitle, { color: colors.text.primary }]}>✅ Good Photos</Text>
             <Text style={[styles.guidelineText, { color: colors.text.secondary }]}>
-              • Clear face shots with good lighting{'
-'}
-              • Photos of you enjoying water activities{'
-'}
-              • Genuine smiles and natural poses{'
-'}
-              • Recent photos (within 2 years)
+              {`• Clear face shots with good lighting
+• Photos of you enjoying water activities
+• Genuine smiles and natural poses
+• Recent photos (within 2 years)`}
             </Text>
           </View>
           
           <View style={styles.guideline}>
             <Text style={[styles.guidelineTitle, { color: colors.error }]}>❌ Avoid</Text>
             <Text style={[styles.guidelineText, { color: colors.text.secondary }]}>
-              • Group photos where you cannot be identified{'
-'}
-              • Heavily filtered or edited photos{'
-'}
-              • Photos with inappropriate content{'
-'}
-              • Screenshots or low-quality images
+              {`• Group photos where you cannot be identified
+• Heavily filtered or edited photos
+• Photos with inappropriate content
+• Screenshots or low-quality images`}
             </Text>
           </View>
         </View>
