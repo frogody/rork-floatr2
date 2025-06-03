@@ -9,10 +9,20 @@ export default function AuthLayout() {
         screenOptions={{
           headerStyle: {
             backgroundColor: colors.background.primary,
+            borderBottomWidth: 0,
+            shadowOpacity: 0,
+            elevation: 0,
           },
           headerTintColor: colors.text.primary,
+          headerTitleStyle: {
+            fontFamily: 'Inter-SemiBold',
+            fontSize: 17,
+          },
           headerShadowVisible: false,
           headerBackTitle: 'Back',
+          contentStyle: {
+            backgroundColor: colors.background.primary,
+          },
         }}
       >
         <Stack.Screen 

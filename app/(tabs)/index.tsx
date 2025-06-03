@@ -61,11 +61,16 @@ export default function DiscoveryScreen() {
     <View style={styles.container}>
       <Stack.Screen 
         options={{
-          title: 'Discover',
+          headerShown: true,
           headerStyle: {
             backgroundColor: colors.background.primary,
           },
-          headerTintColor: colors.text.primary,
+          headerTitleStyle: {
+            fontFamily: 'Inter-SemiBold',
+            fontSize: 20,
+            color: colors.text.primary,
+          },
+          headerShadowVisible: false,
         }}
       />
       

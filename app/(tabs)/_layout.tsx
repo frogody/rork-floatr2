@@ -23,6 +23,9 @@ export default function TabLayout() {
         },
         headerStyle: {
           backgroundColor: colors.background.primary,
+          borderBottomWidth: 0,
+          shadowOpacity: 0,
+          elevation: 0,
         },
         headerTitleStyle: {
           fontFamily: 'Inter-SemiBold',
@@ -37,6 +40,7 @@ export default function TabLayout() {
         options={{
           title: 'Discover',
           tabBarIcon: ({ color, size }) => <Compass size={size} color={color} />,
+          headerTitle: "Discover Crews",
         }}
       />
       <Tabs.Screen
@@ -44,6 +48,7 @@ export default function TabLayout() {
         options={{
           title: 'Matches',
           tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
+          headerTitle: "Your Matches",
         }}
       />
       <Tabs.Screen
@@ -51,6 +56,7 @@ export default function TabLayout() {
         options={{
           title: 'Messages',
           tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
+          headerTitle: "Messages",
         }}
       />
       <Tabs.Screen
@@ -58,6 +64,7 @@ export default function TabLayout() {
         options={{
           title: 'Nearby',
           tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
+          headerTitle: "Nearby Crews",
         }}
       />
       <Tabs.Screen
@@ -65,6 +72,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
+          headerTitle: "Settings",
         }}
       />
     </Tabs>

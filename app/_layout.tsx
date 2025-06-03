@@ -22,7 +22,6 @@ export default function RootLayout() {
       checkAuth();
     }
     
-    // Set system UI colors
     SystemUI.setBackgroundColorAsync(colors.background.primary);
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
@@ -34,7 +33,11 @@ export default function RootLayout() {
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        router.replace('/auth/login');
+        // Only redirect to login if we're not already on a welcome or auth screen
+        const currentPath = router.getCurrentOptions()?.initialRouteName;
+        if (!currentPath?.includes('index') && !currentPath?.includes('auth')) {
+          router.replace('/auth/login');
+        }
       }
     }
   }, [isInitialized, isAuthenticated]);
@@ -49,8 +52,17 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
+          contentStyle: {
+            backgroundColor: colors.background.primary,
+          },
         }}
       >
+        <Stack.Screen 
+          name="index" 
+          options={{ 
+            animation: 'fade',
+          }} 
+        />
         <Stack.Screen 
           name="(tabs)" 
           options={{ 
