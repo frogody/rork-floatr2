@@ -1,5 +1,18 @@
 import { Crew, Match } from '@/types';
 
+export const boatTypes = [
+  'Sailboat',
+  'Center Console',
+  'Motor Yacht',
+  'Sport Fisherman',
+  'Bowrider',
+  'Catamaran',
+  'Pontoon',
+  'Cabin Cruiser',
+  'Trawler',
+  'Speedboat'
+];
+
 export const mockCrews: Crew[] = [
   {
     id: '1',

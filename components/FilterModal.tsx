@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { X, Filter, Sliders } from 'lucide-react-native';
-import Button from '@/components/Button';
+import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { boatTypes } from '@/mocks/crews';
 
@@ -47,7 +47,7 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
     
     setSelectedBoatTypes(prev => 
       prev.includes(type) 
-        ? prev.filter(t => t !== type)
+        ? prev.filter((t: string) => t !== type)
         : [...prev, type]
     );
   };
@@ -59,7 +59,7 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
     
     setSelectedTags(prev => 
       prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
+        ? prev.filter((t: string) => t !== tag)
         : [...prev, tag]
     );
   };
@@ -183,7 +183,6 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
             onPress={handleApply}
             variant="primary"
             size="large"
-            gradient
             icon={<Filter size={16} color={colors.text.primary} />}
             style={styles.applyButton}
           />

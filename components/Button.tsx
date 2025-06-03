@@ -173,6 +173,9 @@ export function Button({
   );
 }
 
+// Default export for backward compatibility
+export default Button;
+
 const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
