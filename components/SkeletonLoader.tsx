@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Dimensions, useColorScheme } from 'react-native';
 import colors from '@/constants/colors';
 
 interface SkeletonLoaderProps {
@@ -7,7 +7,11 @@ interface SkeletonLoaderProps {
 }
 
 export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
+  
+  const currentColors = isDark ? colors : colors.light;
   
   useEffect(() => {
     Animated.loop(
@@ -27,43 +31,43 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   }, [fadeAnim]);
   
   const renderCardSkeleton = () => (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, { backgroundColor: currentColors.surface.primary }]}>
       <Animated.View 
         style={[
           styles.cardImage, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <View style={styles.cardContent}>
         <Animated.View 
           style={[
             styles.cardTitle, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.cardSubtitle, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <View style={styles.cardTags}>
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim }
+              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
             ]} 
           />
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim }
+              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
             ]} 
           />
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim }
+              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
             ]} 
           />
         </View>
@@ -74,24 +78,24 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   const renderListSkeleton = () => (
     <View style={styles.listContainer}>
       {[1, 2, 3, 4, 5].map((item) => (
-        <View key={item} style={styles.listItem}>
+        <View key={item} style={[styles.listItem, { borderBottomColor: currentColors.border.primary }]}>
           <Animated.View 
             style={[
               styles.listAvatar, 
-              { opacity: fadeAnim }
+              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
             ]} 
           />
           <View style={styles.listContent}>
             <Animated.View 
               style={[
                 styles.listTitle, 
-                { opacity: fadeAnim }
+                { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
               ]} 
             />
             <Animated.View 
               style={[
                 styles.listSubtitle, 
-                { opacity: fadeAnim }
+                { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
               ]} 
             />
           </View>
@@ -105,38 +109,38 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
       <Animated.View 
         style={[
           styles.profileAvatar, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.profileName, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.profileBio, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <View style={styles.profileStats}>
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
       </View>
@@ -144,13 +148,13 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
         <Animated.View 
           style={[
             styles.profileButton, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileButton, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
       </View>
@@ -162,51 +166,51 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
       <Animated.View 
         style={[
           styles.detailImage, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailTitle, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailSubtitle, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <View style={styles.detailInfo}>
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim }
+            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
           ]} 
         />
       </View>
       <Animated.View 
         style={[
           styles.detailDescription, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailButton, 
-          { opacity: fadeAnim }
+          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
         ]} 
       />
     </View>
@@ -233,27 +237,23 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     borderRadius: 16,
-    backgroundColor: colors.surface.primary,
     overflow: 'hidden',
     marginBottom: 16,
   },
   cardImage: {
     height: height * 0.5,
-    backgroundColor: colors.surface.secondary,
   },
   cardContent: {
     padding: 16,
   },
   cardTitle: {
     height: 24,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 8,
     width: '70%',
   },
   cardSubtitle: {
     height: 16,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 16,
     width: '50%',
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
   cardTag: {
     height: 24,
     width: 80,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 12,
     marginRight: 8,
     marginBottom: 8,
@@ -281,13 +280,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.primary,
   },
   listAvatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.surface.secondary,
     marginRight: 12,
   },
   listContent: {
@@ -295,14 +292,12 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     height: 18,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 8,
     width: '60%',
   },
   listSubtitle: {
     height: 14,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     width: '80%',
   },
@@ -317,19 +312,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.surface.secondary,
     marginBottom: 16,
   },
   profileName: {
     height: 24,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 8,
     width: 150,
   },
   profileBio: {
     height: 16,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 24,
     width: 200,
@@ -343,7 +335,6 @@ const styles = StyleSheet.create({
   profileStat: {
     height: 40,
     width: 80,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 8,
   },
   profileButtons: {
@@ -354,7 +345,6 @@ const styles = StyleSheet.create({
   profileButton: {
     height: 48,
     width: 150,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 24,
   },
   
@@ -365,20 +355,17 @@ const styles = StyleSheet.create({
   },
   detailImage: {
     height: 200,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 12,
     marginBottom: 16,
   },
   detailTitle: {
     height: 28,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 8,
     width: '70%',
   },
   detailSubtitle: {
     height: 20,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 4,
     marginBottom: 16,
     width: '50%',
@@ -391,18 +378,15 @@ const styles = StyleSheet.create({
   detailInfoItem: {
     height: 60,
     width: '30%',
-    backgroundColor: colors.surface.secondary,
     borderRadius: 8,
   },
   detailDescription: {
     height: 100,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 8,
     marginBottom: 24,
   },
   detailButton: {
     height: 48,
-    backgroundColor: colors.surface.secondary,
     borderRadius: 24,
   },
 });

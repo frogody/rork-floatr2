@@ -9,6 +9,12 @@ const colors = {
     tertiary: '#2C2C2E',
   },
   
+  surface: {
+    primary: '#1C1C1E',
+    secondary: '#2C2C2E',
+    tertiary: '#3A3A3C',
+  },
+  
   text: {
     primary: '#FFFFFF',
     secondary: '#8E8E93',
@@ -31,6 +37,11 @@ const colors = {
       primary: '#FFFFFF',
       secondary: '#F2F2F7',
       tertiary: '#FFFFFF',
+    },
+    surface: {
+      primary: '#FFFFFF',
+      secondary: '#F2F2F7',
+      tertiary: '#E5E5EA',
     },
     text: {
       primary: '#000000',

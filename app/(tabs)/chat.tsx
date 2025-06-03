@@ -4,10 +4,10 @@ import {
   Text, 
   StyleSheet, 
   FlatList, 
-  ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Image
+  Image,
+  useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -23,9 +23,10 @@ import { Match } from '@/types';
 interface ChatListItemProps {
   match: Match;
   onPress: () => void;
+  isDark: boolean;
 }
 
-const ChatListItem: React.FC<ChatListItemProps> = ({ match, onPress }) => {
+const ChatListItem: React.FC<ChatListItemProps> = ({ match, onPress, isDark }) => {
   const formatTime = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -41,20 +42,29 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ match, onPress }) => {
     }
   };
 
+  const currentColors = isDark ? colors : colors.light;
+
   return (
-    <TouchableOpacity style={styles.chatItem} onPress={onPress}>
+    <TouchableOpacity 
+      style={[styles.chatItem, { borderBottomColor: currentColors.border.primary }]} 
+      onPress={onPress}
+    >
       <Image source={{ uri: match.photoUrl }} style={styles.avatar} />
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
-          <Text style={styles.chatName}>{match.crewName}</Text>
-          <Text style={styles.chatTime}>
+          <Text style={[styles.chatName, { color: currentColors.text.primary }]}>
+            {match.crewName}
+          </Text>
+          <Text style={[styles.chatTime, { color: currentColors.text.secondary }]}>
             {match.lastMessage ? formatTime(match.lastMessage.timestamp) : ''}
           </Text>
         </View>
-        <Text style={styles.chatMessage} numberOfLines={1}>
+        <Text style={[styles.chatMessage, { color: currentColors.text.secondary }]} numberOfLines={1}>
           {match.lastMessage?.content || 'Say hello!'}
         </Text>
-        <Text style={styles.chatLocation}>{match.location}</Text>
+        <Text style={[styles.chatLocation, { color: currentColors.text.tertiary }]}>
+          {match.location}
+        </Text>
       </View>
       {match.unreadCount && match.unreadCount > 0 && (
         <View style={styles.unreadBadge}>
@@ -67,9 +77,13 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ match, onPress }) => {
 
 export default function ChatScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { showToast } = useToast();
   const { matches, isLoading, fetchMatches } = useMatchStore();
   const [refreshing, setRefreshing] = useState(false);
+
+  const currentColors = isDark ? colors : colors.light;
 
   useEffect(() => {
     fetchMatches();
@@ -95,9 +109,11 @@ export default function ChatScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <MessageCircle size={64} color={colors.text.tertiary} />
-      <Text style={styles.emptyTitle}>No conversations yet</Text>
-      <Text style={styles.emptySubtitle}>
+      <MessageCircle size={64} color={currentColors.text.tertiary} />
+      <Text style={[styles.emptyTitle, { color: currentColors.text.primary }]}>
+        No conversations yet
+      </Text>
+      <Text style={[styles.emptySubtitle, { color: currentColors.text.secondary }]}>
         Start matching with crews to begin chatting
       </Text>
       <Button 
@@ -110,24 +126,34 @@ export default function ChatScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView 
+      style={[styles.container, { backgroundColor: currentColors.background.primary }]} 
+      edges={['bottom']}
+    >
       <Stack.Screen
         options={{
           headerTitle: "Messages",
+          headerStyle: {
+            backgroundColor: currentColors.background.primary,
+          },
+          headerTintColor: currentColors.text.primary,
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity onPress={handleSearch} style={styles.headerButton}>
-                <Search size={22} color={colors.text.primary} />
+                <Search size={22} color={currentColors.text.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => showToast({ type: 'info', message: 'Options coming soon' })} style={styles.headerButton}>
-                <MoreVertical size={22} color={colors.text.primary} />
+              <TouchableOpacity 
+                onPress={() => showToast({ type: 'info', message: 'Options coming soon' })} 
+                style={styles.headerButton}
+              >
+                <MoreVertical size={22} color={currentColors.text.primary} />
               </TouchableOpacity>
             </View>
           ),
         }}
       />
       
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {isLoading ? (
         <SkeletonLoader type="list" />
@@ -139,6 +165,7 @@ export default function ChatScreen() {
             <ChatListItem 
               match={item} 
               onPress={() => handleChatPress(item.id)}
+              isDark={isDark}
             />
           )}
           ListEmptyComponent={renderEmptyState}
@@ -161,7 +188,6 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -180,7 +206,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.primary,
   },
   avatar: {
     width: 56,
@@ -199,24 +224,17 @@ const styles = StyleSheet.create({
   },
   chatName: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.text.primary,
+    fontWeight: '600',
   },
   chatTime: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: colors.text.secondary,
   },
   chatMessage: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: colors.text.secondary,
     marginBottom: 4,
   },
   chatLocation: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: colors.text.tertiary,
   },
   unreadBadge: {
     backgroundColor: colors.primary,
@@ -229,8 +247,8 @@ const styles = StyleSheet.create({
   },
   unreadText: {
     fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: colors.text.primary,
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   emptyContainer: {
     flex: 1,
@@ -241,15 +259,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    color: colors.text.primary,
+    fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
   },
