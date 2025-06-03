@@ -4,7 +4,8 @@ import {
   Text, 
   StyleSheet,
   Platform,
-  Dimensions
+  Dimensions,
+  Animated
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +17,8 @@ import { useAuthStore } from '@/store/authStore';
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(20)).current;
   const { isAuthenticated } = useAuthStore();
 
   React.useEffect(() => {
@@ -23,6 +26,21 @@ export default function WelcomeScreen() {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated]);
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const handleGetStarted = async () => {
     if (Platform.OS !== 'web') {
@@ -42,7 +60,15 @@ export default function WelcomeScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      <View style={styles.content}>
+      <Animated.View 
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Text style={styles.icon}>⚓</Text>
@@ -69,12 +95,12 @@ export default function WelcomeScreen() {
           <Button
             title="Sign In"
             onPress={handleSignIn}
-            variant="outline"
+            variant="ghost"
             size="large"
             style={styles.secondaryButton}
           />
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -88,39 +114,39 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: 'space-between',
-    paddingTop: 120,
-    paddingBottom: 60,
+    paddingTop: Platform.OS === 'ios' ? 120 : 80,
+    paddingBottom: Platform.OS === 'ios' ? 48 : 32,
   },
   header: {
     alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   icon: {
-    fontSize: 28,
+    fontSize: 24,
     color: colors.background.dark,
   },
   textContainer: {
-    maxWidth: width * 0.8,
+    maxWidth: width * 0.85,
   },
   title: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'left',
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: colors.text.secondary,
-    marginBottom: 24,
+    marginBottom: 16,
     textAlign: 'left',
     fontWeight: '500',
   },

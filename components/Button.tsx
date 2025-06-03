@@ -7,6 +7,7 @@ import {
   Platform,
   ViewStyle,
   TextStyle,
+  Animated,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
@@ -22,7 +23,7 @@ interface ButtonProps {
   textStyle?: TextStyle;
 }
 
-export const Button = ({
+export function Button({
   title,
   onPress,
   variant = 'primary',
@@ -31,7 +32,23 @@ export const Button = ({
   disabled = false,
   style,
   textStyle,
-}: ButtonProps) => {
+}: ButtonProps) {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handlePress = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -70,16 +87,19 @@ export const Button = ({
         return {
           paddingVertical: 8,
           paddingHorizontal: 16,
+          borderRadius: 8,
         };
       case 'large':
         return {
           paddingVertical: 16,
           paddingHorizontal: 24,
+          borderRadius: 14,
         };
       default:
         return {
           paddingVertical: 12,
           paddingHorizontal: 20,
+          borderRadius: 12,
         };
     }
   };
@@ -96,40 +116,43 @@ export const Button = ({
   };
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      disabled={disabled || loading}
-      style={[
-        styles.button,
-        getVariantStyles(),
-        getSizeStyles(),
-        disabled && styles.disabled,
-        style,
-      ]}
-      activeOpacity={0.8}
-    >
-      {loading ? (
-        <ActivityIndicator color={getTextColor()} />
-      ) : (
-        <Text
-          style={[
-            styles.text,
-            { color: getTextColor() },
-            size === 'small' && styles.smallText,
-            size === 'large' && styles.largeText,
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        style={[
+          styles.button,
+          getVariantStyles(),
+          getSizeStyles(),
+          disabled && styles.disabled,
+          style,
+        ]}
+        activeOpacity={0.9}
+      >
+        {loading ? (
+          <ActivityIndicator color={getTextColor()} />
+        ) : (
+          <Text
+            style={[
+              styles.text,
+              { color: getTextColor() },
+              size === 'small' && styles.smallText,
+              size === 'large' && styles.largeText,
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -148,5 +171,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
-export default Button;

@@ -1,7 +1,7 @@
 import { useColorScheme } from 'react-native';
 
 const lightColors = {
-  primary: "#3B82F6",
+  primary: "#2563EB",
   secondary: "#EC4899",
   accent: "#10B981",
 
@@ -14,6 +14,7 @@ const lightColors = {
     primary: "#0F172A",
     secondary: "#64748B",
     dark: "#0F172A",
+    disabled: "#94A3B8",
   },
 
   success: "#10B981",
@@ -21,11 +22,11 @@ const lightColors = {
   error: "#EF4444",
 
   gradient: {
-    blue: ["#3B82F6", "#2563EB"] as const,
-    purple: ["#8B5CF6", "#6D28D9"] as const,
-    pink: ["#EC4899", "#DB2777"] as const,
-    sunset: ["#F59E0B", "#EC4899"] as const,
-    ocean: ["#0EA5E9", "#3B82F6"] as const,
+    blue: ["#3B82F6", "#2563EB"],
+    purple: ["#8B5CF6", "#6D28D9"],
+    pink: ["#EC4899", "#DB2777"],
+    sunset: ["#F59E0B", "#EC4899"],
+    ocean: ["#0EA5E9", "#3B82F6"],
   },
 } as const;
 
@@ -43,6 +44,7 @@ const darkColors = {
     primary: "#FFFFFF",
     secondary: "#A1A1AA",
     dark: "#18181B",
+    disabled: "#52525B",
   },
 
   success: "#10B981",
@@ -50,11 +52,11 @@ const darkColors = {
   error: "#EF4444",
 
   gradient: {
-    blue: ["#3B82F6", "#2563EB"] as const,
-    purple: ["#8B5CF6", "#6D28D9"] as const,
-    pink: ["#EC4899", "#DB2777"] as const,
-    sunset: ["#F59E0B", "#EC4899"] as const,
-    ocean: ["#0EA5E9", "#3B82F6"] as const,
+    blue: ["#3B82F6", "#2563EB"],
+    purple: ["#8B5CF6", "#6D28D9"],
+    pink: ["#EC4899", "#DB2777"],
+    sunset: ["#F59E0B", "#EC4899"],
+    ocean: ["#0EA5E9", "#3B82F6"],
   },
 } as const;
 
