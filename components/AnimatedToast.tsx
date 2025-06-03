@@ -10,10 +10,11 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Check, X, Heart, Zap, AlertCircle, AlertTriangle } from 'lucide-react-native';
 import colors from '@/constants/colors';
+import { ToastType } from '@/types';
 
 interface AnimatedToastProps {
   visible: boolean;
-  type: 'success' | 'error' | 'match' | 'boost' | 'info' | 'warning';
+  type: ToastType;
   title: string;
   message?: string;
   duration?: number;
