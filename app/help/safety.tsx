@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   emergencyButton: {
-    backgroundColor: colors.error,
+    backgroundColor: colors.status.error, // Using status.error instead of colors.error
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',

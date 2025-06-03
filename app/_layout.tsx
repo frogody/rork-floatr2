@@ -58,29 +58,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Configure deep linking
-const prefix = Linking.createURL('/');
-const config = {
-  screens: {
-    index: '',
-    'onboarding/index': 'onboarding',
-    '(tabs)': 'tabs',
-    'auth/login': 'login',
-    'auth/signup': 'signup',
-    'auth/forgot-password': 'forgot-password',
-    premium: 'premium',
-    'chat/[id]': 'chat/:id',
-    'meetups/[id]': 'meetup/:id',
-    'help': 'help',
-    'help/faq': 'faq',
-    'help/safety': 'safety',
-    'help/emergency': 'emergency',
-    'help/feedback': 'feedback',
-    'legal/privacy': 'privacy',
-    'legal/terms': 'terms',
-  },
-};
-
 export default function RootLayout() {
   const { isAuthenticated, checkAuth } = useAuthStore();
   const [fontsLoaded, fontError] = useFonts({
@@ -146,7 +123,8 @@ export default function RootLayout() {
           const appName = Application.applicationName;
           const appVersion = Application.nativeApplicationVersion;
           const buildVersion = Application.nativeBuildVersion;
-          const deviceName = await Device.getDeviceNameAsync();
+          // Fix: Use Device.deviceName instead of getDeviceNameAsync
+          const deviceName = Device.deviceName || 'Unknown Device';
           const deviceType = Device.deviceType;
           const osName = Device.osName;
           const osVersion = Device.osVersion;
@@ -180,7 +158,7 @@ export default function RootLayout() {
 
   // Handle deep linking
   useEffect(() => {
-    const handleDeepLink = (event) => {
+    const handleDeepLink = (event: { url: string }) => {
       const url = event.url;
       console.log('Deep link URL:', url);
       // Handle the deep link URL here
@@ -220,8 +198,8 @@ export default function RootLayout() {
   }
 
   return (
-    <trpc.Provider client={queryClient}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <trpc.Provider queryClient={queryClient}>
         <SafeAreaProvider>
           <ToastProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -239,10 +217,6 @@ export default function RootLayout() {
                     backgroundColor: colors.background.primary,
                   },
                   animation: 'slide_from_right',
-                }}
-                linking={{
-                  prefixes: [prefix],
-                  config,
                 }}
               >
                 <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -407,7 +381,7 @@ export default function RootLayout() {
             </GestureHandlerRootView>
           </ToastProvider>
         </SafeAreaProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+      </trpc.Provider>
+    </QueryClientProvider>
   );
 }

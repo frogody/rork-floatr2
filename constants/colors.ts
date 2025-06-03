@@ -7,11 +7,13 @@ const lightColors = {
   primary: '#2563EB',
   secondary: '#EC4899',
   accent: '#10B981',
+  error: '#EF4444', // Added error color
 
   background: {
     primary: '#FFFFFF',
     secondary: '#F8FAFC',
     tertiary: '#F1F5F9',
+    dark: '#0F172A', // Added dark background color
   },
 
   surface: {
@@ -52,11 +54,13 @@ const darkColors = {
   primary: '#3B82F6',
   secondary: '#EC4899',
   accent: '#10B981',
+  error: '#EF4444', // Added error color
 
   background: {
     primary: '#0A0A0A',
     secondary: '#18181B',
     tertiary: '#27272A',
+    dark: '#000000', // Added dark background color
   },
 
   surface: {
