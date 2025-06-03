@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { Animated, StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '@/constants/colors';
 import { Check, X, Info, Heart, Zap } from 'lucide-react-native';
 

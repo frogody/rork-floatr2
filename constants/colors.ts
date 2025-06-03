@@ -8,6 +8,8 @@ const lightColors = {
   secondary: '#EC4899',
   accent: '#10B981',
   error: '#EF4444',
+  success: '#10B981',
+  warning: '#F59E0B',
 
   background: {
     primary: '#FFFFFF',
@@ -55,6 +57,8 @@ const darkColors = {
   secondary: '#EC4899',
   accent: '#10B981',
   error: '#EF4444',
+  success: '#10B981',
+  warning: '#F59E0B',
 
   background: {
     primary: '#0A0A0A',

@@ -152,7 +152,7 @@ export default function AnimatedToast({
       case 'info':
         return 'rgba(59, 130, 246, 0.95)';
       default:
-        return colors.background.card;
+        return colors.surface.primary;
     }
   };
 
