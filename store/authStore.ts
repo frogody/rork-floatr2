@@ -27,7 +27,7 @@ interface AuthState {
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
-  checkAuth: () => void; // Added missing checkAuth method
+  checkAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -200,7 +200,6 @@ export const useAuthStore = create<AuthState>()(
         set({ error: null });
       },
       
-      // Implementation for the missing checkAuth method
       checkAuth: () => {
         // This would typically check for a valid token or session
         // For now, we'll just use the persisted state
