@@ -33,6 +33,6 @@ const colors = {
     error: '#FF453A',
     info: '#007AFF',
   },
-};
+} as const;
 
 export default colors;

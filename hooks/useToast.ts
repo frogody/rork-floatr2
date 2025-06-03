@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { ToastType } from '@/types';
+
+type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 interface ToastState {
   visible: boolean;
   message: string;
   type: ToastType;
-  duration: number;
-  showToast: (params: { message: string; type: ToastType; duration?: number }) => void;
+  showToast: (message: string, type?: ToastType) => void;
   hideToast: () => void;
 }
 
@@ -14,12 +14,11 @@ const useToastStore = create<ToastState>((set) => ({
   visible: false,
   message: '',
   type: 'info',
-  duration: 3000,
-  showToast: ({ message, type, duration = 3000 }) => {
-    set({ visible: true, message, type, duration });
+  showToast: (message: string, type: ToastType = 'info') => {
+    set({ visible: true, message, type });
     setTimeout(() => {
       set({ visible: false });
-    }, duration);
+    }, 3000);
   },
   hideToast: () => set({ visible: false }),
 }));
