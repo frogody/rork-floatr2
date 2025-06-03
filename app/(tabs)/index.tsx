@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { CrewCard } from '@/components/CrewCard';
 import { SwipeButtons } from '@/components/SwipeButtons';
 import colors from '@/constants/colors';
