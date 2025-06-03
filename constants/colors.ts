@@ -39,6 +39,14 @@ const colors = {
     secondary: ['#EC4899', '#BE185D'],
     accent: ['#10B981', '#047857'],
   },
+  
+  map: {
+    water: '#1e3a8a',
+    land: '#1f2937',
+    marker: '#3B82F6',
+    userLocation: '#10B981',
+    cluster: '#EC4899',
+  },
 };
 
 export default colors;

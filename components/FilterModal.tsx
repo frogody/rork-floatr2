@@ -196,7 +196,7 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+    backgroundColor: colors.background.primary,
   },
   header: {
     flexDirection: 'row',

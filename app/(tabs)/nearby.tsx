@@ -4,33 +4,39 @@ import {
   StyleSheet, 
   Text, 
   TouchableOpacity,
-  ScrollView,
-  Image,
+  TextInput,
   Platform,
   Dimensions,
   Alert,
-  TextInput
+  Image,
+  Animated
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
+import MapView, { 
+  Marker, 
+  PROVIDER_GOOGLE, 
+  Region, 
+  Circle,
+  Callout 
+} from 'react-native-maps';
 import { 
-  MapPin, 
-  Navigation2, 
-  Users, 
-  Compass,
-  Anchor,
-  Plus,
-  Minus,
-  Crosshair,
+  Search, 
+  Filter, 
+  Plus, 
+  Minus, 
+  Crosshair, 
   Layers,
-  Search,
-  Filter,
-  Zap,
-  Waves
+  Navigation2,
+  Anchor,
+  MapPin,
+  Users,
+  Waves,
+  Zap
 } from 'lucide-react-native';
-import { WebView } from 'react-native-webview';
 import colors from '@/constants/colors';
+import FilterModal, { FilterOptions } from '@/components/FilterModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,17 +53,36 @@ interface CrewLocation {
   lastSeen: string;
 }
 
+interface SurpriseSpot {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  type: 'marina' | 'anchorage' | 'scenic';
+}
+
+const INITIAL_REGION = {
+  latitude: 37.7749,
+  longitude: -122.4194,
+  latitudeDelta: 0.0922,
+  longitudeDelta: 0.0421,
+};
+
 export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [selectedCrew, setSelectedCrew] = useState<CrewLocation | null>(null);
-  const [mapZoom, setMapZoom] = useState(12);
-  const [showSatellite, setShowSatellite] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [mapType, setMapType] = useState<'standard' | 'satellite'>('standard');
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const webViewRef = useRef<WebView>(null);
+  const [region, setRegion] = useState<Region>(INITIAL_REGION);
+  const [isLoading, setIsLoading] = useState(true);
+  const [surpriseSpots, setSurpriseSpots] = useState<SurpriseSpot[]>([]);
+  
+  const mapRef = useRef<MapView>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Mock crew locations with realistic San Francisco Bay coordinates
+  // Mock crew locations with realistic coordinates
   const [crewLocations] = useState<CrewLocation[]>([
     {
       id: '1',
@@ -123,41 +148,99 @@ export default function MapScreen() {
 
   useEffect(() => {
     requestLocationPermission();
-    setTimeout(() => setIsLoading(false), 2000);
+    generateSurpriseSpots();
+    startPulseAnimation();
+    
+    // Generate new surprise spots every 60 minutes
+    const interval = setInterval(generateSurpriseSpots, 60 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  const requestLocationPermission = async () => {
-    if (Platform.OS === 'web') {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const location = {
-              coords: {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                altitude: position.coords.altitude,
-                accuracy: position.coords.accuracy,
-                altitudeAccuracy: position.coords.altitudeAccuracy,
-                heading: position.coords.heading,
-                speed: position.coords.speed,
-              },
-              timestamp: position.timestamp,
-            } as Location.LocationObject;
-            setUserLocation(location);
-          },
-          (error) => console.log('Location error:', error)
-        );
+  const startPulseAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.3,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  };
+
+  const generateSurpriseSpots = () => {
+    const spots: SurpriseSpot[] = [
+      {
+        id: 'spot1',
+        name: 'Hidden Cove',
+        latitude: 37.7749 + (Math.random() - 0.5) * 0.02,
+        longitude: -122.4194 + (Math.random() - 0.5) * 0.02,
+        description: 'Perfect for sunset watching',
+        type: 'scenic'
+      },
+      {
+        id: 'spot2',
+        name: 'Secret Anchorage',
+        latitude: 37.7749 + (Math.random() - 0.5) * 0.02,
+        longitude: -122.4194 + (Math.random() - 0.5) * 0.02,
+        description: 'Sheltered waters, great for swimming',
+        type: 'anchorage'
       }
-    } else {
-      try {
+    ];
+    setSurpriseSpots(spots);
+  };
+
+  const requestLocationPermission = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const location = {
+                coords: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  altitude: position.coords.altitude,
+                  accuracy: position.coords.accuracy,
+                  altitudeAccuracy: position.coords.altitudeAccuracy,
+                  heading: position.coords.heading,
+                  speed: position.coords.speed,
+                },
+                timestamp: position.timestamp,
+              } as Location.LocationObject;
+              setUserLocation(location);
+              setIsLoading(false);
+            },
+            (error) => {
+              console.log('Location error:', error);
+              setIsLoading(false);
+            }
+          );
+        }
+      } else {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           const location = await Location.getCurrentPositionAsync({});
           setUserLocation(location);
+          
+          // Update map region to user location
+          setRegion({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
         }
-      } catch (error) {
-        console.log('Location permission error:', error);
+        setIsLoading(false);
       }
+    } catch (error) {
+      console.log('Location permission error:', error);
+      setIsLoading(false);
     }
   };
 
@@ -165,32 +248,28 @@ export default function MapScreen() {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    const newZoom = Math.min(mapZoom + 1, 18);
-    setMapZoom(newZoom);
     
-    // Send zoom command to map
-    const script = `
-      if (window.map) {
-        window.map.setZoom(${newZoom});
-      }
-    `;
-    webViewRef.current?.postMessage(script);
+    const newRegion = {
+      ...region,
+      latitudeDelta: region.latitudeDelta * 0.5,
+      longitudeDelta: region.longitudeDelta * 0.5,
+    };
+    setRegion(newRegion);
+    mapRef.current?.animateToRegion(newRegion, 300);
   };
 
   const handleZoomOut = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    const newZoom = Math.max(mapZoom - 1, 1);
-    setMapZoom(newZoom);
     
-    // Send zoom command to map
-    const script = `
-      if (window.map) {
-        window.map.setZoom(${newZoom});
-      }
-    `;
-    webViewRef.current?.postMessage(script);
+    const newRegion = {
+      ...region,
+      latitudeDelta: Math.min(region.latitudeDelta * 2, 1),
+      longitudeDelta: Math.min(region.longitudeDelta * 2, 1),
+    };
+    setRegion(newRegion);
+    mapRef.current?.animateToRegion(newRegion, 300);
   };
 
   const handleCenterLocation = async () => {
@@ -198,31 +277,23 @@ export default function MapScreen() {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     
-    const lat = userLocation?.coords.latitude || 37.7749;
-    const lng = userLocation?.coords.longitude || -122.4194;
-    
-    const script = `
-      if (window.map) {
-        window.map.setCenter({lat: ${lat}, lng: ${lng}});
-        window.map.setZoom(14);
-      }
-    `;
-    webViewRef.current?.postMessage(script);
+    if (userLocation) {
+      const newRegion = {
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
+      setRegion(newRegion);
+      mapRef.current?.animateToRegion(newRegion, 500);
+    }
   };
 
   const toggleMapType = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    setShowSatellite(!showSatellite);
-    
-    const mapType = showSatellite ? 'roadmap' : 'satellite';
-    const script = `
-      if (window.map) {
-        window.map.setMapTypeId('${mapType}');
-      }
-    `;
-    webViewRef.current?.postMessage(script);
+    setMapType(mapType === 'standard' ? 'satellite' : 'standard');
   };
 
   const getStatusColor = (status: string) => {
@@ -243,180 +314,71 @@ export default function MapScreen() {
     }
   };
 
-  // Generate HTML for the map
-  const generateMapHTML = () => {
-    const userLat = userLocation?.coords.latitude || 37.7749;
-    const userLng = userLocation?.coords.longitude || -122.4194;
-    
-    const crewMarkersJS = crewLocations.map(crew => `
-      {
-        id: '${crew.id}',
-        lat: ${crew.latitude},
-        lng: ${crew.longitude},
-        name: '${crew.name}',
-        status: '${crew.status}',
-        photoUrl: '${crew.photoUrl}',
-        crewSize: ${crew.crewSize},
-        boatType: '${crew.boatType}',
-        distance: ${crew.distance}
-      }
-    `).join(',');
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body, html { margin: 0; padding: 0; height: 100%; }
-          #map { height: 100%; width: 100%; }
-          .crew-marker {
-            width: 50px;
-            height: 50px;
-            border-radius: 25px;
-            border: 3px solid #fff;
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-            position: relative;
-          }
-          .crew-marker.anchored { border-color: #10B981; }
-          .crew-marker.moving { border-color: #3B82F6; }
-          .crew-marker.docked { border-color: #EC4899; }
-          .crew-marker::after {
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            right: -3px;
-            width: 16px;
-            height: 16px;
-            border-radius: 8px;
-            border: 2px solid #fff;
-          }
-          .crew-marker.anchored::after { background-color: #10B981; }
-          .crew-marker.moving::after { background-color: #3B82F6; }
-          .crew-marker.docked::after { background-color: #EC4899; }
-          .user-marker {
-            width: 20px;
-            height: 20px;
-            border-radius: 10px;
-            background-color: #3B82F6;
-            border: 3px solid #fff;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-          }
-        </style>
-      </head>
-      <body>
-        <div id="map"></div>
-        <script>
-          let map;
-          let userMarker;
-          let crewMarkers = [];
-          
-          function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-              center: { lat: ${userLat}, lng: ${userLng} },
-              zoom: ${mapZoom},
-              mapTypeId: '${showSatellite ? 'satellite' : 'roadmap'}',
-              styles: [
-                {
-                  featureType: 'poi',
-                  elementType: 'labels',
-                  stylers: [{ visibility: 'off' }]
-                },
-                {
-                  featureType: 'transit',
-                  elementType: 'labels',
-                  stylers: [{ visibility: 'off' }]
-                }
-              ],
-              disableDefaultUI: true,
-              zoomControl: false,
-              mapTypeControl: false,
-              scaleControl: false,
-              streetViewControl: false,
-              rotateControl: false,
-              fullscreenControl: false
-            });
-            
-            // Add user marker
-            const userMarkerDiv = document.createElement('div');
-            userMarkerDiv.className = 'user-marker';
-            
-            userMarker = new google.maps.marker.AdvancedMarkerElement({
-              map: map,
-              position: { lat: ${userLat}, lng: ${userLng} },
-              content: userMarkerDiv,
-              title: 'Your Location'
-            });
-            
-            // Add crew markers
-            const crews = [${crewMarkersJS}];
-            
-            crews.forEach(crew => {
-              const markerDiv = document.createElement('div');
-              markerDiv.className = \`crew-marker \${crew.status}\`;
-              markerDiv.style.backgroundImage = \`url(\${crew.photoUrl})\`;
-              
-              const marker = new google.maps.marker.AdvancedMarkerElement({
-                map: map,
-                position: { lat: crew.lat, lng: crew.lng },
-                content: markerDiv,
-                title: crew.name
-              });
-              
-              marker.addListener('click', () => {
-                window.ReactNativeWebView?.postMessage(JSON.stringify({
-                  type: 'crewSelected',
-                  crew: crew
-                }));
-              });
-              
-              crewMarkers.push(marker);
-            });
-            
-            window.map = map;
-          }
-          
-          // Listen for messages from React Native
-          window.addEventListener('message', function(event) {
-            try {
-              eval(event.data);
-            } catch (e) {
-              console.error('Error executing script:', e);
-            }
-          });
-        </script>
-        <script async defer
-          src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=marker&callback=initMap">
-        </script>
-      </body>
-      </html>
-    `;
-  };
-
-  const handleWebViewMessage = (event: any) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === 'crewSelected') {
-        setSelectedCrew(data.crew);
-        if (Platform.OS !== 'web') {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing WebView message:', error);
+  const handleCrewPress = (crew: CrewLocation) => {
+    setSelectedCrew(crew);
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
   };
+
+  const handleSurpriseSpotPress = (spot: SurpriseSpot) => {
+    Alert.alert(
+      spot.name,
+      spot.description,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Sail Here', 
+          onPress: () => {
+            // Deep link to maps app
+            const url = Platform.select({
+              ios: `maps:0,0?q=${spot.latitude},${spot.longitude}`,
+              android: `geo:0,0?q=${spot.latitude},${spot.longitude}`,
+              default: `https://maps.google.com/?q=${spot.latitude},${spot.longitude}`
+            });
+            console.log('Navigate to:', url);
+          }
+        }
+      ]
+    );
+  };
+
+  const handleApplyFilters = (filters: FilterOptions) => {
+    console.log('Applied filters:', filters);
+    // TODO: Filter crew locations based on filters
+  };
+
+  const customMapStyle = [
+    {
+      featureType: 'water',
+      elementType: 'geometry',
+      stylers: [{ color: colors.map.water }]
+    },
+    {
+      featureType: 'landscape',
+      elementType: 'geometry',
+      stylers: [{ color: colors.map.land }]
+    },
+    {
+      featureType: 'poi',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    },
+    {
+      featureType: 'transit',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    }
+  ];
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <StatusBar style="light" />
         <View style={styles.loadingContent}>
-          <View style={styles.loadingSpinner}>
-            <Compass size={32} color={colors.primary} />
-          </View>
+          <Animated.View style={[styles.loadingSpinner, { transform: [{ scale: pulseAnim }] }]}>
+            <Waves size={32} color={colors.primary} />
+          </Animated.View>
           <Text style={styles.loadingText}>Loading map...</Text>
           <Text style={styles.loadingSubtext}>Finding crews near you</Text>
         </View>
@@ -434,14 +396,14 @@ export default function MapScreen() {
           <Search size={20} color={colors.text.secondary} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search locations, marinas..."
+            placeholder="Search marinas, spots..."
             placeholderTextColor={colors.text.secondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           <TouchableOpacity 
             style={styles.filterButton}
-            onPress={() => setShowFilters(!showFilters)}
+            onPress={() => setShowFilters(true)}
           >
             <Filter size={20} color={colors.primary} />
           </TouchableOpacity>
@@ -450,20 +412,78 @@ export default function MapScreen() {
 
       {/* Interactive Map */}
       <View style={styles.mapContainer}>
-        <WebView
-          ref={webViewRef}
-          source={{ html: generateMapHTML() }}
-          style={styles.webView}
-          onMessage={handleWebViewMessage}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          scalesPageToFit={true}
-          scrollEnabled={false}
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-        />
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          mapType={mapType}
+          region={region}
+          onRegionChangeComplete={setRegion}
+          customMapStyle={customMapStyle}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+          showsCompass={false}
+          showsScale={false}
+          rotateEnabled={true}
+          pitchEnabled={true}
+        >
+          {/* User Location Circle */}
+          {userLocation && (
+            <Circle
+              center={{
+                latitude: userLocation.coords.latitude,
+                longitude: userLocation.coords.longitude,
+              }}
+              radius={100}
+              fillColor="rgba(59, 130, 246, 0.1)"
+              strokeColor={colors.primary}
+              strokeWidth={2}
+            />
+          )}
+
+          {/* Crew Markers */}
+          {crewLocations.map((crew) => (
+            <Marker
+              key={crew.id}
+              coordinate={{
+                latitude: crew.latitude,
+                longitude: crew.longitude,
+              }}
+              onPress={() => handleCrewPress(crew)}
+            >
+              <View style={[styles.crewMarker, { borderColor: getStatusColor(crew.status) }]}>
+                <Image source={{ uri: crew.photoUrl }} style={styles.crewMarkerImage} />
+                <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(crew.status) }]} />
+              </View>
+              <Callout tooltip>
+                <View style={styles.callout}>
+                  <Text style={styles.calloutTitle}>{crew.name}</Text>
+                  <Text style={styles.calloutSubtitle}>
+                    {crew.boatType} • {crew.crewSize} crew • {crew.distance} mi
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+          ))}
+
+          {/* Surprise Spots */}
+          {surpriseSpots.map((spot) => (
+            <Marker
+              key={spot.id}
+              coordinate={{
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+              }}
+              onPress={() => handleSurpriseSpotPress(spot)}
+            >
+              <Animated.View style={[styles.surpriseSpot, { transform: [{ scale: pulseAnim }] }]}>
+                <View style={styles.buoyMarker}>
+                  <Text style={styles.buoyEmoji}>⚓</Text>
+                </View>
+              </Animated.View>
+            </Marker>
+          ))}
+        </MapView>
 
         {/* Map Controls */}
         <View style={styles.mapControls}>
@@ -477,10 +497,10 @@ export default function MapScreen() {
             <Crosshair size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.controlButton, showSatellite && styles.controlButtonActive]} 
+            style={[styles.controlButton, mapType === 'satellite' && styles.controlButtonActive]} 
             onPress={toggleMapType}
           >
-            <Layers size={20} color={showSatellite ? colors.primary : colors.text.primary} />
+            <Layers size={20} color={mapType === 'satellite' ? colors.primary : colors.text.primary} />
           </TouchableOpacity>
         </View>
 
@@ -488,7 +508,7 @@ export default function MapScreen() {
         <View style={styles.mapInfo}>
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>{crewLocations.length} crews nearby</Text>
-            <Text style={styles.infoSubtitle}>Zoom: {mapZoom}x</Text>
+            <Text style={styles.infoSubtitle}>{surpriseSpots.length} surprise spots</Text>
           </View>
         </View>
       </View>
@@ -501,7 +521,10 @@ export default function MapScreen() {
             onPress={() => {
               Alert.alert(
                 selectedCrew.name,
-                `${selectedCrew.boatType} • ${selectedCrew.crewSize} crew members\n${selectedCrew.distance} miles away\nStatus: ${selectedCrew.status}\nLast seen: ${selectedCrew.lastSeen}`,
+                `${selectedCrew.boatType} • ${selectedCrew.crewSize} crew members
+${selectedCrew.distance} miles away
+Status: ${selectedCrew.status}
+Last seen: ${selectedCrew.lastSeen}`,
                 [
                   { text: 'Close', onPress: () => setSelectedCrew(null) },
                   { text: 'Message', onPress: () => console.log('Message crew') },
@@ -550,6 +573,13 @@ export default function MapScreen() {
           <Text style={styles.actionText}>Live</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Filter Modal */}
+      <FilterModal
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        onApply={handleApplyFilters}
+      />
     </View>
   );
 }
@@ -592,6 +622,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border.primary,
+    zIndex: 1000,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -614,7 +645,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  webView: {
+  map: {
     flex: 1,
   },
   mapControls: {
@@ -622,6 +653,7 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
     gap: 8,
+    zIndex: 1000,
   },
   controlButton: {
     width: 48,
@@ -641,6 +673,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
+    zIndex: 1000,
   },
   infoCard: {
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -660,11 +693,73 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: 2,
   },
+  crewMarker: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 3,
+    borderColor: colors.primary,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  crewMarkerImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  statusIndicator: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: colors.background.primary,
+  },
+  surpriseSpot: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buoyMarker: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.background.primary,
+  },
+  buoyEmoji: {
+    fontSize: 20,
+  },
+  callout: {
+    backgroundColor: colors.background.card,
+    borderRadius: 8,
+    padding: 12,
+    minWidth: 150,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+  },
+  calloutTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  calloutSubtitle: {
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
   crewDetails: {
     position: 'absolute',
     bottom: 100,
     left: 16,
     right: 16,
+    zIndex: 1000,
   },
   crewDetailsCard: {
     backgroundColor: colors.background.card,
@@ -726,6 +821,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: colors.border.primary,
+    zIndex: 1000,
   },
   actionButton: {
     alignItems: 'center',
