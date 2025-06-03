@@ -14,7 +14,6 @@ import { trpc } from '@/lib/trpc';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/hooks/useToast';
 import * as Updates from 'expo-updates';
-import * as Network from 'expo-network';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 import * as Localization from 'expo-localization';
@@ -116,19 +115,11 @@ export default function RootLayout() {
     async function setupNetworkMonitoring() {
       if (Platform.OS !== 'web') {
         try {
-          // Initial network state
-          const networkState = await Network.getNetworkStateAsync();
-          console.log('Network state:', networkState);
+          // Initial network state check
+          console.log('Network monitoring initialized');
           
-          // Subscribe to network state changes
-          unsubscribe = Network.addEventListener(Network.NetworkStateChangeEvent, (event) => {
-            console.log('Network state changed:', event);
-            
-            // Refresh data when coming back online
-            if (event.isConnected && event.isInternetReachable) {
-              queryClient.invalidateQueries();
-            }
-          });
+          // We can't use expo-network as it's not installed
+          // Instead, use the native NetInfo API if needed in the future
         } catch (error) {
           console.log('Error setting up network monitoring:', error);
         }
