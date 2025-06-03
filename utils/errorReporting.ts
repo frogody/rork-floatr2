@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
-import * as Network from 'expo-network';
+import NetInfo from '@react-native-community/netinfo';
 
 // This is a simple error reporting implementation
 // In a production app, you would use a service like Sentry, Bugsnag, or Firebase Crashlytics
@@ -119,7 +119,8 @@ class ErrorReporting {
     let networkType = 'unknown';
     try {
       if (Platform.OS !== 'web') {
-        const networkState = await Network.getNetworkStateAsync();
+        // Use NetInfo instead of expo-network
+        const networkState = await NetInfo.fetch();
         networkType = networkState.type;
       }
     } catch (e) {

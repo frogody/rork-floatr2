@@ -21,6 +21,7 @@ import { I18n } from 'i18n-js';
 import en from '@/localization/en';
 import es from '@/localization/es';
 import fr from '@/localization/fr';
+import NetInfo from '@react-native-community/netinfo';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -118,8 +119,10 @@ export default function RootLayout() {
           // Initial network state check
           console.log('Network monitoring initialized');
           
-          // We can't use expo-network as it's not installed
-          // Instead, use the native NetInfo API if needed in the future
+          // Use NetInfo instead of expo-network
+          unsubscribe = NetInfo.addEventListener(state => {
+            console.log('Network state changed:', state.isConnected);
+          });
         } catch (error) {
           console.log('Error setting up network monitoring:', error);
         }
