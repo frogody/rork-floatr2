@@ -2,8 +2,7 @@ import React from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
-  ImageBackground,
+  StyleSheet,
   Platform
 } from 'react-native';
 import { router } from 'expo-router';
@@ -40,47 +39,43 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
-      <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2070' }}
-        style={styles.backgroundImage}
-        resizeMode="cover"
+      <LinearGradient
+        colors={['#f8fafc', '#f1f5f9']}
+        style={styles.gradient}
       >
-        <LinearGradient
-          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.7)']}
-          style={styles.overlay}
-        >
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Floatr</Text>
-              <Text style={styles.subtitle}>Meet on the Water</Text>
-              <Text style={styles.description}>
-                Connect with nearby boaters, raft-up, and share amazing experiences on the water
-              </Text>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.icon}>⚓</Text>
             </View>
-            
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Get Started"
-                onPress={handleGetStarted}
-                variant="primary"
-                size="large"
-                gradient
-                style={styles.primaryButton}
-              />
-              
-              <Button
-                title="Sign In"
-                onPress={handleSignIn}
-                variant="outline"
-                size="large"
-                style={styles.secondaryButton}
-              />
-            </View>
+            <Text style={styles.title}>Floatr</Text>
+            <Text style={styles.subtitle}>Meet on the Water</Text>
+            <Text style={styles.description}>
+              Connect with nearby boaters, raft-up, and share amazing experiences on the water
+            </Text>
           </View>
-        </LinearGradient>
-      </ImageBackground>
+          
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Get Started"
+              onPress={handleGetStarted}
+              variant="primary"
+              size="large"
+              style={styles.primaryButton}
+            />
+            
+            <Button
+              title="Sign In"
+              onPress={handleSignIn}
+              variant="outline"
+              size="large"
+              style={styles.secondaryButton}
+            />
+          </View>
+        </View>
+      </LinearGradient>
     </View>
   );
 }
@@ -89,21 +84,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  backgroundImage: {
+  gradient: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
   },
   content: {
+    flex: 1,
     padding: 24,
+    justifyContent: 'space-between',
+    paddingTop: 120,
     paddingBottom: 60,
   },
   header: {
-    marginBottom: 48,
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  icon: {
+    fontSize: 32,
+    color: '#ffffff',
   },
   title: {
     fontSize: 48,
@@ -113,9 +126,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 24,
-    color: colors.text.primary,
-    marginBottom: 16,
+    fontSize: 20,
+    color: colors.text.secondary,
+    marginBottom: 24,
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -124,6 +137,7 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
+    maxWidth: 320,
   },
   buttonContainer: {
     gap: 16,
