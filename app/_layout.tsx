@@ -32,7 +32,7 @@ export default function RootLayout() {
     if (isInitialized) {
       if (isAuthenticated) {
         router.replace('/(tabs)');
-      } else if (!router.canGoBack()) {
+      } else {
         router.replace('/');
       }
     }

@@ -19,19 +19,21 @@ export default function SignupScreen() {
     if (!email || !password || !displayName) {
       showToast({
         message: 'Please fill in all fields',
-        type: 'error'
+        type: 'error',
+        duration: 3000
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp({ email, password, displayName });
       router.replace('/(tabs)');
     } catch (error) {
       showToast({
         message: 'Failed to create account',
-        type: 'error'
+        type: 'error',
+        duration: 3000
       });
     } finally {
       setIsLoading(false);

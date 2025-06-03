@@ -9,14 +9,7 @@ export default function AuthLayout() {
         screenOptions={{
           headerStyle: {
             backgroundColor: colors.background.primary,
-            ...Platform.select({
-              android: {
-                elevation: 0,
-              },
-              ios: {
-                shadowOpacity: 0,
-              },
-            }),
+            borderBottomWidth: 0,
           },
           headerTintColor: colors.text.primary,
           headerTitleStyle: styles.headerTitle,
