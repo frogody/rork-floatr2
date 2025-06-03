@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -9,8 +9,6 @@ import colors from '@/constants/colors';
 
 export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
-  const segments = useSegments();
-  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   
   const [fontsLoaded, fontError] = useFonts({
@@ -32,22 +30,8 @@ export default function RootLayout() {
   }, [isInitialized, checkAuth]);
 
   useEffect(() => {
-    // Set mounted flag after initial render
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!isMounted || !fontsLoaded || !isInitialized) return;
-
-    const inAuthGroup = segments[0] === 'auth';
-    const inOnboardingGroup = segments[0] === 'onboarding';
-
-    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      router.replace('/auth/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, segments, fontsLoaded, isInitialized, isMounted, router]);
 
   // Show loading state
   if (!fontsLoaded || !isInitialized || !isMounted) {
@@ -63,10 +47,25 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background.primary }
         }}
       >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="auth" />
+            <Stack.Screen name="onboarding" />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="chat/[id]" />
+            <Stack.Screen name="premium" />
+            <Stack.Screen name="profile/edit" />
+            <Stack.Screen name="boat/edit" />
+            <Stack.Screen name="help" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="legal" />
+            <Stack.Screen name="meetups" />
+          </>
+        )}
       </Stack>
     </View>
   );
