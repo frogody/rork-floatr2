@@ -27,7 +27,7 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName);
-      router.replace('/(tabs)');
+      router.replace('/onboarding');
     } catch (error) {
       showToast({
         message: 'Failed to create account',
