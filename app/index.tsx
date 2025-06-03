@@ -3,20 +3,21 @@ import {
   View, 
   Text, 
   StyleSheet,
-  Platform
+  Platform,
+  Dimensions
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Button from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 
+const { width } = Dimensions.get('window');
+
 export default function WelcomeScreen() {
   const { isAuthenticated } = useAuthStore();
 
-  // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
       router.replace('/(tabs)');
@@ -39,43 +40,41 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       
-      <LinearGradient
-        colors={['#f8fafc', '#f1f5f9']}
-        style={styles.gradient}
-      >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Text style={styles.icon}>⚓</Text>
-            </View>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.icon}>⚓</Text>
+          </View>
+          
+          <View style={styles.textContainer}>
             <Text style={styles.title}>Floatr</Text>
             <Text style={styles.subtitle}>Meet on the Water</Text>
             <Text style={styles.description}>
               Connect with nearby boaters, raft-up, and share amazing experiences on the water
             </Text>
           </View>
-          
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Get Started"
-              onPress={handleGetStarted}
-              variant="primary"
-              size="large"
-              style={styles.primaryButton}
-            />
-            
-            <Button
-              title="Sign In"
-              onPress={handleSignIn}
-              variant="outline"
-              size="large"
-              style={styles.secondaryButton}
-            />
-          </View>
         </View>
-      </LinearGradient>
+        
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Get Started"
+            onPress={handleGetStarted}
+            variant="primary"
+            size="large"
+            style={styles.primaryButton}
+          />
+          
+          <Button
+            title="Sign In"
+            onPress={handleSignIn}
+            variant="outline"
+            size="large"
+            style={styles.secondaryButton}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -83,9 +82,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  gradient: {
-    flex: 1,
+    backgroundColor: colors.background.dark,
   },
   content: {
     flex: 1,
@@ -98,28 +95,23 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
-    shadowColor: colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    marginBottom: 40,
   },
   icon: {
-    fontSize: 32,
-    color: '#ffffff',
+    fontSize: 28,
+    color: colors.background.dark,
+  },
+  textContainer: {
+    maxWidth: width * 0.8,
   },
   title: {
-    fontSize: 48,
+    fontSize: 42,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
@@ -137,10 +129,9 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'left',
     lineHeight: 24,
-    maxWidth: 320,
   },
   buttonContainer: {
-    gap: 16,
+    gap: 12,
   },
   primaryButton: {
     width: '100%',
