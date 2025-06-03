@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Platform,
+  useColorScheme,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -17,7 +18,8 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function PreferencesScreen() {
   const { user, updateUser } = useAuthStore();
-  const colors = getColors(false); // Use light colors
+  const colorScheme = useColorScheme();
+  const colors = getColors(colorScheme === 'dark');
   const [preferences, setPreferences] = React.useState(user?.preferences || {
     ageRange: [21, 35] as [number, number],
     maxDistance: 25,

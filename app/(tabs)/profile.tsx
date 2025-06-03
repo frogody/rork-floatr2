@@ -8,6 +8,7 @@ import {
   Image,
   Platform,
   Alert,
+  useColorScheme,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -31,7 +32,8 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
-  const colors = getColors(false); // Use light colors for profile screen
+  const colorScheme = useColorScheme();
+  const colors = getColors(colorScheme === 'dark');
 
   const handleHaptic = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
@@ -123,7 +125,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       
       <ScrollView 
         style={styles.scrollView}

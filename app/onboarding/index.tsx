@@ -119,7 +119,11 @@ export default function OnboardingScreen() {
       {/* App Logo */}
       <View style={styles.logoContainer}>
         <View style={[styles.logoBackground, { backgroundColor: colors.primary }]}>
-          <Anchor size={32} color={colors.text.primary} />
+          <Image 
+            source={require('../../assets/images/icon.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         <Text style={[styles.appName, { color: colors.text.primary }]}>Floatr</Text>
         <Text style={[styles.tagline, { color: colors.text.secondary }]}>Meet on the Water</Text>
@@ -193,6 +197,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  logoImage: {
+    width: 50,
+    height: 50,
   },
   appName: {
     fontSize: 32,
