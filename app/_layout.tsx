@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, View, Text, StyleSheet, LogBox } from 'react-native';
+import { Platform, LogBox } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
@@ -150,9 +150,11 @@ export default function RootLayout() {
 
   // Set system UI colors
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync(colors.background.primary);
-    if (Platform.OS === 'ios') {
-      SystemUI.setStatusBarStyle('light');
+    if (Platform.OS !== 'web') {
+      SystemUI.setBackgroundColorAsync(colors.background.primary);
+      if (Platform.OS === 'ios') {
+        // SystemUI.setStatusBarStyle is not available, use StatusBar component instead
+      }
     }
   }, []);
 
@@ -255,12 +257,6 @@ export default function RootLayout() {
                     title: "Floatr Premium",
                     presentation: "modal",
                     animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="help"
-                  options={{
-                    title: "Help & Support",
                   }}
                 />
                 <Stack.Screen
