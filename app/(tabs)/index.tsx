@@ -15,11 +15,8 @@ import {
   Search, 
   MapPin, 
   Users, 
-  Anchor, 
-  Navigation2,
   Compass,
   Waves,
-  TrendingUp,
   Calendar,
   Star,
   Zap
