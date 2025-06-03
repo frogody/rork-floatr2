@@ -102,7 +102,7 @@ export function Button({
     if (disabled) {
       return {
         ...baseStyles,
-        backgroundColor: colors.status.disabled,
+        backgroundColor: colors.status?.disabled || colors.text.disabled || '#666',
       };
     }
 
@@ -132,7 +132,7 @@ export function Button({
       case 'destructive':
         return {
           ...baseStyles,
-          backgroundColor: colors.status.error,
+          backgroundColor: colors.status?.error || colors.error || '#FF3B30',
         };
       default:
         return baseStyles;
@@ -166,7 +166,7 @@ export function Button({
   }, [size]);
 
   const getTextColor = React.useMemo((): string => {
-    if (disabled) return colors.text.disabled;
+    if (disabled) return colors.text.disabled || '#666';
     switch (variant) {
       case 'outline':
       case 'ghost':

@@ -6,7 +6,6 @@ import {
   Platform,
   Dimensions,
   Animated,
-  Image,
   ImageBackground,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 import { Anchor, Waves } from 'lucide-react-native';
 
@@ -30,9 +29,18 @@ export default function WelcomeScreen() {
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
   
   const { isAuthenticated, isInitialized, checkAuth } = useAuthStore();
+  const colors = getColors(true); // Use dark colors for welcome screen
 
   React.useEffect(() => {
-    checkAuth();
+    const initializeAuth = async () => {
+      try {
+        await checkAuth();
+      } catch (error) {
+        console.warn('Auth check failed:', error);
+      }
+    };
+    
+    initializeAuth();
   }, [checkAuth]);
 
   React.useEffect(() => {
@@ -104,14 +112,14 @@ export default function WelcomeScreen() {
           <View style={styles.loadingIcon}>
             <Anchor size={32} color={colors.primary} />
           </View>
-          <Text style={styles.loadingText}>Floatr</Text>
+          <Text style={[styles.loadingText, { color: colors.text.primary }]}>Floatr</Text>
         </Animated.View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <StatusBar style="light" />
       
       <Animated.View 
@@ -148,19 +156,22 @@ export default function WelcomeScreen() {
           <Animated.View 
             style={[
               styles.iconContainer,
-              { transform: [{ scale: scaleAnim }] }
+              { 
+                backgroundColor: colors.primary,
+                transform: [{ scale: scaleAnim }] 
+              }
             ]}
           >
             <Anchor size={28} color={colors.background.primary} />
-            <View style={styles.iconAccent}>
+            <View style={[styles.iconAccent, { backgroundColor: colors.background.primary }]}>
               <Waves size={16} color={colors.primary} />
             </View>
           </Animated.View>
           
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Floatr</Text>
-            <Text style={styles.subtitle}>Meet on the Water</Text>
-            <Text style={styles.description}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Floatr</Text>
+            <Text style={[styles.subtitle, { color: colors.text.secondary }]}>Meet on the Water</Text>
+            <Text style={[styles.description, { color: colors.text.secondary }]}>
               Connect with nearby boaters, raft-up, and share amazing experiences on the water. 
               Your next adventure is just a swipe away.
             </Text>
@@ -201,7 +212,6 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -214,7 +224,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: colors.background.secondary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -222,7 +231,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 24,
     fontWeight: '600',
-    color: colors.text.primary,
   },
   heroImageContainer: {
     position: 'absolute',
@@ -257,12 +265,11 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 20,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 32,
     position: 'relative',
-    shadowColor: colors.primary,
+    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -275,7 +282,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.background.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -285,21 +291,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'left',
     letterSpacing: -1,
   },
   subtitle: {
     fontSize: 22,
-    color: colors.text.secondary,
     marginBottom: 20,
     textAlign: 'left',
     fontWeight: '500',
   },
   description: {
     fontSize: 16,
-    color: colors.text.secondary,
     textAlign: 'left',
     lineHeight: 24,
     opacity: 0.9,
@@ -309,7 +312,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     width: '100%',
-    shadowColor: colors.primary,
+    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

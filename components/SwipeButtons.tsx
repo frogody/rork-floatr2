@@ -7,7 +7,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 import { X, Heart, Star, RotateCcw } from 'lucide-react-native';
 
 interface SwipeButtonsProps {
@@ -27,11 +27,15 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const currentColors = isDark ? colors : colors.light;
+  const currentColors = getColors(isDark);
   
   const handlePress = async (action: () => void) => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
     action();
   };

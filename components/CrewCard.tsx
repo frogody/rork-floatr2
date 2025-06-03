@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.surface?.primary || colors.background.primary,
     height: height * 0.7,
     position: 'relative',
   },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 28,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 4,
   },
@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     marginLeft: 4,
   },
@@ -229,7 +228,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: colors.text.secondary,
     marginLeft: 4,
   },
@@ -247,7 +246,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: colors.text.primary,
   },
   infoPanel: {
@@ -255,7 +254,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.surface.primary,
+    backgroundColor: colors.surface?.primary || colors.background.primary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -276,13 +275,12 @@ const styles = StyleSheet.create({
   },
   infoPanelTitle: {
     fontSize: 20,
-    fontFamily: 'Inter-Bold',
+    fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
   },
   infoPanelDescription: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     lineHeight: 24,
     marginBottom: 16,
@@ -297,24 +295,23 @@ const styles = StyleSheet.create({
   },
   infoPanelDetailLabel: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
     color: colors.text.tertiary,
     marginBottom: 4,
   },
   infoPanelDetailValue: {
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontWeight: '600',
     color: colors.text.primary,
   },
   closeButton: {
     alignItems: 'center',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.border.primary,
+    borderTopColor: colors.border?.primary || '#333',
   },
   closeButtonText: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '500',
     color: colors.primary,
   },
 });

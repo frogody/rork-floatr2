@@ -1,12 +1,16 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform, Pressable, useColorScheme } from 'react-native';
 import { Check, AlertTriangle, Info, Star, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 import { useToastStore } from '@/hooks/useToast';
 
 export function ToastProvider() {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
+  
   const visible = useToastStore((state) => state.visible);
   const message = useToastStore((state) => state.message);
   const type = useToastStore((state) => state.type);
@@ -71,7 +75,7 @@ export function ToastProvider() {
       default:
         return <Info size={iconSize} color={colors.status.info} strokeWidth={2.5} />;
     }
-  }, [type]);
+  }, [type, colors]);
 
   const getBackgroundColor = useCallback(() => {
     switch (type) {
@@ -86,7 +90,7 @@ export function ToastProvider() {
       default:
         return colors.surface.secondary;
     }
-  }, [type]);
+  }, [type, colors]);
 
   const getBorderColor = useCallback(() => {
     switch (type) {
@@ -101,7 +105,7 @@ export function ToastProvider() {
       default:
         return colors.border.primary;
     }
-  }, [type]);
+  }, [type, colors]);
 
   if (!visible) return null;
 
@@ -127,7 +131,7 @@ export function ToastProvider() {
         <View style={styles.iconContainer}>
           {getIcon()}
         </View>
-        <Text style={styles.message} numberOfLines={3}>
+        <Text style={[styles.message, { color: colors.text.primary }]} numberOfLines={3}>
           {message}
         </Text>
         <Pressable
@@ -176,7 +180,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
-    color: colors.text.primary,
     lineHeight: 20,
   },
   closeButton: {

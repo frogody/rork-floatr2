@@ -6,11 +6,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/components/Toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
 
   return (
     <ErrorBoundary>
@@ -20,9 +21,9 @@ export default function RootLayout() {
           <Stack
             screenOptions={{
               headerStyle: {
-                backgroundColor: isDark ? colors.background.primary : '#ffffff',
+                backgroundColor: colors.background.primary,
               },
-              headerTintColor: isDark ? colors.text.primary : '#0A0A0A',
+              headerTintColor: colors.text.primary,
               headerTitleStyle: {
                 fontWeight: '600',
                 fontSize: 17,

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Dimensions, useColorScheme } from 'react-native';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 
 interface SkeletonLoaderProps {
   type: 'card' | 'list' | 'profile' | 'detail';
@@ -11,7 +11,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   const isDark = colorScheme === 'dark';
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
   
-  const currentColors = isDark ? colors : colors.light;
+  const currentColors = getColors(isDark);
   
   useEffect(() => {
     Animated.loop(
