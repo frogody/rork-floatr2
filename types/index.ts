@@ -96,6 +96,7 @@ export interface Match {
   photoUrl: string;
   isRead?: boolean;
   isSuperMatch?: boolean;
+  unreadCount?: number;
 }
 
 export interface Message {

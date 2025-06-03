@@ -7,7 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { AlertTriangle, Phone, MapPin, Radio, Anchor, Users, Shield, Zap } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import { Button } from '@/components/Button';
-import { EmergencyButton } from '@/components/EmergencyButton';
+import EmergencyButton from '@/components/EmergencyButton';
 
 interface SafetyTip {
   id: string;
@@ -20,42 +20,42 @@ interface SafetyTip {
 const safetyTips: SafetyTip[] = [
   {
     id: '1',
-    icon: <Radio size={24} color={colors.status.error} />,
+    icon: <Radio size={24} color={colors.status?.error || '#ef4444'} />,
     title: 'VHF Radio Communication',
     description: 'Always monitor VHF Channel 16 for emergency communications. Have a handheld VHF as backup.',
     priority: 'high',
   },
   {
     id: '2',
-    icon: <Anchor size={24} color={colors.status.warning} />,
+    icon: <Anchor size={24} color={colors.status?.warning || '#f59e0b'} />,
     title: 'Proper Anchoring',
     description: 'Use appropriate anchor scope (7:1 ratio). Check weather conditions and holding ground before anchoring.',
     priority: 'high',
   },
   {
     id: '3',
-    icon: <Users size={24} color={colors.status.info} />,
+    icon: <Users size={24} color={colors.status?.info || '#3b82f6'} />,
     title: 'Raft-up Safety',
     description: 'Designate one boat as the anchor boat. Use proper fenders and lines. Maintain watch schedules.',
     priority: 'medium',
   },
   {
     id: '4',
-    icon: <Shield size={24} color={colors.status.success} />,
+    icon: <Shield size={24} color={colors.status?.success || '#10b981'} />,
     title: 'Life Jackets',
     description: 'Ensure all guests have properly fitted life jackets. Check expiration dates on inflatable PFDs.',
     priority: 'high',
   },
   {
     id: '5',
-    icon: <Zap size={24} color={colors.status.warning} />,
+    icon: <Zap size={24} color={colors.status?.warning || '#f59e0b'} />,
     title: 'Weather Awareness',
     description: 'Monitor weather forecasts continuously. Have an escape plan for deteriorating conditions.',
     priority: 'high',
   },
   {
     id: '6',
-    icon: <MapPin size={24} color={colors.status.info} />,
+    icon: <MapPin size={24} color={colors.status?.info || '#3b82f6'} />,
     title: 'Share Your Location',
     description: 'Always file a float plan with someone onshore. Update your position regularly.',
     priority: 'medium',
@@ -102,11 +102,11 @@ export default function SafetyScreen() {
   const getPriorityColor = (priority: SafetyTip['priority']) => {
     switch (priority) {
       case 'high':
-        return colors.status.error;
+        return colors.status?.error || '#ef4444';
       case 'medium':
-        return colors.status.warning;
+        return colors.status?.warning || '#f59e0b';
       case 'low':
-        return colors.status.info;
+        return colors.status?.info || '#3b82f6';
       default:
         return colors.text.secondary;
     }
@@ -127,7 +127,7 @@ export default function SafetyScreen() {
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <AlertTriangle size={32} color={colors.status.warning} />
+          <AlertTriangle size={32} color={colors.status?.warning || '#f59e0b'} />
           <Text style={styles.headerTitle}>Marine Safety</Text>
           <Text style={styles.headerSubtitle}>
             Essential safety tips for boating and raft-ups
@@ -168,7 +168,7 @@ export default function SafetyScreen() {
               style={styles.contactCard}
               onPress={() => handleEmergencyCall(contact.number)}
             >
-              <Phone size={20} color={colors.status.error} />
+              <Phone size={20} color={colors.status?.error || '#ef4444'} />
               <View style={styles.contactInfo}>
                 <Text style={styles.contactName}>{contact.name}</Text>
                 <Text style={styles.contactNumber}>{contact.number}</Text>

@@ -15,14 +15,20 @@ import colors from '@/constants/colors';
 
 interface EmergencyButtonProps {
   style?: any;
+  onPress?: () => void;
 }
 
-export default function EmergencyButton({ style }: EmergencyButtonProps) {
+export default function EmergencyButton({ style, onPress }: EmergencyButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
 
   const handleEmergencyPress = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
+
+    if (onPress) {
+      onPress();
+      return;
     }
 
     Alert.alert(
@@ -92,8 +98,8 @@ export default function EmergencyButton({ style }: EmergencyButtonProps) {
       activeOpacity={0.8}
     >
       <View style={[styles.button, isPressed && styles.buttonPressed]}>
-        <AlertTriangle size={24} color={colors.text.primary} />
-        <Text style={styles.text}>Emergency</Text>
+        <AlertTriangle size={20} color={colors.text.primary} />
+        <Text style={styles.text}>SOS</Text>
       </View>
     </TouchableOpacity>
   );
@@ -104,13 +110,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: colors.error,
+    backgroundColor: '#ef4444',
     borderRadius: 50,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -123,7 +129,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: colors.text.primary,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });

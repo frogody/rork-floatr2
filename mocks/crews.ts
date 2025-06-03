@@ -110,6 +110,7 @@ export const mockMatches: Match[] = [
       timestamp: new Date(Date.now() - 3600000), // 1 hour ago
     },
     photoUrl: 'https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=2070&auto=format&fit=crop',
+    unreadCount: 2,
   },
   {
     id: 'm2',
@@ -122,6 +123,7 @@ export const mockMatches: Match[] = [
       timestamp: new Date(Date.now() - 86400000), // 1 day ago
     },
     photoUrl: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2070&auto=format&fit=crop',
+    unreadCount: 0,
   },
   {
     id: 'm3',
@@ -130,5 +132,6 @@ export const mockMatches: Match[] = [
     location: 'Nixon Beach',
     matchedAt: new Date(Date.now() - 86400000 * 1), // 1 day ago
     photoUrl: 'https://images.unsplash.com/photo-1468413253725-0d5181091126?q=80&w=2070&auto=format&fit=crop',
+    unreadCount: 1,
   },
 ];

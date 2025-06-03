@@ -13,7 +13,7 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Heart, MessageCircle, Star } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { MatchCard } from '@/components/MatchCard';
+import MatchCard from '@/components/MatchCard';
 import { useMatchStore } from '@/store/matchStore';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Button } from '@/components/Button';

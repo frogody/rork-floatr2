@@ -1,65 +1,32 @@
-import React, { useEffect } from 'react';
-import { Platform, LogBox } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Platform } from 'react-native';
 import { Stack } from 'expo-router';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
-import * as Linking from 'expo-linking';
-import colors from '@/constants/colors';
-import { useAuthStore } from '@/store/authStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { trpc, trpcClient } from '@/lib/trpc';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { TRPCProvider } from '@/lib/trpc';
 import { ToastProvider } from '@/hooks/useToast';
-import * as Updates from 'expo-updates';
-import * as Application from 'expo-application';
-import * as Device from 'expo-device';
-import * as Localization from 'expo-localization';
-import { I18n } from 'i18n-js';
-import en from '@/localization/en';
-import es from '@/localization/es';
-import fr from '@/localization/fr';
-import NetInfo from '@react-native-community/netinfo';
+import { useAuthStore } from '@/store/authStore';
+import colors from '@/constants/colors';
 
-// Prevent the splash screen from auto-hiding
+// Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
 
-// Ignore specific warnings in development
-if (__DEV__) {
-  LogBox.ignoreLogs([
-    'Animated: `useNativeDriver` was not specified',
-    'Non-serializable values were found in the navigation state',
-  ]);
-}
-
-// Setup internationalization
-const i18n = new I18n({
-  en,
-  es,
-  fr,
-});
-
-i18n.defaultLocale = 'en';
-i18n.locale = Localization.locale.split('-')[0];
-i18n.enableFallback = true;
-
-// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
       staleTime: 1000 * 60 * 5, // 5 minutes
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-      refetchOnMount: true,
+      retry: 2,
     },
   },
 });
 
 export default function RootLayout() {
-  const { isAuthenticated, checkAuth } = useAuthStore();
+  const { isAuthenticated, initialize } = useAuthStore();
+  const [appIsReady, setAppIsReady] = useState(false);
+
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
     'Inter-Medium': require('@/assets/fonts/Inter-Medium.ttf'),
@@ -67,317 +34,96 @@ export default function RootLayout() {
     'Inter-Bold': require('@/assets/fonts/Inter-Bold.ttf'),
   });
 
-  // Check for app updates
   useEffect(() => {
-    async function checkForUpdates() {
-      if (!__DEV__ && Platform.OS !== 'web') {
-        try {
-          const update = await Updates.checkForUpdateAsync();
-          if (update.isAvailable) {
-            await Updates.fetchUpdateAsync();
-            await Updates.reloadAsync();
-          }
-        } catch (error) {
-          console.log('Error checking for updates:', error);
+    async function prepare() {
+      try {
+        // Initialize auth state
+        await initialize();
+        
+        // Set system UI colors
+        if (Platform.OS === 'android') {
+          await SystemUI.setBackgroundColorAsync(colors.background.primary);
         }
-      }
-    }
-    
-    checkForUpdates();
-  }, []);
-
-  // Monitor network connectivity
-  useEffect(() => {
-    let unsubscribe: (() => void) | null = null;
-    
-    async function setupNetworkMonitoring() {
-      if (Platform.OS !== 'web') {
-        try {
-          // Initial network state check
-          console.log('Network monitoring initialized');
-          
-          // Use NetInfo instead of expo-network
-          unsubscribe = NetInfo.addEventListener(state => {
-            console.log('Network state changed:', state.isConnected);
-          });
-        } catch (error) {
-          console.log('Error setting up network monitoring:', error);
+        
+        if (Platform.OS === 'ios') {
+          // SystemUI.setStatusBarStyle is available on iOS
+          // await SystemUI.setStatusBarStyle('light');
         }
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
       }
     }
-    
-    setupNetworkMonitoring();
-    
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, []);
 
-  // Log app and device info
-  useEffect(() => {
-    async function logAppInfo() {
-      if (Platform.OS !== 'web') {
-        try {
-          const appName = Application.applicationName;
-          const appVersion = Application.nativeApplicationVersion;
-          const buildVersion = Application.nativeBuildVersion;
-          // Use Device.deviceName instead of getDeviceNameAsync
-          const deviceName = Device.deviceName || 'Unknown Device';
-          const deviceType = Device.deviceType;
-          const osName = Device.osName;
-          const osVersion = Device.osVersion;
-          
-          console.log('App Info:', {
-            appName,
-            appVersion,
-            buildVersion,
-            deviceName,
-            deviceType,
-            osName,
-            osVersion,
-            locale: i18n.locale,
-          });
-        } catch (error) {
-          console.log('Error logging app info:', error);
-        }
-      }
-    }
-    
-    logAppInfo();
-  }, []);
-
-  // Set system UI colors
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      SystemUI.setBackgroundColorAsync(colors.background.primary);
-      if (Platform.OS === 'ios') {
-        // SystemUI.setStatusBarStyle is not available, use StatusBar component instead
-      }
-    }
-  }, []);
-
-  // Handle deep linking
-  useEffect(() => {
-    const handleDeepLink = (event: { url: string }) => {
-      const url = event.url;
-      console.log('Deep link URL:', url);
-      // Handle the deep link URL here
-    };
-
-    // Add event listener for deep links
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-
-    // Get the initial URL if the app was opened with a deep link
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        console.log('Initial URL:', url);
-      }
-    });
-
-    // Check authentication status
-    checkAuth();
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
-  // Show splash screen until fonts are loaded and auth is checked
-  useEffect(() => {
     if (fontsLoaded || fontError) {
-      // Hide the splash screen after a short delay for a smoother transition
-      setTimeout(() => {
-        SplashScreen.hideAsync();
-      }, 500);
+      prepare();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, initialize]);
 
-  // If fonts are still loading, don't render anything
-  if (!fontsLoaded && !fontError) {
+  useEffect(() => {
+    if (appIsReady && (fontsLoaded || fontError)) {
+      SplashScreen.hideAsync();
+    }
+  }, [appIsReady, fontsLoaded, fontError]);
+
+  if (!appIsReady || (!fontsLoaded && !fontError)) {
     return null;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <SafeAreaProvider>
-          <ToastProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <StatusBar style="light" />
-              <Stack
-                screenOptions={{
-                  headerStyle: {
-                    backgroundColor: colors.background.primary,
-                  },
-                  headerTintColor: colors.text.primary,
-                  headerTitleStyle: {
-                    fontFamily: 'Inter-SemiBold',
-                  },
-                  contentStyle: {
-                    backgroundColor: colors.background.primary,
-                  },
-                  animation: 'slide_from_right',
-                }}
-              >
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="(tabs)"
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="auth/login"
-                  options={{
-                    title: "Sign In",
-                    presentation: "modal",
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="auth/signup"
-                  options={{
-                    title: "Create Account",
-                    presentation: "modal",
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="auth/forgot-password"
-                  options={{
-                    title: "Reset Password",
-                    presentation: "modal",
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="premium"
-                  options={{
-                    title: "Floatr Premium",
-                    presentation: "modal",
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="help/index"
-                  options={{
-                    title: "Help Center",
-                  }}
-                />
-                <Stack.Screen
-                  name="help/faq"
-                  options={{
-                    title: "FAQ",
-                  }}
-                />
-                <Stack.Screen
-                  name="help/safety"
-                  options={{
-                    title: "Safety Tips",
-                  }}
-                />
-                <Stack.Screen
-                  name="help/emergency"
-                  options={{
-                    title: "Emergency Services",
-                  }}
-                />
-                <Stack.Screen
-                  name="help/feedback"
-                  options={{
-                    title: "Send Feedback",
-                  }}
-                />
-                <Stack.Screen
-                  name="legal/privacy"
-                  options={{
-                    title: "Privacy Policy",
-                  }}
-                />
-                <Stack.Screen
-                  name="legal/terms"
-                  options={{
-                    title: "Terms of Service",
-                  }}
-                />
-                <Stack.Screen
-                  name="legal/index"
-                  options={{
-                    title: "Legal Information",
-                  }}
-                />
-                <Stack.Screen
-                  name="profile/edit"
-                  options={{
-                    title: "Edit Profile",
-                  }}
-                />
-                <Stack.Screen
-                  name="boat/edit"
-                  options={{
-                    title: "Edit Boat Details",
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/index"
-                  options={{
-                    title: "Settings",
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/account"
-                  options={{
-                    title: "Account Settings",
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/notifications"
-                  options={{
-                    title: "Notification Settings",
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/blocked-users"
-                  options={{
-                    title: "Blocked Users",
-                  }}
-                />
-                <Stack.Screen
-                  name="settings/analytics"
-                  options={{
-                    title: "Analytics & Data",
-                  }}
-                />
-                <Stack.Screen
-                  name="chat/[id]"
-                  options={{
-                    title: "Chat",
-                  }}
-                />
-                <Stack.Screen
-                  name="who-liked-you"
-                  options={{
-                    title: "Who Liked You",
-                  }}
-                />
-                <Stack.Screen
-                  name="meetups/create"
-                  options={{
-                    title: "Create Meetup",
-                  }}
-                />
-                <Stack.Screen
-                  name="meetups/[id]"
-                  options={{
-                    title: "Meetup Details",
-                  }}
-                />
-              </Stack>
-            </GestureHandlerRootView>
-          </ToastProvider>
-        </SafeAreaProvider>
-      </trpc.Provider>
+      <TRPCProvider>
+        <ToastProvider>
+          <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
+            <StatusBar style="light" backgroundColor={colors.background.primary} />
+            <Stack
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: colors.background.primary,
+                },
+                headerTintColor: '#F8FAFC',
+                headerTitleStyle: {
+                  fontFamily: 'Inter-SemiBold',
+                },
+                contentStyle: {
+                  backgroundColor: colors.background.primary,
+                },
+                animation: 'slide_from_right',
+              }}
+            >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/forgot-password" options={{ title: 'Reset Password' }} />
+              <Stack.Screen name="onboarding/index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="chat/[id]" options={{ title: 'Chat' }} />
+              <Stack.Screen name="premium" options={{ title: 'Premium' }} />
+              <Stack.Screen name="profile/edit" options={{ title: 'Edit Profile' }} />
+              <Stack.Screen name="boat/edit" options={{ title: 'Edit Boat' }} />
+              <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
+              <Stack.Screen name="settings/account" options={{ title: 'Account' }} />
+              <Stack.Screen name="settings/notifications" options={{ title: 'Notifications' }} />
+              <Stack.Screen name="settings/blocked-users" options={{ title: 'Blocked Users' }} />
+              <Stack.Screen name="settings/analytics" options={{ title: 'Analytics' }} />
+              <Stack.Screen name="help/index" options={{ title: 'Help & Support' }} />
+              <Stack.Screen name="help/faq" options={{ title: 'FAQ' }} />
+              <Stack.Screen name="help/safety" options={{ title: 'Safety' }} />
+              <Stack.Screen name="help/emergency" options={{ title: 'Emergency' }} />
+              <Stack.Screen name="help/feedback" options={{ title: 'Feedback' }} />
+              <Stack.Screen name="legal/index" options={{ title: 'Legal' }} />
+              <Stack.Screen name="legal/terms" options={{ title: 'Terms of Service' }} />
+              <Stack.Screen name="legal/privacy" options={{ title: 'Privacy Policy' }} />
+              <Stack.Screen name="privacy" options={{ title: 'Privacy Settings' }} />
+              <Stack.Screen name="who-liked-you" options={{ title: 'Who Liked You' }} />
+              <Stack.Screen name="meetups/create" options={{ title: 'Create Meetup' }} />
+              <Stack.Screen name="meetups/[id]" options={{ title: 'Meetup Details' }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            </Stack>
+          </View>
+        </ToastProvider>
+      </TRPCProvider>
     </QueryClientProvider>
   );
 }
