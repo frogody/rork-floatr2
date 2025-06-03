@@ -40,168 +40,110 @@ export const useSwipeStore = create<SwipeState>((set, get) => ({
   
   fetchCrews: async () => {
     set({ isLoading: true, error: null });
-    
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // In a real app, this would fetch from an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (mockCrews && mockCrews.length > 0) {
-        set({ 
-          crews: mockCrews, 
-          currentIndex: 0,
-          isLoading: false,
-          error: null,
-        });
-      } else {
-        set({ 
-          crews: [],
-          currentIndex: 0,
-          isLoading: false,
-          error: 'No crews available in your area',
-        });
-      }
-    } catch (error) {
-      console.error('Failed to fetch crews:', error);
+      // Use mock data for now
       set({ 
-        error: 'Failed to load crews. Please try again.', 
-        isLoading: false,
-        crews: [],
+        crews: mockCrews, 
         currentIndex: 0,
+        isLoading: false 
+      });
+    } catch (error) {
+      set({ 
+        error: 'Failed to fetch crews', 
+        isLoading: false 
       });
     }
   },
   
   likeCrewAtIndex: (index: number) => {
-    try {
-      const { crews } = get();
-      
-      if (index >= crews.length || index < 0) {
-        return;
-      }
-      
-      const crewId = crews[index]?.id;
-      if (!crewId) {
-        return;
-      }
-      
-      set(state => ({
-        likedCrews: [...state.likedCrews, crewId],
-        currentIndex: state.currentIndex + 1,
-        lastAction: {
-          type: 'like',
-          crewId,
-        },
-      }));
-    } catch (error) {
-      console.error('Error in likeCrewAtIndex:', error);
-    }
+    const { crews } = get();
+    if (index >= crews.length) return;
+    
+    const crewId = crews[index].id;
+    
+    set(state => ({
+      likedCrews: [...state.likedCrews, crewId],
+      currentIndex: state.currentIndex + 1,
+      lastAction: {
+        type: 'like',
+        crewId,
+      },
+    }));
   },
   
   dislikeCrewAtIndex: (index: number) => {
-    try {
-      const { crews } = get();
-      
-      if (index >= crews.length || index < 0) {
-        return;
-      }
-      
-      const crewId = crews[index]?.id;
-      if (!crewId) {
-        return;
-      }
-      
-      set(state => ({
-        dislikedCrews: [...state.dislikedCrews, crewId],
-        currentIndex: state.currentIndex + 1,
-        lastAction: {
-          type: 'dislike',
-          crewId,
-        },
-      }));
-    } catch (error) {
-      console.error('Error in dislikeCrewAtIndex:', error);
-    }
+    const { crews } = get();
+    if (index >= crews.length) return;
+    
+    const crewId = crews[index].id;
+    
+    set(state => ({
+      dislikedCrews: [...state.dislikedCrews, crewId],
+      currentIndex: state.currentIndex + 1,
+      lastAction: {
+        type: 'dislike',
+        crewId,
+      },
+    }));
   },
   
   superlikeCrewAtIndex: (index: number) => {
-    try {
-      const { crews } = get();
-      
-      if (index >= crews.length || index < 0) {
-        return;
-      }
-      
-      const crewId = crews[index]?.id;
-      if (!crewId) {
-        return;
-      }
-      
-      set(state => ({
-        superlikedCrews: [...state.superlikedCrews, crewId],
-        currentIndex: state.currentIndex + 1,
-        lastAction: {
-          type: 'superlike',
-          crewId,
-        },
-      }));
-    } catch (error) {
-      console.error('Error in superlikeCrewAtIndex:', error);
-    }
+    const { crews } = get();
+    if (index >= crews.length) return;
+    
+    const crewId = crews[index].id;
+    
+    set(state => ({
+      superlikedCrews: [...state.superlikedCrews, crewId],
+      currentIndex: state.currentIndex + 1,
+      lastAction: {
+        type: 'superlike',
+        crewId,
+      },
+    }));
   },
   
   undoLastAction: () => {
-    try {
-      const { lastAction, currentIndex } = get();
+    const { lastAction, currentIndex } = get();
+    if (!lastAction.type || !lastAction.crewId || currentIndex <= 0) return;
+    
+    set(state => {
+      const newState = { ...state, currentIndex: state.currentIndex - 1 };
       
-      if (!lastAction.type || !lastAction.crewId || currentIndex <= 0) {
-        return;
+      switch (lastAction.type) {
+        case 'like':
+          newState.likedCrews = state.likedCrews.filter(id => id !== lastAction.crewId);
+          break;
+        case 'dislike':
+          newState.dislikedCrews = state.dislikedCrews.filter(id => id !== lastAction.crewId);
+          break;
+        case 'superlike':
+          newState.superlikedCrews = state.superlikedCrews.filter(id => id !== lastAction.crewId);
+          break;
       }
       
-      set(state => {
-        const newState = { ...state, currentIndex: state.currentIndex - 1 };
-        
-        switch (lastAction.type) {
-          case 'like':
-            newState.likedCrews = state.likedCrews.filter(id => id !== lastAction.crewId);
-            break;
-          case 'dislike':
-            newState.dislikedCrews = state.dislikedCrews.filter(id => id !== lastAction.crewId);
-            break;
-          case 'superlike':
-            newState.superlikedCrews = state.superlikedCrews.filter(id => id !== lastAction.crewId);
-            break;
-        }
-        
-        newState.lastAction = { type: null, crewId: null };
-        return newState;
-      });
-    } catch (error) {
-      console.error('Error in undoLastAction:', error);
-    }
+      newState.lastAction = { type: null, crewId: null };
+      return newState;
+    });
   },
   
   resetSwipes: () => {
-    try {
-      set({
-        currentIndex: 0,
-        likedCrews: [],
-        dislikedCrews: [],
-        superlikedCrews: [],
-        lastAction: {
-          type: null,
-          crewId: null,
-        },
-        error: null,
-      });
-    } catch (error) {
-      console.error('Error in resetSwipes:', error);
-    }
+    set({
+      currentIndex: 0,
+      likedCrews: [],
+      dislikedCrews: [],
+      superlikedCrews: [],
+      lastAction: {
+        type: null,
+        crewId: null,
+      },
+    });
   },
   
   clearError: () => {
-    try {
-      set({ error: null });
-    } catch (error) {
-      console.error('Error in clearError:', error);
-    }
+    set({ error: null });
   },
 }));

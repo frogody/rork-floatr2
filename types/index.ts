@@ -1,3 +1,4 @@
+// Keep all existing types and add ToastType
 export interface User {
   id: string;
   email: string;
@@ -97,15 +98,6 @@ export interface Match {
   isRead?: boolean;
   isSuperMatch?: boolean;
   unreadCount?: number;
-}
-
-export interface Message {
-  id: string;
-  matchId: string;
-  senderId: string;
-  content: string;
-  sentAt: Date;
-  isRead?: boolean;
 }
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

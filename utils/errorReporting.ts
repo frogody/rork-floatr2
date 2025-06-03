@@ -1,5 +1,11 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Application from 'expo-application';
+import * as Device from 'expo-device';
+import NetInfo from '@react-native-community/netinfo';
+
+// This is a simple error reporting implementation
+// In a production app, you would use a service like Sentry, Bugsnag, or Firebase Crashlytics
 
 type ErrorSeverity = 'fatal' | 'error' | 'warning' | 'info';
 
@@ -28,22 +34,12 @@ class ErrorReporting {
   private reports: ErrorReport[] = [];
   private MAX_REPORTS = 50;
   private STORAGE_KEY = '@floatr_error_reports';
-  private isInitialized = false;
   
   constructor() {
     this.sessionId = this.generateId();
-    this.initialize();
-  }
-
-  private async initialize() {
-    try {
-      await this.loadSettings();
-      await this.loadReports();
-      this.setupGlobalErrorHandler();
-      this.isInitialized = true;
-    } catch (error) {
-      console.error('ErrorReporting: Failed to initialize', error);
-    }
+    this.loadSettings();
+    this.loadReports();
+    this.setupGlobalErrorHandler();
   }
   
   private async loadSettings() {
@@ -54,7 +50,7 @@ class ErrorReporting {
         this.enabled = enabled;
       }
     } catch (error) {
-      console.error('ErrorReporting: Error loading settings', error);
+      console.error('Error loading error reporting settings:', error);
     }
   }
   
@@ -65,7 +61,7 @@ class ErrorReporting {
         this.reports = JSON.parse(reports);
       }
     } catch (error) {
-      console.error('ErrorReporting: Error loading reports', error);
+      console.error('Error loading error reports:', error);
     }
   }
   
@@ -73,7 +69,7 @@ class ErrorReporting {
     try {
       await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.reports));
     } catch (error) {
-      console.error('ErrorReporting: Error saving reports', error);
+      console.error('Error saving error reports:', error);
     }
   }
   
@@ -83,34 +79,13 @@ class ErrorReporting {
   }
   
   private setupGlobalErrorHandler() {
-    if (Platform.OS === 'web') {
-      // Web error handling
-      window.addEventListener('error', (event) => {
-        this.captureError(event.error || event.message, 'error', {
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno
-        });
-      });
-
-      window.addEventListener('unhandledrejection', (event) => {
-        this.captureError(event.reason, 'error', {
-          type: 'unhandled_promise_rejection'
-        });
-      });
-    } else {
-      // React Native error handling
-      if (typeof ErrorUtils !== 'undefined') {
-        const originalErrorHandler = ErrorUtils.getGlobalHandler();
-        
-        ErrorUtils.setGlobalHandler(async (error, isFatal) => {
-          await this.captureError(error, isFatal ? 'fatal' : 'error');
-          if (originalErrorHandler) {
-            originalErrorHandler(error, isFatal);
-          }
-        });
-      }
-    }
+    // Set up global error handler
+    const originalErrorHandler = ErrorUtils.getGlobalHandler();
+    
+    ErrorUtils.setGlobalHandler(async (error, isFatal) => {
+      await this.captureError(error, isFatal ? 'fatal' : 'error');
+      originalErrorHandler(error, isFatal);
+    });
   }
   
   public async setEnabled(enabled: boolean) {
@@ -118,7 +93,7 @@ class ErrorReporting {
     try {
       await AsyncStorage.setItem('@floatr_error_reporting_settings', JSON.stringify({ enabled }));
     } catch (error) {
-      console.error('ErrorReporting: Error saving settings', error);
+      console.error('Error saving error reporting settings:', error);
     }
   }
   
@@ -131,48 +106,56 @@ class ErrorReporting {
   }
   
   public setContext(key: string, value: any) {
+    // In a real implementation, you would set context for the error reporting service
+    // This would be included with all future error reports
     if (__DEV__) {
-      console.log('ErrorReporting: Setting context', key, value);
+      console.log('Setting error context:', key, value);
     }
   }
   
   public async captureError(error: Error | string, severity: ErrorSeverity = 'error', metadata: Record<string, any> = {}) {
     if (!this.enabled) return;
     
+    let networkType = 'unknown';
     try {
-      let networkType = 'unknown';
-      
-      const report: ErrorReport = {
-        message: typeof error === 'string' ? error : (error?.message || 'Unknown error'),
-        stack: typeof error === 'string' ? undefined : error?.stack,
-        severity,
-        metadata: {
-          ...metadata,
-          userId: this.userId,
-          sessionId: this.sessionId,
-          timestamp: Date.now(),
-          platform: Platform.OS,
-          appVersion: '1.0.0',
-          deviceModel: Platform.OS !== 'web' ? 'Unknown' : 'Web Browser',
-          osVersion: Platform.Version?.toString() || 'Unknown',
-          networkType,
-        },
-      };
-      
-      this.reports.push(report);
-      
-      // Keep only the last MAX_REPORTS reports
-      if (this.reports.length > this.MAX_REPORTS) {
-        this.reports = this.reports.slice(-this.MAX_REPORTS);
+      if (Platform.OS !== 'web') {
+        // Use NetInfo instead of expo-network
+        const networkState = await NetInfo.fetch();
+        networkType = networkState.type;
       }
-      
-      await this.saveReports();
-      
-      if (__DEV__) {
-        console.log('ErrorReporting: Captured error', report);
-      }
-    } catch (captureError) {
-      console.error('ErrorReporting: Failed to capture error', captureError);
+    } catch (e) {
+      // Ignore network errors
+    }
+    
+    const report: ErrorReport = {
+      message: typeof error === 'string' ? error : error.message,
+      stack: typeof error === 'string' ? undefined : error.stack,
+      severity,
+      metadata: {
+        ...metadata,
+        userId: this.userId,
+        sessionId: this.sessionId,
+        timestamp: Date.now(),
+        platform: Platform.OS,
+        appVersion: '1.0.0', // Get this from app.json or expo-constants
+        deviceModel: Platform.OS === 'ios' ? 'iOS Device' : 'Android Device',
+        osVersion: Platform.Version.toString(),
+        networkType,
+      },
+    };
+    
+    this.reports.push(report);
+    
+    // Keep only the last MAX_REPORTS reports
+    if (this.reports.length > this.MAX_REPORTS) {
+      this.reports = this.reports.slice(-this.MAX_REPORTS);
+    }
+    
+    await this.saveReports();
+    
+    // In a real implementation, you would send the report to your error reporting service
+    if (__DEV__) {
+      console.log('Error report:', report);
     }
   }
   
@@ -183,11 +166,12 @@ class ErrorReporting {
   public async flush() {
     if (!this.enabled || this.reports.length === 0) return;
     
-    if (__DEV__) {
-      console.log('ErrorReporting: Flushing reports', this.reports);
-    }
+    // In a real implementation, you would send the reports to your error reporting service
+    // and clear the reports array after successful sending
     
-    // In production, send reports to your error reporting service here
+    if (__DEV__) {
+      console.log('Flushing error reports:', this.reports);
+    }
     
     // Clear reports after sending
     this.reports = [];
@@ -198,14 +182,11 @@ class ErrorReporting {
     this.reports = [];
     await this.saveReports();
   }
-
-  public getReports(): ErrorReport[] {
-    return [...this.reports];
-  }
-
-  public getIsInitialized(): boolean {
-    return this.isInitialized;
-  }
 }
 
 export const errorReporting = new ErrorReporting();
+
+// Usage example:
+// errorReporting.captureError(new Error('Something went wrong'), 'error', { screen: 'ProfileScreen' });
+// errorReporting.captureMessage('User performed a risky action', 'warning', { action: 'delete_account' });
+// errorReporting.flush();

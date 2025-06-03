@@ -4,7 +4,7 @@ import { Stack, router } from 'expo-router';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
-import useToastStore from '@/hooks/useToast';
+import { useToastStore } from '@/hooks/useToast';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
@@ -27,12 +27,7 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName);
-      showToast({
-        message: 'Account created successfully!',
-        type: 'success'
-      });
-      // After signup, always go to onboarding
-      router.replace('/onboarding');
+      router.replace('/(tabs)');
     } catch (error) {
       showToast({
         message: 'Failed to create account',

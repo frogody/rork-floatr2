@@ -38,192 +38,109 @@ export const useAuthStore = create<AuthState>()(
       boat: null,
       isAuthenticated: false,
       isOnboarded: false,
-      isLoading: false,
+      isLoading: true,
       error: null,
       hasSeenTutorial: false,
       blockedUsers: [],
       isInitialized: false,
       
       checkAuth: () => {
+        set({ isLoading: true });
         try {
-          const state = get();
-          const isAuthenticated = !!state.user;
-          
+          const { user } = get();
           set({ 
-            isAuthenticated,
-            isInitialized: true,
+            isAuthenticated: !!user,
             isLoading: false,
-            error: null
+            isInitialized: true
           });
         } catch (error) {
-          console.error('Auth check failed:', error);
           set({ 
-            isAuthenticated: false,
-            isInitialized: true,
+            error: 'Authentication check failed',
             isLoading: false,
-            error: 'Failed to check authentication status'
+            isInitialized: true
           });
         }
       },
 
       signIn: async (userData: User) => {
         set({ isLoading: true, error: null });
-        
         try {
-          if (!userData || !userData.email) {
-            throw new Error('Invalid user data provided');
-          }
-
-          set({ 
-            user: userData, 
-            isAuthenticated: true, 
-            isLoading: false,
-            error: null,
-            isInitialized: true
-          });
+          set({ user: userData, isAuthenticated: true, isLoading: false });
         } catch (error) {
-          console.error('Sign in failed:', error);
-          set({ 
-            error: 'Sign in failed. Please try again.', 
-            isLoading: false,
-            isAuthenticated: false,
-            user: null
-          });
+          set({ error: 'Sign in failed', isLoading: false });
           throw error;
         }
       },
 
       signUp: async (email: string, password: string, displayName: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          if (!email || !password || !displayName) {
-            throw new Error('All fields are required');
-          }
-
           const newUser: User = {
-            id: `user_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+            id: Math.random().toString(),
             email,
             displayName,
             createdAt: new Date()
           };
-          
-          set({ 
-            user: newUser, 
-            isAuthenticated: true, 
-            isLoading: false,
-            error: null,
-            isInitialized: true,
-            isOnboarded: false
-          });
+          set({ user: newUser, isAuthenticated: true, isLoading: false });
         } catch (error) {
-          console.error('Sign up failed:', error);
-          set({ 
-            error: 'Sign up failed. Please try again.', 
-            isLoading: false,
-            isAuthenticated: false,
-            user: null
-          });
+          set({ error: 'Sign up failed', isLoading: false });
           throw error;
         }
       },
 
       signOut: () => {
-        try {
-          set({
-            user: null,
-            boat: null,
-            isAuthenticated: false,
-            error: null,
-            isInitialized: true,
-            isLoading: false
-          });
-        } catch (error) {
-          console.error('Sign out failed:', error);
-        }
+        set({
+          user: null,
+          boat: null,
+          isAuthenticated: false,
+          error: null
+        });
       },
 
       updateUser: (userData: Partial<User>) => {
-        try {
-          const { user } = get();
-          if (!user) {
-            throw new Error('No user to update');
-          }
-          
+        const { user } = get();
+        if (user) {
           set({ user: { ...user, ...userData } });
-        } catch (error) {
-          console.error('Update user failed:', error);
-          set({ error: 'Failed to update user profile' });
         }
       },
 
       updateBoat: (boatData: Partial<Boat>) => {
-        try {
-          const { boat } = get();
-          if (!boat) {
-            set({ boat: boatData as Boat });
-            return;
-          }
-          
+        const { boat } = get();
+        if (boat) {
           set({ boat: { ...boat, ...boatData } });
-        } catch (error) {
-          console.error('Update boat failed:', error);
-          set({ error: 'Failed to update boat information' });
         }
       },
 
       setOnboarded: (value: boolean) => {
-        try {
-          set({ isOnboarded: value });
-        } catch (error) {
-          console.error('Set onboarded failed:', error);
-        }
+        set({ isOnboarded: value });
       },
 
       setHasSeenTutorial: (value: boolean) => {
-        try {
-          set({ hasSeenTutorial: value });
-        } catch (error) {
-          console.error('Set tutorial failed:', error);
-        }
+        set({ hasSeenTutorial: value });
       },
 
       blockUser: (userId: string) => {
-        try {
-          const { blockedUsers } = get();
-          if (!blockedUsers.includes(userId)) {
-            set({ blockedUsers: [...blockedUsers, userId] });
-          }
-        } catch (error) {
-          console.error('Block user failed:', error);
-          set({ error: 'Failed to block user' });
+        const { blockedUsers } = get();
+        if (!blockedUsers.includes(userId)) {
+          set({ blockedUsers: [...blockedUsers, userId] });
         }
       },
 
       unblockUser: (userId: string) => {
-        try {
-          const { blockedUsers } = get();
-          set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
-        } catch (error) {
-          console.error('Unblock user failed:', error);
-          set({ error: 'Failed to unblock user' });
-        }
+        const { blockedUsers } = get();
+        set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
       },
 
       deleteAccount: async () => {
         set({ isLoading: true, error: null });
-        
         try {
           set({
             user: null,
             boat: null,
             isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            isInitialized: true
+            isLoading: false
           });
         } catch (error) {
-          console.error('Delete account failed:', error);
           set({ error: 'Failed to delete account', isLoading: false });
           throw error;
         }
@@ -231,15 +148,10 @@ export const useAuthStore = create<AuthState>()(
 
       changePassword: async (currentPassword: string, newPassword: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          if (!currentPassword || !newPassword) {
-            throw new Error('Both current and new passwords are required');
-          }
-          
+          // Implementation would go here
           set({ isLoading: false });
         } catch (error) {
-          console.error('Change password failed:', error);
           set({ error: 'Failed to change password', isLoading: false });
           throw error;
         }
@@ -247,15 +159,10 @@ export const useAuthStore = create<AuthState>()(
 
       resetPassword: async (email: string) => {
         set({ isLoading: true, error: null });
-        
         try {
-          if (!email) {
-            throw new Error('Email is required');
-          }
-          
+          // Implementation would go here
           set({ isLoading: false });
         } catch (error) {
-          console.error('Reset password failed:', error);
           set({ error: 'Failed to reset password', isLoading: false });
           throw error;
         }

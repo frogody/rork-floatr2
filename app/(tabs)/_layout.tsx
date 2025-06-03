@@ -1,54 +1,70 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
+import { Compass, Heart, MessageCircle, Map, Settings } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { Home, Users, MessageCircle, User } from 'lucide-react-native';
 
-export default function TabsLayout() {
+export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         tabBarStyle: {
           backgroundColor: colors.background.primary,
-          borderTopColor: colors.border,
+          borderTopColor: colors.border.primary,
           height: Platform.OS === 'ios' ? 88 : 60,
           paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text.secondary,
+        tabBarLabelStyle: {
+          fontFamily: 'Inter-Medium',
+          fontSize: 11,
+        },
+        headerStyle: {
+          backgroundColor: colors.background.primary,
+        },
+        headerTitleStyle: {
+          fontFamily: 'Inter-SemiBold',
+          fontSize: 17,
+          color: colors.text.primary,
+        },
+        headerTintColor: colors.text.primary,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Discover',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-          headerShown: false,
+          tabBarIcon: ({ color, size }) => <Compass size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="matches"
+        options={{
+          title: 'Matches',
+          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="nearby"
         options={{
           title: 'Nearby',
-          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
-          headerShown: false,
+          tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="settings"
         options={{
-          title: 'Chat',
-          tabBarIcon: ({ color, size }) => <MessageCircle size={size} color={color} />,
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-          headerShown: false,
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
     </Tabs>
