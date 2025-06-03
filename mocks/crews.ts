@@ -1,4 +1,4 @@
-import { Crew } from '@/types';
+import { Crew, Match } from '@/types';
 
 export const mockCrews: Crew[] = [
   {
@@ -106,5 +106,53 @@ export const mockCrews: Crew[] = [
     lastActive: new Date(),
     amenities: ['Racing Sails', 'Navigation Equipment'],
     activities: ['Racing', 'Training'],
+  },
+];
+
+export const mockMatches: Match[] = [
+  {
+    id: '1',
+    crewId: '1',
+    crewName: 'Ocean Explorers',
+    location: 'Marina Bay',
+    matchedAt: new Date(Date.now() - 86400000), // 1 day ago
+    lastMessage: {
+      content: 'Hey there! We noticed your boat nearby.',
+      timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+    },
+    photoUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=600&fit=crop',
+    isRead: false,
+    isSuperMatch: false,
+    unreadCount: 2,
+  },
+  {
+    id: '2',
+    crewId: '2',
+    crewName: 'Sunset Sailors',
+    location: 'Harbor Point',
+    matchedAt: new Date(Date.now() - 172800000), // 2 days ago
+    lastMessage: {
+      content: 'Perfect weather for sailing today!',
+      timestamp: new Date(Date.now() - 7200000), // 2 hours ago
+    },
+    photoUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400&h=600&fit=crop',
+    isRead: true,
+    isSuperMatch: true,
+    unreadCount: 0,
+  },
+  {
+    id: '3',
+    crewId: '4',
+    crewName: 'Island Hoppers',
+    location: 'Coastal Marina',
+    matchedAt: new Date(Date.now() - 259200000), // 3 days ago
+    lastMessage: {
+      content: 'Want to join us for island hopping this weekend?',
+      timestamp: new Date(Date.now() - 10800000), // 3 hours ago
+    },
+    photoUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop',
+    isRead: false,
+    isSuperMatch: false,
+    unreadCount: 1,
   },
 ];
