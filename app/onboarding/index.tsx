@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   useColorScheme,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -115,6 +116,15 @@ export default function OnboardingScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* App Logo */}
+      <View style={styles.logoContainer}>
+        <View style={[styles.logoBackground, { backgroundColor: colors.primary }]}>
+          <Anchor size={32} color={colors.text.primary} />
+        </View>
+        <Text style={[styles.appName, { color: colors.text.primary }]}>Floatr</Text>
+        <Text style={[styles.tagline, { color: colors.text.secondary }]}>Meet on the Water</Text>
+      </View>
+
       {/* Onboarding Steps */}
       <View style={styles.stepsContainer}>
         <OnboardingStep
@@ -171,6 +181,27 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     padding: 8,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  logoBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  appName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  tagline: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   stepsContainer: {
     flex: 1,

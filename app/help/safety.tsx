@@ -133,7 +133,7 @@ export default function SafetyCenterScreen() {
           
           <Button
             title="Create Float Plan"
-            onPress={() => router.push('/float-plan/create')}
+            onPress={() => Alert.alert('Float Plan', 'This would open float plan creation')}
             variant="outline"
             size="medium"
             icon={<MapPin size={18} color={colors.primary} />}
