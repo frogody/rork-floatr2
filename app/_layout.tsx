@@ -33,9 +33,9 @@ export default function RootLayout() {
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        const pathname = router.pathname || '';
-        if (!pathname.includes('index') && !pathname.includes('auth')) {
-          router.replace('/auth/login');
+        const currentRoute = router.canGoBack();
+        if (!currentRoute) {
+          router.replace('/');
         }
       }
     }

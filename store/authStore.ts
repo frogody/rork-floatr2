@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>()(
       boat: null,
       isAuthenticated: false,
       isOnboarded: false,
-      isLoading: true,
+      isLoading: false,
       error: null,
       hasSeenTutorial: false,
       blockedUsers: [],
@@ -65,7 +65,12 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (userData: User) => {
         set({ isLoading: true, error: null });
         try {
-          set({ user: userData, isAuthenticated: true, isLoading: false });
+          set({ 
+            user: userData, 
+            isAuthenticated: true, 
+            isLoading: false,
+            error: null
+          });
         } catch (error) {
           set({ error: 'Sign in failed', isLoading: false });
           throw error;
@@ -81,7 +86,12 @@ export const useAuthStore = create<AuthState>()(
             displayName,
             createdAt: new Date()
           };
-          set({ user: newUser, isAuthenticated: true, isLoading: false });
+          set({ 
+            user: newUser, 
+            isAuthenticated: true, 
+            isLoading: false,
+            error: null
+          });
         } catch (error) {
           set({ error: 'Sign up failed', isLoading: false });
           throw error;
@@ -149,7 +159,6 @@ export const useAuthStore = create<AuthState>()(
       changePassword: async (currentPassword: string, newPassword: string) => {
         set({ isLoading: true, error: null });
         try {
-          // Implementation would go here
           set({ isLoading: false });
         } catch (error) {
           set({ error: 'Failed to change password', isLoading: false });
@@ -160,7 +169,6 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (email: string) => {
         set({ isLoading: true, error: null });
         try {
-          // Implementation would go here
           set({ isLoading: false });
         } catch (error) {
           set({ error: 'Failed to reset password', isLoading: false });

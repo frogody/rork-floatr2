@@ -1,20 +1,15 @@
 import { Stack } from 'expo-router';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import colors from '@/constants/colors';
 
 export default function AuthLayout() {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
+    <View style={styles.container}>
       <Stack 
         screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.background.primary,
-          },
+          headerStyle: styles.header,
           headerTintColor: colors.text.primary,
-          headerTitleStyle: {
-            fontFamily: 'Inter-SemiBold',
-            fontSize: 17,
-          },
+          headerTitleStyle: styles.headerTitle,
           headerShadowVisible: false,
           headerBackTitle: 'Back',
           contentStyle: {
@@ -40,3 +35,19 @@ export default function AuthLayout() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+  },
+  header: {
+    backgroundColor: colors.background.primary,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  headerTitle: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 17,
+  },
+});

@@ -40,16 +40,6 @@ export default function SignupScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen 
-        options={{
-          title: 'Create Account',
-          headerStyle: {
-            backgroundColor: colors.background.primary,
-          },
-          headerTintColor: colors.text.primary,
-        }}
-      />
-
       <View style={styles.form}>
         <Text style={styles.label}>Display Name</Text>
         <TextInput
