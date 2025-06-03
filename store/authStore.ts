@@ -69,7 +69,8 @@ export const useAuthStore = create<AuthState>()(
             user: userData, 
             isAuthenticated: true, 
             isLoading: false,
-            error: null
+            error: null,
+            isInitialized: true
           });
         } catch (error) {
           set({ error: 'Sign in failed', isLoading: false });
@@ -90,7 +91,8 @@ export const useAuthStore = create<AuthState>()(
             user: newUser, 
             isAuthenticated: true, 
             isLoading: false,
-            error: null
+            error: null,
+            isInitialized: true
           });
         } catch (error) {
           set({ error: 'Sign up failed', isLoading: false });

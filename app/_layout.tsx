@@ -7,7 +7,6 @@ import { Platform, View } from 'react-native';
 import * as SystemUI from 'expo-system-ui';
 import colors from '@/constants/colors';
 
-// This hook protects routes from unauthorized access
 function useProtectedRoute(isAuthenticated: boolean) {
   const segments = useSegments();
   const router = useRouter();
@@ -17,10 +16,8 @@ function useProtectedRoute(isAuthenticated: boolean) {
     const inOnboardingGroup = segments[0] === 'onboarding';
 
     if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      // Redirect to sign-in if not authenticated and not already on an auth screen
       router.replace('/auth/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if authenticated and trying to access auth screens
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, segments]);
@@ -28,8 +25,6 @@ function useProtectedRoute(isAuthenticated: boolean) {
 
 export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
-  useProtectedRoute(isAuthenticated);
-
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
     'Inter-Medium': require('@/assets/fonts/Inter-Medium.ttf'),
@@ -42,12 +37,16 @@ export default function RootLayout() {
       checkAuth();
     }
     
-    // Set system UI colors
     SystemUI.setBackgroundColorAsync(colors.background.primary);
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
     }
   }, [isInitialized, checkAuth]);
+
+  // Only initialize protected routes after fonts are loaded
+  if (fontsLoaded && !fontError) {
+    useProtectedRoute(isAuthenticated);
+  }
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -55,6 +54,7 @@ export default function RootLayout() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
+      <ToastProvider />
       <Stack 
         screenOptions={{ 
           headerShown: false,
@@ -67,7 +67,6 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
       <Slot />
-      <ToastProvider />
     </View>
   );
 }
