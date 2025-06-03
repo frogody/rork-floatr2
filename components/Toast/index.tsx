@@ -61,8 +61,6 @@ export function ToastProvider() {
     }
   };
 
-  if (!visible) return null;
-
   return (
     <Animated.View 
       style={[
