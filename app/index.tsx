@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -26,13 +26,12 @@ export default function WelcomeScreen() {
   const imageAnim = React.useRef(new Animated.Value(0)).current;
   const { isAuthenticated } = useAuthStore();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       router.replace('/(tabs)');
+      return;
     }
-  }, [isAuthenticated]);
 
-  React.useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -50,7 +49,7 @@ export default function WelcomeScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleGetStarted = async () => {
     if (Platform.OS !== 'web') {
@@ -65,6 +64,10 @@ export default function WelcomeScreen() {
     }
     router.push('/auth/login');
   };
+
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

@@ -28,7 +28,6 @@ export default function RootLayout() {
     }
   }, [isInitialized, checkAuth]);
 
-  // Show loading state
   if (!fontsLoaded || !isInitialized) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;
   }
@@ -42,25 +41,18 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background.primary }
         }}
       >
-        {!isAuthenticated ? (
-          <>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="auth" />
-            <Stack.Screen name="onboarding" />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="chat/[id]" />
-            <Stack.Screen name="premium" />
-            <Stack.Screen name="profile/edit" />
-            <Stack.Screen name="boat/edit" />
-            <Stack.Screen name="help" />
-            <Stack.Screen name="settings" />
-            <Stack.Screen name="legal" />
-            <Stack.Screen name="meetups" />
-          </>
-        )}
+        <Stack.Screen name="index" />
+        <Stack.Screen name="auth" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="chat/[id]" />
+        <Stack.Screen name="premium" />
+        <Stack.Screen name="profile/edit" />
+        <Stack.Screen name="boat/edit" />
+        <Stack.Screen name="help" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="legal" />
+        <Stack.Screen name="meetups" />
       </Stack>
     </View>
   );
