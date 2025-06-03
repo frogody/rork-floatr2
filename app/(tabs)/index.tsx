@@ -17,6 +17,6 @@ import { useSwipeStore } from '@/store/swipeStore';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Filter, Bell } from 'lucide-react-native';
 import { Button } from '@/components/Button';
-import useToast from '@/hooks/useToast'; // Fixed import
+import { useToastStore } from '@/hooks/useToast';
 
 // Rest of the file remains unchanged

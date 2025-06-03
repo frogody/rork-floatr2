@@ -6,11 +6,14 @@ interface ToastState {
   message: string;
   type: ToastType;
   duration: number;
+}
+
+interface ToastStore extends ToastState {
   showToast: (params: { message: string; type: ToastType; duration?: number }) => void;
   hideToast: () => void;
 }
 
-const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastStore>((set) => ({
   visible: false,
   message: '',
   type: 'info',
@@ -25,8 +28,7 @@ const useToastStore = create<ToastState>((set) => ({
 }));
 
 export const useToast = () => {
-  const { showToast, hideToast } = useToastStore();
-  return { showToast, hideToast };
+  return useToastStore();
 };
 
-export default useToast;
+export default useToastStore;

@@ -36,10 +36,8 @@ export function ToastProvider() {
         return <AlertTriangle size={20} color={colors.status.error} />;
       case 'info':
         return <Info size={20} color={colors.status.info} />;
-      case 'match':
+      case 'warning':
         return <Star size={20} color={colors.status.warning} />;
-      case 'boost':
-        return <Zap size={20} color={colors.status.warning} />;
       default:
         return null;
     }
@@ -53,8 +51,7 @@ export function ToastProvider() {
         return colors.status.error + '20';
       case 'info':
         return colors.status.info + '20';
-      case 'match':
-      case 'boost':
+      case 'warning':
         return colors.status.warning + '20';
       default:
         return colors.surface.secondary;
