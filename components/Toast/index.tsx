@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Check, AlertTriangle, Info, Star } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { useToastStore } from '@/hooks/useToast';
+import useToastStore from '@/hooks/useToast';
 
 export function ToastProvider() {
   const toast = useToastStore();
   const translateY = React.useRef(new Animated.Value(-100)).current;
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (toast.visible) {
       Animated.spring(translateY, {
         toValue: Platform.OS === 'ios' ? 60 : 20,

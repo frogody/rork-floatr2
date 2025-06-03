@@ -1,22 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList,
-  RefreshControl,
-  Platform
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useAuthStore } from '@/store/authStore';
 import colors from '@/constants/colors';
-import { CrewCard } from '@/components/CrewCard';
-import { SwipeButtons } from '@/components/SwipeButtons';
-import { useSwipeStore } from '@/store/swipeStore';
-import { SkeletonLoader } from '@/components/SkeletonLoader';
-import { Filter, Bell } from 'lucide-react-native';
-import { Button } from '@/components/Button';
-import { useToastStore } from '@/hooks/useToast';
 
-// Rest of the file remains unchanged
+export default function TabOneScreen() {
+  const { user } = useAuthStore();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome, {user?.displayName}!</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background.primary,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+  },
+});
