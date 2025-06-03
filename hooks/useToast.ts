@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'match' | 'boost';
+export type ToastType = 'success' | 'error' | 'info' | 'match' | 'boost';
 
 export interface Toast {
   visible: boolean;
@@ -42,10 +42,6 @@ export const useToast = () => {
     showToast('info', title, message);
   }, [showToast]);
 
-  const showWarning = useCallback((title: string, message: string) => {
-    showToast('warning', title, message);
-  }, [showToast]);
-
   const showMatch = useCallback((title: string, message: string) => {
     showToast('match', title, message);
   }, [showToast]);
@@ -61,7 +57,6 @@ export const useToast = () => {
     showSuccess,
     showError,
     showInfo,
-    showWarning,
     showMatch,
     showBoost,
   };

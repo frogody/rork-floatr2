@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, Dimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -11,6 +11,9 @@ const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const { isAuthenticated, isOnboarded } = useAuthStore();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -21,6 +24,28 @@ export default function WelcomeScreen() {
       }
     }
   }, [isAuthenticated, isOnboarded]);
+
+  useEffect(() => {
+    // Entrance animations
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const handleGetStarted = () => {
     router.push('/auth/signup');
@@ -44,11 +69,24 @@ export default function WelcomeScreen() {
         style={styles.gradient}
       />
       
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
+      <Animated.View 
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        <Animated.View 
+          style={[
+            styles.logoContainer,
+            { transform: [{ scale: logoScale }] }
+          ]}
+        >
           <Text style={styles.logo}>Floatr</Text>
           <Text style={styles.tagline}>Meet on the Water</Text>
-        </View>
+        </Animated.View>
         
         <View style={styles.descriptionContainer}>
           <Text style={styles.description}>
@@ -74,7 +112,7 @@ export default function WelcomeScreen() {
             style={styles.button}
           />
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }

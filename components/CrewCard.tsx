@@ -43,7 +43,7 @@ export default function CrewCard({ crew, onPress }: CrewCardProps) {
         style={styles.container}
       >
         <Image 
-          source={{ uri: crew.photoUrls[0] }} 
+          source={{ uri: crew.photoUrls?.[0] || crew.photoUrl }} 
           style={styles.image}
           resizeMode="cover"
         />
@@ -61,12 +61,12 @@ export default function CrewCard({ crew, onPress }: CrewCardProps) {
               </View>
             </View>
             
-            <Text style={styles.bio} numberOfLines={2}>{crew.bio}</Text>
+            <Text style={styles.bio} numberOfLines={2}>{crew.bio || crew.description}</Text>
             
             <View style={styles.detailsContainer}>
               <View style={styles.detail}>
                 <Users size={14} color={colors.text.primary} />
-                <Text style={styles.detailText}>{crew.memberCount} crew</Text>
+                <Text style={styles.detailText}>{crew.memberCount || crew.crewSize} crew</Text>
               </View>
               <View style={styles.detail}>
                 <Ship size={14} color={colors.text.primary} />
