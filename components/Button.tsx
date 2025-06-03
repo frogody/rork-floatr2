@@ -19,7 +19,7 @@ interface ButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   disabled?: boolean;
   gradient?: boolean;
-  gradientColors?: string[];
+  gradientColors?: readonly [string, string, ...string[]];
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
@@ -57,11 +57,11 @@ export default function Button({
     textStyle as TextStyle,
   ];
 
-  const defaultGradientColors = variant === 'primary' 
-    ? colors.gradient.blue 
+  const defaultGradientColors: readonly [string, string, ...string[]] = variant === 'primary' 
+    ? [colors.gradient.blue[0], colors.gradient.blue[1]] as readonly [string, string, ...string[]]
     : variant === 'secondary' 
-      ? colors.gradient.sunset
-      : ['transparent', 'transparent'];
+      ? [colors.gradient.sunset[0], colors.gradient.sunset[1]] as readonly [string, string, ...string[]]
+      : ['transparent', 'transparent'] as readonly [string, string, ...string[]];
 
   const ButtonContent = () => (
     <>
