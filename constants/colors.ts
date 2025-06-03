@@ -19,6 +19,7 @@ const colors = {
     primary: '#FFFFFF',
     secondary: '#8E8E93',
     tertiary: '#48484A',
+    disabled: '#48484A',
   },
   
   border: {
@@ -30,6 +31,14 @@ const colors = {
   warning: '#FF9500',
   error: '#FF3B30',
   info: '#007AFF',
+  
+  // Status colors for semantic usage
+  status: {
+    success: '#34C759',
+    warning: '#FF9500',
+    error: '#FF3B30',
+    info: '#007AFF',
+  },
   
   // Light theme colors
   light: {
@@ -47,10 +56,17 @@ const colors = {
       primary: '#000000',
       secondary: '#3C3C43',
       tertiary: '#8E8E93',
+      disabled: '#8E8E93',
     },
     border: {
       primary: '#C6C6C8',
       secondary: '#E5E5EA',
+    },
+    status: {
+      success: '#34C759',
+      warning: '#FF9500',
+      error: '#FF3B30',
+      info: '#007AFF',
     },
   },
   
