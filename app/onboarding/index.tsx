@@ -10,6 +10,7 @@ export default function OnboardingScreen() {
 
   const handleComplete = () => {
     setOnboarded(true);
+    // After onboarding, go to tabs
     router.replace('/(tabs)');
   };
 

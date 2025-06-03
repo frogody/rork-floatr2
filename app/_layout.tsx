@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments, Slot } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
@@ -11,6 +11,7 @@ export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
@@ -28,20 +29,29 @@ export default function RootLayout() {
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
     }
+    
+    // Set mounted flag after initial render
+    setIsMounted(true);
   }, [isInitialized, checkAuth]);
 
   useEffect(() => {
-    if (!fontsLoaded || !isInitialized) return;
+    // Only run navigation logic after mount and fonts are loaded
+    if (!isMounted || !fontsLoaded || !isInitialized) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
 
-    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      router.replace('/auth/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, segments, fontsLoaded, isInitialized]);
+    // Delay navigation to next tick to ensure proper mounting
+    const timer = setTimeout(() => {
+      if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+        router.replace('/auth/login');
+      } else if (isAuthenticated && inAuthGroup) {
+        router.replace('/(tabs)');
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, segments, fontsLoaded, isInitialized, isMounted]);
 
   if (!fontsLoaded && !fontError) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;

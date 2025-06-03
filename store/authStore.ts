@@ -82,7 +82,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true, 
             isLoading: false,
             error: null,
-            isInitialized: true
+            isInitialized: true,
+            isOnboarded: false // Ensure user goes through onboarding
           });
         } catch (error) {
           set({ error: 'Sign up failed', isLoading: false });
@@ -142,7 +143,8 @@ export const useAuthStore = create<AuthState>()(
             boat: null,
             isAuthenticated: false,
             isLoading: false,
-            error: null
+            error: null,
+            isInitialized: true
           });
         } catch (error) {
           set({ error: 'Failed to delete account', isLoading: false });

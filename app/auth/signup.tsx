@@ -31,6 +31,7 @@ export default function SignupScreen() {
         message: 'Account created successfully!',
         type: 'success'
       });
+      // After signup, always go to onboarding
       router.replace('/onboarding');
     } catch (error) {
       showToast({
