@@ -12,15 +12,20 @@ import {
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonSize = 'small' | 'medium' | 'large';
+
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'small' | 'medium' | 'large';
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 export function Button({
@@ -32,6 +37,8 @@ export function Button({
   disabled = false,
   style,
   textStyle,
+  icon,
+  iconPosition = 'left',
 }: ButtonProps) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -39,6 +46,8 @@ export function Button({
     Animated.spring(scaleAnim, {
       toValue: 0.97,
       useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
     }).start();
   };
 
@@ -46,6 +55,8 @@ export function Button({
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
+      speed: 50,
+      bounciness: 4,
     }).start();
   };
 
@@ -115,6 +126,31 @@ export function Button({
     }
   };
 
+  const buttonContent = (
+    <>
+      {loading ? (
+        <ActivityIndicator color={getTextColor()} />
+      ) : (
+        <React.Fragment>
+          {icon && iconPosition === 'left' && icon}
+          <Text
+            style={[
+              styles.text,
+              { color: getTextColor() },
+              size === 'small' && styles.smallText,
+              size === 'large' && styles.largeText,
+              icon && (iconPosition === 'left' ? styles.textWithLeftIcon : styles.textWithRightIcon),
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+          {icon && iconPosition === 'right' && icon}
+        </React.Fragment>
+      )}
+    </>
+  );
+
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <TouchableOpacity
@@ -131,21 +167,7 @@ export function Button({
         ]}
         activeOpacity={0.9}
       >
-        {loading ? (
-          <ActivityIndicator color={getTextColor()} />
-        ) : (
-          <Text
-            style={[
-              styles.text,
-              { color: getTextColor() },
-              size === 'small' && styles.smallText,
-              size === 'large' && styles.largeText,
-              textStyle,
-            ]}
-          >
-            {title}
-          </Text>
-        )}
+        {buttonContent}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -153,6 +175,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   button: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -169,5 +192,11 @@ const styles = StyleSheet.create({
   },
   largeText: {
     fontSize: 18,
+  },
+  textWithLeftIcon: {
+    marginLeft: 8,
+  },
+  textWithRightIcon: {
+    marginRight: 8,
   },
 });

@@ -5,7 +5,8 @@ import {
   StyleSheet,
   Platform,
   Dimensions,
-  Animated
+  Animated,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -13,12 +14,16 @@ import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
+import { Anchor } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
+
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1527519135413-1e146b552e10?q=80&w=2340&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(20)).current;
+  const imageAnim = React.useRef(new Animated.Value(0)).current;
   const { isAuthenticated } = useAuthStore();
 
   React.useEffect(() => {
@@ -37,6 +42,11 @@ export default function WelcomeScreen() {
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(imageAnim, {
+        toValue: 1,
+        duration: 1200,
         useNativeDriver: true,
       }),
     ]).start();
@@ -62,6 +72,22 @@ export default function WelcomeScreen() {
       
       <Animated.View 
         style={[
+          styles.heroImageContainer,
+          {
+            opacity: imageAnim,
+          }
+        ]}
+      >
+        <Image 
+          source={{ uri: HERO_IMAGE }}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
+        <View style={styles.overlay} />
+      </Animated.View>
+      
+      <Animated.View 
+        style={[
           styles.content,
           {
             opacity: fadeAnim,
@@ -71,7 +97,7 @@ export default function WelcomeScreen() {
       >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <Text style={styles.icon}>⚓</Text>
+            <Anchor size={28} color={colors.background.primary} />
           </View>
           
           <View style={styles.textContainer}>
@@ -108,7 +134,20 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+    backgroundColor: colors.background.primary,
+  },
+  heroImageContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   content: {
     flex: 1,
@@ -129,22 +168,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 32,
   },
-  icon: {
-    fontSize: 24,
-    color: colors.background.dark,
-  },
   textContainer: {
     maxWidth: width * 0.85,
   },
   title: {
-    fontSize: 36,
+    fontSize: 42,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'left',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     color: colors.text.secondary,
     marginBottom: 16,
     textAlign: 'left',
