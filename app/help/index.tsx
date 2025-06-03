@@ -1,245 +1,131 @@
 import React from 'react';
 import { 
   View, 
-  StyleSheet, 
   Text, 
-  ScrollView, 
+  StyleSheet, 
+  ScrollView,
   TouchableOpacity,
-  Alert,
-  Platform,
-  Linking
 } from 'react-native';
-import { Stack, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
-import { 
-  MessageCircle, 
-  Mail, 
-  Phone, 
-  Book, 
-  Video,
-  ChevronRight,
-  ExternalLink,
-  MessageSquare,
-  LifeBuoy,
-  FileText
-} from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
-
-interface HelpItem {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  onPress: () => void;
-}
+import { 
+  HelpCircle, 
+  Shield, 
+  AlertTriangle, 
+  MessageSquare, 
+  ChevronRight,
+  LifeBuoy,
+  FileText,
+  Mail
+} from 'lucide-react-native';
 
 export default function HelpScreen() {
-  const handleContactSupport = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    Alert.alert(
-      'Contact Support',
-      'Choose how you would like to contact our support team:',
-      [
-        {
-          text: 'Email',
-          onPress: () => Linking.openURL('mailto:support@floatr.app'),
-        },
-        {
-          text: 'Live Chat',
-          onPress: () => router.push('/help/chat'),
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ]
-    );
-  };
-
-  const handleCallSupport = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    Alert.alert(
-      'Call Support',
-      'Would you like to call our support team?',
-      [
-        {
-          text: 'Call',
-          onPress: () => Linking.openURL('tel:+18005551234'),
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ]
-    );
-  };
-
-  const handleFAQ = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push('/help/faq');
-  };
-
-  const handleSafety = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push('/help/safety');
-  };
-
-  const handleFeedback = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push('/help/feedback');
-  };
-
-  const handleUserGuide = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    Alert.alert('User Guide', 'This would open the user guide or tutorial.');
-  };
-
-  const handleVideoTutorials = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    Alert.alert('Video Tutorials', 'This would open video tutorials.');
-  };
-
-  const helpItems: HelpItem[] = [
+  const router = useRouter();
+  
+  const helpSections = [
     {
       id: 'faq',
       title: 'Frequently Asked Questions',
       description: 'Find answers to common questions',
-      icon: <Book size={20} color={colors.text.primary} />,
-      onPress: handleFAQ,
+      icon: <HelpCircle size={24} color={colors.primary} />,
+      route: '/help/faq',
     },
     {
       id: 'safety',
-      title: 'Safety Guidelines',
-      description: 'Stay safe while meeting on the water',
-      icon: <LifeBuoy size={20} color={colors.text.primary} />,
-      onPress: handleSafety,
+      title: 'Safety Tips',
+      description: 'Stay safe while using Floatr',
+      icon: <Shield size={24} color={colors.status.success} />,
+      route: '/help/safety',
+    },
+    {
+      id: 'emergency',
+      title: 'Emergency Services',
+      description: 'Get help in emergency situations',
+      icon: <AlertTriangle size={24} color={colors.status.error} />,
+      route: '/help/emergency',
     },
     {
       id: 'feedback',
       title: 'Send Feedback',
-      description: 'Help us improve your experience',
-      icon: <MessageSquare size={20} color={colors.text.primary} />,
-      onPress: handleFeedback,
+      description: 'Help us improve Floatr',
+      icon: <MessageSquare size={24} color={colors.status.info} />,
+      route: '/help/feedback',
     },
     {
-      id: 'guide',
-      title: 'User Guide',
-      description: 'Learn how to use Floatr effectively',
-      icon: <FileText size={20} color={colors.text.primary} />,
-      onPress: handleUserGuide,
+      id: 'contact',
+      title: 'Contact Support',
+      description: 'Get in touch with our support team',
+      icon: <Mail size={24} color={colors.secondary} />,
+      route: '/help/feedback',
     },
     {
-      id: 'videos',
-      title: 'Video Tutorials',
-      description: 'Watch step-by-step tutorials',
-      icon: <Video size={20} color={colors.text.primary} />,
-      onPress: handleVideoTutorials,
+      id: 'terms',
+      title: 'Terms of Service',
+      description: 'Read our terms of service',
+      icon: <FileText size={24} color={colors.text.tertiary} />,
+      route: '/legal/terms',
     },
     {
-      id: 'chat',
-      title: 'Live Chat Support',
-      description: 'Chat with our support team',
-      icon: <MessageCircle size={20} color={colors.text.primary} />,
-      onPress: handleContactSupport,
-    },
-    {
-      id: 'email',
-      title: 'Email Support',
-      description: 'Send us an email for detailed help',
-      icon: <Mail size={20} color={colors.text.primary} />,
-      onPress: handleContactSupport,
-    },
-    {
-      id: 'phone',
-      title: 'Phone Support',
-      description: 'Call us for immediate assistance',
-      icon: <Phone size={20} color={colors.text.primary} />,
-      onPress: handleCallSupport,
+      id: 'privacy',
+      title: 'Privacy Policy',
+      description: 'Read our privacy policy',
+      icon: <FileText size={24} color={colors.text.tertiary} />,
+      route: '/legal/privacy',
     },
   ];
-
+  
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Help & Support',
-          headerStyle: {
-            backgroundColor: colors.background.dark,
-          },
-          headerTintColor: colors.text.primary,
+          title: "Help & Support",
         }}
       />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <LifeBuoy size={32} color={colors.text.primary} />
+          </View>
           <Text style={styles.title}>How can we help you?</Text>
           <Text style={styles.subtitle}>
-            Choose from the options below or contact our support team directly
+            Find answers, get support, and share your feedback
           </Text>
         </View>
         
-        <View style={styles.helpItems}>
-          {helpItems.map((item) => (
+        <View style={styles.sectionList}>
+          {helpSections.map((section) => (
             <TouchableOpacity
-              key={item.id}
-              style={styles.helpItem}
-              onPress={item.onPress}
+              key={section.id}
+              style={styles.sectionItem}
+              onPress={() => router.push(section.route)}
               activeOpacity={0.7}
             >
-              <View style={styles.helpIcon}>
-                {item.icon}
+              <View style={styles.sectionIcon}>
+                {section.icon}
               </View>
-              
-              <View style={styles.helpContent}>
-                <Text style={styles.helpTitle}>{item.title}</Text>
-                <Text style={styles.helpDescription}>{item.description}</Text>
+              <View style={styles.sectionContent}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={styles.sectionDescription}>{section.description}</Text>
               </View>
-              
-              <ChevronRight size={20} color={colors.text.secondary} />
+              <ChevronRight size={20} color={colors.text.tertiary} />
             </TouchableOpacity>
           ))}
         </View>
         
-        <View style={styles.footer}>
-          <Text style={styles.footerTitle}>Still need help?</Text>
-          <Text style={styles.footerText}>
-            Our support team is available 24/7 to assist you with any questions or issues.
-          </Text>
-          
-          <TouchableOpacity
-            style={styles.emergencyButton}
-            onPress={() => router.push('/help/emergency')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.emergencyButtonText}>Emergency Assistance</Text>
-          </TouchableOpacity>
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>Floatr v1.0.0</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
@@ -248,79 +134,70 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
   },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Inter-Bold',
     color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
+    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
+    maxWidth: '80%',
   },
-  helpItems: {
+  sectionList: {
     paddingHorizontal: 16,
   },
-  helpItem: {
+  sectionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.tertiary,
-    borderRadius: 16,
     padding: 16,
+    backgroundColor: colors.surface.primary,
+    borderRadius: 12,
     marginBottom: 12,
   },
-  helpIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
+  sectionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.surface.secondary,
     alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
   },
-  helpContent: {
+  sectionContent: {
     flex: 1,
   },
-  helpTitle: {
+  sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
     color: colors.text.primary,
     marginBottom: 4,
   },
-  helpDescription: {
+  sectionDescription: {
     fontSize: 14,
+    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
   },
-  footer: {
+  versionContainer: {
     padding: 24,
     alignItems: 'center',
   },
-  footerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 8,
-  },
-  footerText: {
+  versionText: {
     fontSize: 14,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  emergencyButton: {
-    backgroundColor: colors.status.error,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  emergencyButtonText: {
-    color: colors.text.primary,
-    fontWeight: '600',
-    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.tertiary,
   },
 });

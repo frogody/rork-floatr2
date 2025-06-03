@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Heart,
   User,
+  MapPin
 } from 'lucide-react-native';
 
 export default function TabLayout() {
@@ -24,7 +25,7 @@ export default function TabLayout() {
         tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          fontFamily: 'Inter-Medium',
         },
         headerStyle: {
           backgroundColor: colors.background.primary,
@@ -32,7 +33,7 @@ export default function TabLayout() {
         headerTintColor: colors.text.primary,
         headerShadowVisible: false,
         headerTitleStyle: {
-          fontWeight: '600',
+          fontFamily: 'Inter-SemiBold',
         },
       }}
     >
@@ -42,6 +43,15 @@ export default function TabLayout() {
           title: 'Discover',
           tabBarIcon: ({ color, size }) => (
             <Compass size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="nearby"
+        options={{
+          title: 'Nearby',
+          tabBarIcon: ({ color, size }) => (
+            <MapPin size={size} color={color} />
           ),
         }}
       />

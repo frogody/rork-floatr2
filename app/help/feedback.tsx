@@ -1,327 +1,283 @@
 import React, { useState } from 'react';
 import { 
   View, 
-  StyleSheet, 
   Text, 
-  ScrollView, 
+  StyleSheet, 
+  ScrollView,
   TextInput,
   TouchableOpacity,
   Alert,
   Platform,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from 'react-native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
-import { 
-  Send,
-  Star,
-  ThumbsUp,
-  ThumbsDown,
-  Smile,
-  Frown
-} from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack, useRouter } from 'expo-router';
 import colors from '@/constants/colors';
+import { MessageSquare, Star, Check } from 'lucide-react-native';
 import { Button } from '@/components/Button';
+import { useToast } from '@/hooks/useToast';
 
 export default function FeedbackScreen() {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [feedbackType, setFeedbackType] = useState<'suggestion' | 'bug' | 'other'>('suggestion');
+  const [rating, setRating] = useState<number>(0);
   const [feedback, setFeedback] = useState('');
-  const [rating, setRating] = useState(0);
-  const [feedbackType, setFeedbackType] = useState<'bug' | 'feature' | 'experience' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleRating = async (value: number) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setRating(value);
-  };
-
-  const handleFeedbackType = async (type: 'bug' | 'feature' | 'experience') => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setFeedbackType(type);
-  };
-
+  
   const handleSubmit = async () => {
-    if (!feedback.trim()) {
-      Alert.alert('Error', 'Please enter your feedback before submitting.');
+    if (feedback.trim().length < 10) {
+      showToast({
+        type: 'error',
+        message: 'Please provide more detailed feedback',
+      });
       return;
     }
-
-    if (rating === 0) {
-      Alert.alert('Error', 'Please rate your experience before submitting.');
-      return;
-    }
-
-    if (!feedbackType) {
-      Alert.alert('Error', 'Please select a feedback type before submitting.');
-      return;
-    }
-
-    if (Platform.OS !== 'web') {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-
+    
     setIsSubmitting(true);
-
+    
     // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsSubmitting(false);
+    showToast({
+      type: 'success',
+      message: 'Thank you for your feedback!',
+    });
+    
+    // Reset form
+    setFeedback('');
+    setRating(0);
+    
+    // Navigate back after a short delay
     setTimeout(() => {
-      setIsSubmitting(false);
-      Alert.alert(
-        'Thank You!',
-        'Your feedback has been submitted successfully. We appreciate your input!',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setFeedback('');
-              setRating(0);
-              setFeedbackType(null);
-            },
-          },
-        ]
-      );
-    }, 1500);
+      router.back();
+    }, 1000);
   };
-
+  
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-    >
-      <StatusBar style="light" />
-      
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Send Feedback',
-          headerStyle: {
-            backgroundColor: colors.background.dark,
-          },
-          headerTintColor: colors.text.primary,
+          title: "Send Feedback",
         }}
       />
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>We Value Your Feedback</Text>
-          <Text style={styles.subtitle}>
-            Help us improve Floatr by sharing your thoughts and experiences
-          </Text>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>How would you rate your experience?</Text>
-          <View style={styles.ratingContainer}>
-            {[1, 2, 3, 4, 5].map((value) => (
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={100}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <MessageSquare size={32} color={colors.text.primary} />
+            </View>
+            <Text style={styles.title}>We Value Your Feedback</Text>
+            <Text style={styles.subtitle}>
+              Help us improve Floatr by sharing your thoughts and experiences
+            </Text>
+          </View>
+          
+          <View style={styles.formContainer}>
+            <Text style={styles.sectionTitle}>What type of feedback do you have?</Text>
+            
+            <View style={styles.typeContainer}>
               <TouchableOpacity
-                key={value}
                 style={[
-                  styles.starButton,
-                  rating >= value && styles.starButtonActive,
+                  styles.typeButton,
+                  feedbackType === 'suggestion' && styles.typeButtonActive,
                 ]}
-                onPress={() => handleRating(value)}
+                onPress={() => setFeedbackType('suggestion')}
                 activeOpacity={0.7}
               >
-                <Star
-                  size={28}
-                  color={rating >= value ? colors.secondary : colors.text.tertiary}
-                  fill={rating >= value ? colors.secondary : 'transparent'}
-                />
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    feedbackType === 'suggestion' && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Suggestion
+                </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={styles.ratingText}>
-            {rating === 0 ? 'Tap to rate' : 
-             rating === 1 ? 'Poor' :
-             rating === 2 ? 'Fair' :
-             rating === 3 ? 'Good' :
-             rating === 4 ? 'Very Good' : 'Excellent'}
-          </Text>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What type of feedback do you have?</Text>
-          <View style={styles.feedbackTypeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.feedbackTypeButton,
-                feedbackType === 'bug' && styles.feedbackTypeButtonActive,
-              ]}
-              onPress={() => handleFeedbackType('bug')}
-              activeOpacity={0.7}
-            >
-              <Frown
-                size={24}
-                color={feedbackType === 'bug' ? colors.text.primary : colors.text.tertiary}
-              />
-              <Text style={[
-                styles.feedbackTypeText,
-                feedbackType === 'bug' && styles.feedbackTypeTextActive,
-              ]}>
-                Report a Bug
-              </Text>
-            </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.typeButton,
+                  feedbackType === 'bug' && styles.typeButtonActive,
+                ]}
+                onPress={() => setFeedbackType('bug')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    feedbackType === 'bug' && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Bug Report
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.typeButton,
+                  feedbackType === 'other' && styles.typeButtonActive,
+                ]}
+                onPress={() => setFeedbackType('other')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    feedbackType === 'other' && styles.typeButtonTextActive,
+                  ]}
+                >
+                  Other
+                </Text>
+              </TouchableOpacity>
+            </View>
             
-            <TouchableOpacity
-              style={[
-                styles.feedbackTypeButton,
-                feedbackType === 'feature' && styles.feedbackTypeButtonActive,
-              ]}
-              onPress={() => handleFeedbackType('feature')}
-              activeOpacity={0.7}
-            >
-              <ThumbsUp
-                size={24}
-                color={feedbackType === 'feature' ? colors.text.primary : colors.text.tertiary}
-              />
-              <Text style={[
-                styles.feedbackTypeText,
-                feedbackType === 'feature' && styles.feedbackTypeTextActive,
-              ]}>
-                Suggest a Feature
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.sectionTitle}>How would you rate your experience?</Text>
             
-            <TouchableOpacity
-              style={[
-                styles.feedbackTypeButton,
-                feedbackType === 'experience' && styles.feedbackTypeButtonActive,
-              ]}
-              onPress={() => handleFeedbackType('experience')}
-              activeOpacity={0.7}
-            >
-              <Smile
-                size={24}
-                color={feedbackType === 'experience' ? colors.text.primary : colors.text.tertiary}
-              />
-              <Text style={[
-                styles.feedbackTypeText,
-                feedbackType === 'experience' && styles.feedbackTypeTextActive,
-              ]}>
-                Share Experience
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.ratingContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setRating(star)}
+                  style={styles.starButton}
+                >
+                  <Star
+                    size={32}
+                    color={star <= rating ? colors.status.warning : colors.text.tertiary}
+                    fill={star <= rating ? colors.status.warning : 'none'}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <Text style={styles.sectionTitle}>Tell us more</Text>
+            
+            <TextInput
+              style={styles.textInput}
+              placeholder="Share your thoughts, ideas, or report issues..."
+              placeholderTextColor={colors.text.tertiary}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              value={feedback}
+              onChangeText={setFeedback}
+            />
+            
+            <Button
+              title="Submit Feedback"
+              onPress={handleSubmit}
+              variant="primary"
+              loading={isSubmitting}
+              style={styles.submitButton}
+            />
           </View>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tell us more</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Share your thoughts, ideas, or report issues..."
-            placeholderTextColor={colors.text.tertiary}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-            value={feedback}
-            onChangeText={setFeedback}
-          />
-        </View>
-        
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Submit Feedback"
-            onPress={handleSubmit}
-            variant="primary"
-            size="large"
-            loading={isSubmitting}
-            icon={<Send size={20} color={colors.text.primary} />}
-            iconPosition="right"
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          
+          <View style={styles.spacer} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
-    padding: 20,
   },
   header: {
-    marginBottom: 32,
+    padding: 24,
+    alignItems: 'center',
+  },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Inter-Bold',
     color: colors.text.primary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
+    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
-    lineHeight: 24,
+    textAlign: 'center',
+    maxWidth: '80%',
   },
-  section: {
-    marginBottom: 28,
+  formContainer: {
+    padding: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
     color: colors.text.primary,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  typeContainer: {
+    flexDirection: 'row',
+    marginBottom: 24,
+  },
+  typeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: colors.surface.secondary,
+    alignItems: 'center',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  typeButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}20`,
+  },
+  typeButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: colors.text.secondary,
+  },
+  typeButtonTextActive: {
+    color: colors.primary,
   },
   ratingContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 24,
   },
   starButton: {
     padding: 8,
-    marginHorizontal: 4,
-  },
-  starButtonActive: {
-    transform: [{ scale: 1.1 }],
-  },
-  ratingText: {
-    textAlign: 'center',
-    color: colors.text.secondary,
-    fontSize: 16,
-  },
-  feedbackTypeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-  },
-  feedbackTypeButton: {
-    width: '30%',
-    backgroundColor: colors.background.tertiary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  feedbackTypeButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  feedbackTypeText: {
-    color: colors.text.tertiary,
-    marginTop: 8,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  feedbackTypeTextActive: {
-    color: colors.text.primary,
-    fontWeight: '500',
   },
   textInput: {
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surface.secondary,
     borderRadius: 12,
     padding: 16,
-    color: colors.text.primary,
     fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.primary,
     minHeight: 150,
+    marginBottom: 24,
   },
-  buttonContainer: {
-    marginTop: 16,
-    marginBottom: 40,
+  submitButton: {
+    marginTop: 8,
+  },
+  spacer: {
+    height: 40,
   },
 });

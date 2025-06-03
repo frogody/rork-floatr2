@@ -1,102 +1,119 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
+import { 
+  View, 
+  StyleSheet, 
+  TouchableOpacity, 
   Platform,
+  Animated,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { X, Heart, Star } from 'lucide-react-native';
 import colors from '@/constants/colors';
+import { X, Heart, Star, RotateCcw } from 'lucide-react-native';
 
 interface SwipeButtonsProps {
-  onSwipeLeft: () => void;
-  onSwipeRight: () => void;
+  onLike: () => void;
+  onDislike: () => void;
+  onSuperlike: () => void;
+  onUndo: () => void;
+  canUndo: boolean;
 }
 
-export function SwipeButtons({ onSwipeLeft, onSwipeRight }: SwipeButtonsProps) {
-  const handlePress = async (direction: 'left' | 'right') => {
+export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
+  onLike,
+  onDislike,
+  onSuperlike,
+  onUndo,
+  canUndo,
+}) => {
+  const handlePress = async (action: () => void) => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    direction === 'left' ? onSwipeLeft() : onSwipeRight();
+    action();
   };
-
+  
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[styles.button, styles.nopeButton]}
-        onPress={() => handlePress('left')}
-        activeOpacity={0.9}
+        style={[styles.button, styles.smallButton, !canUndo && styles.disabledButton]}
+        onPress={() => canUndo && handlePress(onUndo)}
+        activeOpacity={0.7}
+        disabled={!canUndo}
       >
-        <X size={30} color={colors.status.error} />
+        <RotateCcw 
+          size={24} 
+          color={canUndo ? colors.text.secondary : colors.text.disabled} 
+        />
       </TouchableOpacity>
-
+      
       <TouchableOpacity
-        style={[styles.button, styles.superLikeButton]}
-        onPress={() => {}}
-        activeOpacity={0.9}
+        style={[styles.button, styles.largeButton, styles.dislikeButton]}
+        onPress={() => handlePress(onDislike)}
+        activeOpacity={0.7}
       >
-        <Star size={30} color={colors.status.info} />
+        <X size={32} color={colors.status.error} />
       </TouchableOpacity>
-
+      
       <TouchableOpacity
-        style={[styles.button, styles.likeButton]}
-        onPress={() => handlePress('right')}
-        activeOpacity={0.9}
+        style={[styles.button, styles.largeButton, styles.superlikeButton]}
+        onPress={() => handlePress(onSuperlike)}
+        activeOpacity={0.7}
       >
-        <Heart size={30} color={colors.status.success} />
+        <Star size={32} color={colors.status.warning} fill={colors.status.warning} />
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.button, styles.largeButton, styles.likeButton]}
+        onPress={() => handlePress(onLike)}
+        activeOpacity={0.7}
+      >
+        <Heart size={32} color={colors.status.success} fill={colors.status.success} />
       </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 90,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   button: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    backgroundColor: colors.surface.primary,
+    margin: 8,
+  },
+  smallButton: {
+    width: 48,
+    height: 48,
+  },
+  largeButton: {
     width: 64,
     height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.background.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      },
-    }),
   },
-  nopeButton: {
+  dislikeButton: {
     borderWidth: 2,
     borderColor: colors.status.error,
-  },
-  superLikeButton: {
-    borderWidth: 2,
-    borderColor: colors.status.info,
   },
   likeButton: {
     borderWidth: 2,
     borderColor: colors.status.success,
+  },
+  superlikeButton: {
+    borderWidth: 2,
+    borderColor: colors.status.warning,
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });

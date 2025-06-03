@@ -1,297 +1,312 @@
 import React from 'react';
 import { 
   View, 
-  StyleSheet, 
   Text, 
-  ScrollView, 
+  StyleSheet, 
+  ScrollView,
   TouchableOpacity,
-  Alert,
+  Linking,
   Platform,
-  Linking
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
-import { 
-  Phone, 
-  AlertTriangle,
-  Navigation,
-  Anchor,
-  Radio,
-  MapPin,
-  Share2
-} from 'lucide-react-native';
 import colors from '@/constants/colors';
+import { AlertTriangle, Phone, Radio, Navigation, MapPin, LifeBuoy } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 
-interface EmergencyContact {
-  id: string;
-  title: string;
-  number: string;
-  icon: React.ReactNode;
-}
-
-export default function EmergencyScreen() {
-  const handleCall = async (number: string, title: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    }
-    
-    Alert.alert(
-      'Emergency Call',
-      `Are you sure you want to call ${title}?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Call',
-          style: 'destructive',
-          onPress: () => Linking.openURL(`tel:${number}`),
-        },
-      ]
-    );
+export default function EmergencyServicesScreen() {
+  const handleCall = (phoneNumber: string) => {
+    Linking.openURL(`tel:${phoneNumber}`).catch(err => {
+      Alert.alert('Error', 'Could not open phone app');
+    });
   };
-
-  const handleShareLocation = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-    
-    Alert.alert(
-      'Share Location',
-      'This would share your current location with emergency services.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Share',
-          onPress: () => {
-            // In a real app, this would trigger location sharing
-            Alert.alert('Location Shared', 'Your location has been shared with emergency services.');
-          },
-        },
-      ]
-    );
-  };
-
-  const emergencyContacts: EmergencyContact[] = [
+  
+  const emergencyContacts = [
     {
-      id: 'coastguard',
-      title: 'U.S. Coast Guard',
+      id: '1',
+      name: 'Coast Guard Emergency',
       number: '911',
-      icon: <Anchor size={24} color={colors.text.primary} />,
+      description: 'For life-threatening emergencies on the water',
+      icon: <AlertTriangle size={24} color={colors.status.error} />,
     },
     {
-      id: 'emergency',
-      title: 'Emergency Services',
-      number: '911',
-      icon: <Phone size={24} color={colors.text.primary} />,
+      id: '2',
+      name: 'Coast Guard Non-Emergency',
+      number: '1-800-368-5647',
+      description: 'For non-emergency assistance and information',
+      icon: <LifeBuoy size={24} color={colors.primary} />,
     },
     {
-      id: 'marine',
-      title: 'Marine Assistance',
-      number: '18005551234',
-      icon: <Radio size={24} color={colors.text.primary} />,
+      id: '3',
+      name: 'Sea Tow',
+      number: '1-800-473-2869',
+      description: 'For on-water towing and assistance',
+      icon: <Navigation size={24} color={colors.status.warning} />,
     },
     {
-      id: 'seatow',
-      title: 'Sea Tow',
-      number: '18007583474',
-      icon: <Navigation size={24} color={colors.text.primary} />,
+      id: '4',
+      name: 'BoatUS',
+      number: '1-800-391-4869',
+      description: 'For boat towing and marine assistance',
+      icon: <Navigation size={24} color={colors.status.warning} />,
     },
   ];
-
+  
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Emergency Assistance',
-          headerStyle: {
-            backgroundColor: colors.status.error,
-          },
-          headerTintColor: colors.text.primary,
+          title: "Emergency Services",
         }}
       />
       
-      <View style={styles.emergencyBanner}>
-        <AlertTriangle size={24} color={colors.text.primary} />
-        <Text style={styles.emergencyText}>
-          If you are in immediate danger, call 911 or your local emergency number immediately.
-        </Text>
-      </View>
-      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <AlertTriangle size={32} color={colors.status.error} />
+          </View>
+          <Text style={styles.title}>Emergency Services</Text>
+          <Text style={styles.subtitle}>
+            Important contacts for emergency situations on the water
+          </Text>
+        </View>
+        
+        <View style={styles.emergencyButton}>
+          <Button
+            title="Call 911 Emergency"
+            onPress={() => handleCall('911')}
+            variant="primary"
+            icon={<Phone size={20} color={colors.text.primary} />}
+            style={{ backgroundColor: colors.status.error }}
+          />
+        </View>
+        
+        <View style={styles.infoCard}>
+          <View style={styles.infoIconContainer}>
+            <Radio size={24} color={colors.status.info} />
+          </View>
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>VHF Radio Emergency</Text>
+            <Text style={styles.infoDescription}>
+              Use VHF Channel 16 (156.8 MHz) for distress calls. State "MAYDAY, MAYDAY, MAYDAY" followed by your vessel name, position, nature of emergency, and assistance needed.
+            </Text>
+          </View>
+        </View>
+        
+        <View style={styles.contactsContainer}>
+          <Text style={styles.sectionTitle}>Important Contacts</Text>
           
           {emergencyContacts.map((contact) => (
             <TouchableOpacity
               key={contact.id}
-              style={styles.contactItem}
-              onPress={() => handleCall(contact.number, contact.title)}
+              style={styles.contactCard}
+              onPress={() => handleCall(contact.number.replace(/-/g, ''))}
               activeOpacity={0.7}
             >
-              <View style={styles.contactIcon}>
+              <View style={styles.contactIconContainer}>
                 {contact.icon}
               </View>
-              
               <View style={styles.contactInfo}>
-                <Text style={styles.contactTitle}>{contact.title}</Text>
-                <Text style={styles.contactNumber}>{contact.number}</Text>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactDescription}>{contact.description}</Text>
               </View>
-              
-              <View style={styles.callButton}>
-                <Phone size={20} color={colors.text.primary} />
+              <View style={styles.contactNumberContainer}>
+                <Text style={styles.contactNumber}>{contact.number}</Text>
+                <Phone size={16} color={colors.primary} />
               </View>
             </TouchableOpacity>
           ))}
         </View>
         
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Share Your Location</Text>
-          <Text style={styles.sectionDescription}>
-            Share your current GPS coordinates with emergency services to help them locate you quickly.
-          </Text>
-          
-          <Button
-            title="Share My Location"
-            onPress={handleShareLocation}
-            variant="primary"
-            size="large"
-            style={styles.shareButton}
-            icon={<Share2 size={20} color={colors.text.primary} />}
-            iconPosition="left"
-          />
-        </View>
-        
-        <View style={styles.section}>
+        <View style={styles.tipsContainer}>
           <Text style={styles.sectionTitle}>Emergency Tips</Text>
           
-          <View style={styles.tipItem}>
-            <Text style={styles.tipTitle}>Stay with your vessel</Text>
+          <View style={styles.tipCard}>
+            <Text style={styles.tipTitle}>Share Your Location</Text>
             <Text style={styles.tipDescription}>
-              Unless it's unsafe, stay with your boat. It's easier to spot a boat than a person in the water.
+              Always know your exact location. Use GPS coordinates, nearby landmarks, or the Floatr app's location sharing feature to communicate your position to rescuers.
             </Text>
           </View>
           
-          <View style={styles.tipItem}>
-            <Text style={styles.tipTitle}>Use visual distress signals</Text>
+          <View style={styles.tipCard}>
+            <Text style={styles.tipTitle}>Stay With Your Vessel</Text>
             <Text style={styles.tipDescription}>
-              Use flares, flags, or lights to signal for help if available.
+              If your boat is disabled but not sinking, stay with it. A boat is easier to spot than a person in the water, and it provides some shelter and flotation.
             </Text>
           </View>
           
-          <View style={styles.tipItem}>
-            <Text style={styles.tipTitle}>Conserve energy</Text>
+          <View style={styles.tipCard}>
+            <Text style={styles.tipTitle}>Use Visual Distress Signals</Text>
             <Text style={styles.tipDescription}>
-              If in the water, adopt the HELP position (Heat Escape Lessening Position) to conserve body heat.
+              Use flares, orange smoke, or signal mirrors during daylight. At night, use electric distress lights or flares to attract attention.
             </Text>
           </View>
         </View>
+        
+        <View style={styles.spacer} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
-  },
-  emergencyBanner: {
-    backgroundColor: colors.status.error,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  emergencyText: {
-    color: colors.text.primary,
-    marginLeft: 12,
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
-    padding: 20,
   },
-  section: {
-    marginBottom: 32,
+  header: {
+    padding: 24,
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text.primary,
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
-  sectionDescription: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    marginBottom: 20,
-    lineHeight: 24,
+  title: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: colors.text.primary,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  contactItem: {
+  subtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.secondary,
+    textAlign: 'center',
+    maxWidth: '80%',
+  },
+  emergencyButton: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  infoCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: 'rgba(14, 165, 233, 0.1)',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    marginHorizontal: 16,
+    marginBottom: 24,
   },
-  contactIcon: {
+  infoIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
+    backgroundColor: colors.surface.secondary,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  infoDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: colors.text.secondary,
+    lineHeight: 20,
+  },
+  contactsContainer: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: colors.text.primary,
+    marginBottom: 16,
+  },
+  contactCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface.primary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    alignItems: 'center',
+  },
+  contactIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.surface.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 16,
   },
   contactInfo: {
     flex: 1,
   },
-  contactTitle: {
+  contactName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
     color: colors.text.primary,
     marginBottom: 4,
   },
-  contactNumber: {
+  contactDescription: {
     fontSize: 14,
+    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
   },
-  callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.status.error,
-    justifyContent: 'center',
+  contactNumberContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.surface.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
-  shareButton: {
-    backgroundColor: colors.status.info,
+  contactNumber: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: colors.primary,
+    marginRight: 8,
   },
-  tipItem: {
-    backgroundColor: colors.background.tertiary,
+  tipsContainer: {
+    padding: 16,
+  },
+  tipCard: {
+    backgroundColor: colors.surface.primary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tipTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
     color: colors.text.primary,
     marginBottom: 8,
   },
   tipDescription: {
     fontSize: 14,
+    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     lineHeight: 20,
+  },
+  spacer: {
+    height: 40,
   },
 });
