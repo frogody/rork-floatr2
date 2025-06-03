@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 
-type ToastType = 'info' | 'success' | 'error' | 'warning';
+export type ToastType = 'info' | 'success' | 'error' | 'warning';
 
 interface ToastState {
   visible: boolean;
   message: string;
   type: ToastType;
   duration: number;
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
+  showToast: (messageOrOptions: string | { message: string; type?: ToastType; duration?: number }) => void;
   hideToast: () => void;
 }
 
@@ -16,11 +16,17 @@ export const useToastStore = create<ToastState>((set) => ({
   message: '',
   type: 'info',
   duration: 3000,
-  showToast: (message: string, type: ToastType = 'info', duration: number = 3000) => {
-    set({ visible: true, message, type, duration });
+  showToast: (messageOrOptions) => {
+    if (typeof messageOrOptions === 'string') {
+      set({ visible: true, message: messageOrOptions, type: 'info', duration: 3000 });
+    } else {
+      const { message, type = 'info', duration = 3000 } = messageOrOptions;
+      set({ visible: true, message, type, duration });
+    }
+    
     setTimeout(() => {
       set({ visible: false });
-    }, duration);
+    }, typeof messageOrOptions === 'string' ? 3000 : messageOrOptions.duration || 3000);
   },
   hideToast: () => set({ visible: false }),
 }));

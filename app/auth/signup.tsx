@@ -17,7 +17,10 @@ export default function SignupScreen() {
 
   const handleSignup = async () => {
     if (!email || !password || !displayName) {
-      showToast('Please fill in all fields');
+      showToast({
+        message: 'Please fill in all fields',
+        type: 'warning'
+      });
       return;
     }
 
@@ -26,7 +29,10 @@ export default function SignupScreen() {
       await signUp({ email, password, displayName });
       router.replace('/(tabs)');
     } catch (error) {
-      showToast('Failed to create account');
+      showToast({
+        message: 'Failed to create account',
+        type: 'error'
+      });
     } finally {
       setIsLoading(false);
     }
