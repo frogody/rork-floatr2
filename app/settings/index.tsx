@@ -24,10 +24,13 @@ import {
   Star,
   ChevronRight,
   User,
+  CreditCard,
   Moon,
-  Sun
+  Sun,
+  RefreshCw
 } from 'lucide-react-native';
 import colors from '@/constants/colors';
+import { useAuthStore } from '@/store/authStore';
 
 interface SettingItem {
   id: string;
@@ -41,6 +44,7 @@ interface SettingItem {
 }
 
 export default function SettingsScreen() {
+  const { user } = useAuthStore();
   const [notifications, setNotifications] = useState(true);
   const [locationSharing, setLocationSharing] = useState(true);
   const [incognitoMode, setIncognitoMode] = useState(false);
@@ -74,12 +78,31 @@ export default function SettingsScreen() {
       case 'feedback':
         Alert.alert('Send Feedback', 'This would open a feedback form or email client.');
         break;
+      case 'replay-onboarding':
+        Alert.alert('Replay Tutorial', 'This would restart the onboarding flow.');
+        break;
       default:
         break;
     }
   };
 
   const settings: SettingItem[] = [
+    {
+      id: 'account',
+      title: 'Account Settings',
+      description: 'Password, security, and account management',
+      icon: <User size={20} color={colors.text.primary} />,
+      type: 'navigation',
+      onPress: () => handleNavigation('/settings/account'),
+    },
+    {
+      id: 'premium',
+      title: 'Floatr Premium',
+      description: 'Unlock premium features and boosts',
+      icon: <CreditCard size={20} color={colors.text.primary} />,
+      type: 'navigation',
+      onPress: () => handleNavigation('/premium'),
+    },
     {
       id: 'notifications',
       title: 'Push Notifications',
@@ -108,9 +131,9 @@ export default function SettingsScreen() {
       onToggle: (value) => handleToggle(setIncognitoMode, incognitoMode),
     },
     {
-      id: 'darkMode',
+      id: 'dark-mode',
       title: 'Dark Mode',
-      description: 'Use dark theme (Light mode coming soon)',
+      description: 'Switch between light and dark themes',
       icon: darkMode ? <Moon size={20} color={colors.text.primary} /> : <Sun size={20} color={colors.text.primary} />,
       type: 'toggle',
       value: darkMode,
@@ -134,17 +157,6 @@ export default function SettingsScreen() {
       value: hapticFeedback,
       onToggle: (value) => handleToggle(setHapticFeedback, hapticFeedback),
     },
-  ];
-
-  const navigationItems: SettingItem[] = [
-    {
-      id: 'account',
-      title: 'Account Settings',
-      description: 'Password, security, and data management',
-      icon: <User size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/settings/account'),
-    },
     {
       id: 'privacy',
       title: 'Privacy & Safety',
@@ -152,6 +164,14 @@ export default function SettingsScreen() {
       icon: <Shield size={20} color={colors.text.primary} />,
       type: 'navigation',
       onPress: () => handleNavigation('/privacy'),
+    },
+    {
+      id: 'replay-tutorial',
+      title: 'Replay Tutorial',
+      description: 'Go through the onboarding again',
+      icon: <RefreshCw size={20} color={colors.text.primary} />,
+      type: 'action',
+      onPress: () => handleAction('replay-onboarding'),
     },
     {
       id: 'help',
@@ -230,14 +250,24 @@ export default function SettingsScreen() {
       />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          {settings.map(renderSettingItem)}
+        <View style={styles.profileSection}>
+          <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
+          <Text style={styles.profileEmail}>Manage your Floatr experience</Text>
         </View>
         
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account & Support</Text>
-          {navigationItems.map(renderSettingItem)}
+          <Text style={styles.sectionTitle}>Account</Text>
+          {settings.slice(0, 2).map(renderSettingItem)}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          {settings.slice(2, 8).map(renderSettingItem)}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Support</Text>
+          {settings.slice(8).map(renderSettingItem)}
         </View>
         
         <View style={styles.footer}>
@@ -256,6 +286,24 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  profileSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 16,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: colors.text.secondary,
   },
   section: {
     marginBottom: 32,
