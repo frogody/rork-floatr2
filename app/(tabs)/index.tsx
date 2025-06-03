@@ -29,29 +29,45 @@ export default function DiscoveryScreen() {
   const [showMatchAnimation, setShowMatchAnimation] = useState(false);
 
   useEffect(() => {
+    console.log('DiscoveryScreen mounted, fetching crews...');
     fetchCrews();
-  }, []);
+  }, [fetchCrews]);
+
+  useEffect(() => {
+    console.log('DiscoveryScreen state:', {
+      crews: crews.length,
+      currentIndex,
+      isLoading,
+      error,
+      currentCrew: crews[currentIndex]?.id
+    });
+  }, [crews, currentIndex, isLoading, error]);
 
   const handleLike = () => {
+    console.log('Like button pressed');
     likeCrewAtIndex(currentIndex);
     setShowHeartAnimation(true);
   };
 
   const handleDislike = () => {
+    console.log('Dislike button pressed');
     dislikeCrewAtIndex(currentIndex);
   };
 
   const handleSuperlike = () => {
+    console.log('Superlike button pressed');
     superlikeCrewAtIndex(currentIndex);
     setShowMatchAnimation(true);
   };
 
   const handleRetry = () => {
+    console.log('Retry button pressed');
     fetchCrews();
   };
 
   // Loading state
   if (isLoading) {
+    console.log('Showing loading state');
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -62,6 +78,7 @@ export default function DiscoveryScreen() {
 
   // Error state
   if (error) {
+    console.log('Showing error state:', error);
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
@@ -80,6 +97,7 @@ export default function DiscoveryScreen() {
 
   // No crews available
   if (!crews.length) {
+    console.log('No crews available');
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Text style={styles.emptyTitle}>No crews found</Text>
@@ -103,6 +121,7 @@ export default function DiscoveryScreen() {
 
   // No more crews to show
   if (!currentCrew) {
+    console.log('No more crews to show');
     return (
       <View style={[styles.container, styles.centerContent]}>
         <Text style={styles.emptyTitle}>That's everyone!</Text>
@@ -120,6 +139,8 @@ export default function DiscoveryScreen() {
       </View>
     );
   }
+
+  console.log('Rendering main discovery screen with crew:', currentCrew.id);
 
   return (
     <View style={styles.container}>

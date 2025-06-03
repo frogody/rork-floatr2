@@ -34,8 +34,7 @@ const colors = {
     info: '#007AFF',
   },
   
-  // Legacy support
-  border: '#38383A',
+  // Legacy support - using status values
   success: '#30D158',
   warning: '#FF9F0A',
   error: '#FF453A',
