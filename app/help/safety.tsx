@@ -5,117 +5,77 @@ import {
   Text, 
   ScrollView, 
   TouchableOpacity,
-  Alert,
+  Linking,
   Platform
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { 
-  Shield, 
   AlertTriangle, 
   Phone, 
-  MapPin,
-  Users,
-  Eye,
-  MessageCircle,
-  Clock
+  MapPin, 
+  Cloud, 
+  Users, 
+  Shield,
+  ExternalLink
 } from 'lucide-react-native';
 import colors from '@/constants/colors';
-
-interface SafetyTip {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  category: 'meeting' | 'communication' | 'emergency' | 'general';
-}
+import EmergencyButton from '@/components/EmergencyButton';
 
 export default function SafetyScreen() {
-  const handleEmergencyCall = async () => {
+  const handleLinkPress = async (url: string) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    Alert.alert('Emergency Contacts', 'This would show emergency contact numbers for your area.');
+    
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error('Failed to open link:', error);
+    }
   };
 
-  const safetyTips: SafetyTip[] = [
+  const safetyTips = [
     {
-      id: '1',
-      title: 'Meet in Public Waters',
-      description: 'Always arrange to meet in well-traveled waterways or popular anchorages where other boaters are present.',
+      icon: <Cloud size={20} color={colors.primary} />,
+      title: 'Check Weather Conditions',
+      description: 'Always check marine weather forecasts before heading out. Avoid boating in severe weather conditions.',
+    },
+    {
       icon: <Users size={20} color={colors.primary} />,
-      category: 'meeting',
+      title: 'Tell Someone Your Plans',
+      description: 'Always inform someone on shore about your boating plans, including destination and expected return time.',
     },
     {
-      id: '2',
-      title: 'Share Your Plans',
-      description: 'Tell someone on shore about your meetup plans, including location, time, and expected return.',
-      icon: <MessageCircle size={20} color={colors.primary} />,
-      category: 'meeting',
-    },
-    {
-      id: '3',
-      title: 'Trust Your Instincts',
-      description: 'If something feels off about a person or situation, trust your gut and leave immediately.',
-      icon: <Eye size={20} color={colors.primary} />,
-      category: 'general',
-    },
-    {
-      id: '4',
-      title: 'Keep Emergency Contacts',
-      description: 'Always have Coast Guard and local marine police numbers readily available.',
-      icon: <Phone size={20} color={colors.error} />,
-      category: 'emergency',
-    },
-    {
-      id: '5',
-      title: 'Share Live Location',
-      description: 'Use the app to share your live location with trusted contacts during meetups.',
-      icon: <MapPin size={20} color={colors.primary} />,
-      category: 'meeting',
-    },
-    {
-      id: '6',
-      title: 'Meet During Daylight',
-      description: 'Schedule initial meetups during daylight hours when visibility is good.',
-      icon: <Clock size={20} color={colors.primary} />,
-      category: 'meeting',
-    },
-    {
-      id: '7',
-      title: 'Verify Identity',
-      description: 'Ask for additional photos or video chat before meeting to verify the person matches their profile.',
       icon: <Shield size={20} color={colors.primary} />,
-      category: 'communication',
+      title: 'Wear Life Jackets',
+      description: 'Ensure all passengers have properly fitted life jackets. They should be worn at all times on deck.',
     },
     {
-      id: '8',
-      title: 'Report Suspicious Behavior',
-      description: 'Report any inappropriate behavior, harassment, or safety concerns immediately.',
-      icon: <AlertTriangle size={20} color={colors.warning} />,
-      category: 'general',
+      icon: <MapPin size={20} color={colors.primary} />,
+      title: 'Know Your Location',
+      description: 'Always know your exact location and have multiple navigation methods available.',
     },
   ];
 
-  const groupedTips = {
-    meeting: safetyTips.filter(tip => tip.category === 'meeting'),
-    communication: safetyTips.filter(tip => tip.category === 'communication'),
-    emergency: safetyTips.filter(tip => tip.category === 'emergency'),
-    general: safetyTips.filter(tip => tip.category === 'general'),
-  };
-
-  const renderTip = (tip: SafetyTip) => (
-    <View key={tip.id} style={styles.tipCard}>
-      <View style={styles.tipIcon}>
-        {tip.icon}
-      </View>
-      <View style={styles.tipContent}>
-        <Text style={styles.tipTitle}>{tip.title}</Text>
-        <Text style={styles.tipDescription}>{tip.description}</Text>
-      </View>
-    </View>
-  );
+  const emergencyContacts = [
+    {
+      name: 'US Coast Guard',
+      number: '*CG (#24)',
+      description: 'For maritime emergencies',
+    },
+    {
+      name: 'Emergency Services',
+      number: '911',
+      description: 'For immediate life-threatening emergencies',
+    },
+    {
+      name: 'Marine Assistance',
+      number: '1-800-SEA-TOW',
+      description: 'For non-emergency towing and assistance',
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -123,7 +83,7 @@ export default function SafetyScreen() {
       
       <Stack.Screen
         options={{
-          title: 'Safety Guidelines',
+          title: 'Boating Safety',
           headerStyle: {
             backgroundColor: colors.background.dark,
           },
@@ -132,50 +92,78 @@ export default function SafetyScreen() {
       />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Shield size={32} color={colors.primary} />
-          <Text style={styles.headerTitle}>Your Safety Matters</Text>
-          <Text style={styles.headerDescription}>
-            Follow these guidelines to ensure safe and enjoyable meetups on the water.
+        <View style={styles.emergencySection}>
+          <Text style={styles.emergencyTitle}>Emergency Assistance</Text>
+          <Text style={styles.emergencyDescription}>
+            If you are in immediate danger, use the emergency button below to call for help and share your location.
           </Text>
-        </View>
-
-        <TouchableOpacity style={styles.emergencyCard} onPress={handleEmergencyCall}>
-          <View style={styles.emergencyIcon}>
-            <Phone size={24} color={colors.text.primary} />
-          </View>
-          <View style={styles.emergencyContent}>
-            <Text style={styles.emergencyTitle}>Emergency Contacts</Text>
-            <Text style={styles.emergencyDescription}>
-              Quick access to Coast Guard and marine police
-            </Text>
-          </View>
-          <AlertTriangle size={20} color={colors.error} />
-        </TouchableOpacity>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Meeting Safely</Text>
-          {groupedTips.meeting.map(renderTip)}
+          <EmergencyButton style={styles.emergencyButton} />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Communication</Text>
-          {groupedTips.communication.map(renderTip)}
+          <Text style={styles.sectionTitle}>Safety Tips</Text>
+          {safetyTips.map((tip, index) => (
+            <View key={index} style={styles.tipCard}>
+              <View style={styles.tipIcon}>
+                {tip.icon}
+              </View>
+              <View style={styles.tipContent}>
+                <Text style={styles.tipTitle}>{tip.title}</Text>
+                <Text style={styles.tipDescription}>{tip.description}</Text>
+              </View>
+            </View>
+          ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Emergency Preparedness</Text>
-          {groupedTips.emergency.map(renderTip)}
+          <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+          {emergencyContacts.map((contact, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.contactCard}
+              onPress={() => handleLinkPress(`tel:${contact.number}`)}
+            >
+              <Phone size={20} color={colors.text.primary} />
+              <View style={styles.contactContent}>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactNumber}>{contact.number}</Text>
+                <Text style={styles.contactDescription}>{contact.description}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>General Safety</Text>
-          {groupedTips.general.map(renderTip)}
+          <Text style={styles.sectionTitle}>Additional Resources</Text>
+          
+          <TouchableOpacity 
+            style={styles.resourceCard}
+            onPress={() => handleLinkPress('https://www.uscgboating.org/')}
+          >
+            <ExternalLink size={20} color={colors.primary} />
+            <View style={styles.resourceContent}>
+              <Text style={styles.resourceTitle}>US Coast Guard Boating Safety</Text>
+              <Text style={styles.resourceDescription}>Official boating safety information and courses</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.resourceCard}
+            onPress={() => handleLinkPress('https://weather.gov/marine')}
+          >
+            <ExternalLink size={20} color={colors.primary} />
+            <View style={styles.resourceContent}>
+              <Text style={styles.resourceTitle}>Marine Weather Forecasts</Text>
+              <Text style={styles.resourceDescription}>Current marine weather conditions and forecasts</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Remember: Your safety is the top priority. Never hesitate to leave a situation that makes you uncomfortable.
+        <View style={styles.disclaimer}>
+          <AlertTriangle size={16} color={colors.warning} />
+          <Text style={styles.disclaimerText}>
+            This app is not a substitute for proper marine safety equipment and training. 
+            Always follow local boating regulations and safety guidelines.
           </Text>
         </View>
       </ScrollView>
@@ -190,63 +178,35 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  header: {
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: colors.background.card,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  headerDescription: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  emergencyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.error,
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 16,
     padding: 16,
   },
-  emergencyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
+  emergencySection: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
-    marginRight: 16,
-  },
-  emergencyContent: {
-    flex: 1,
+    marginBottom: 32,
   },
   emergencyTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 4,
+    color: colors.error,
+    marginBottom: 8,
   },
   emergencyDescription: {
     fontSize: 14,
-    color: colors.text.primary,
-    opacity: 0.9,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  emergencyButton: {
+    marginTop: 8,
   },
   section: {
-    marginTop: 32,
-    marginHorizontal: 16,
+    marginBottom: 32,
   },
   sectionTitle: {
     fontSize: 20,
@@ -284,20 +244,70 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     lineHeight: 20,
   },
-  footer: {
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  contactContent: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 2,
+  },
+  contactNumber: {
+    fontSize: 14,
+    color: colors.primary,
+    marginBottom: 2,
+  },
+  contactDescription: {
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  resourceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  resourceContent: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  resourceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  resourceDescription: {
+    fontSize: 14,
+    color: colors.text.secondary,
+  },
+  disclaimer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     backgroundColor: 'rgba(245, 158, 11, 0.1)',
     borderWidth: 1,
     borderColor: colors.warning,
     borderRadius: 12,
     padding: 16,
-    margin: 16,
-    marginTop: 32,
+    gap: 12,
     marginBottom: 32,
   },
-  footerText: {
-    fontSize: 14,
+  disclaimerText: {
+    flex: 1,
+    fontSize: 12,
     color: colors.warning,
-    textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

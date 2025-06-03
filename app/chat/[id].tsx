@@ -10,17 +10,21 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Alert
+  Alert,
+  Modal,
+  Pressable
 } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
-import { Send, Info, Phone, Video, MoreVertical, Flag, UserX } from 'lucide-react-native';
+import { Send, Info, Phone, Video, MoreVertical, Flag, UserX, Camera, Image as ImageIcon } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import { useMatchStore } from '@/store/matchStore';
 import { Message } from '@/types';
 import ReportModal from '@/components/ReportModal';
 import BlockModal from '@/components/BlockModal';
+import MessageActions from '@/components/MessageActions';
+import TypingIndicator from '@/components/TypingIndicator';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,6 +33,9 @@ export default function ChatScreen() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  const [showMessageActions, setShowMessageActions] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
   
   const match = matches.find(m => m.id === id);
@@ -49,11 +56,23 @@ export default function ChatScreen() {
     }
   }, [chatMessages]);
 
+  // Simulate typing indicator
+  useEffect(() => {
+    if (inputText.length > 0) {
+      setIsTyping(true);
+      const timer = setTimeout(() => setIsTyping(false), 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setIsTyping(false);
+    }
+  }, [inputText]);
+
   const handleSend = () => {
     if (inputText.trim() === '') return;
     
     sendMessage(id as string, inputText.trim());
     setInputText('');
+    setReplyingTo(null);
   };
 
   const handleOptionsPress = async () => {
@@ -90,15 +109,68 @@ export default function ChatScreen() {
     router.back();
   };
 
+  const handleMessageLongPress = async (messageId: string) => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setShowMessageActions(messageId);
+  };
+
+  const handleReply = (messageId: string) => {
+    setReplyingTo(messageId);
+    setShowMessageActions(null);
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    // In a real app, this would delete the message
+    console.log('Delete message:', messageId);
+    setShowMessageActions(null);
+  };
+
+  const handleReportMessage = (messageId: string) => {
+    // In a real app, this would report the message
+    console.log('Report message:', messageId);
+    setShowMessageActions(null);
+  };
+
+  const handleMediaPress = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
+    Alert.alert(
+      'Share Media',
+      'Choose an option',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Camera', onPress: () => console.log('Open camera') },
+        { text: 'Photo Library', onPress: () => console.log('Open photo library') },
+      ]
+    );
+  };
+
   const renderMessage = ({ item }: { item: Message }) => {
     const isMe = item.senderId === 'me';
+    const replyMessage = replyingTo === item.id ? chatMessages.find(m => m.id === replyingTo) : null;
     
     return (
-      <View style={[styles.messageContainer, isMe ? styles.myMessage : styles.theirMessage]}>
+      <TouchableOpacity
+        onLongPress={() => handleMessageLongPress(item.id)}
+        style={[styles.messageContainer, isMe ? styles.myMessage : styles.theirMessage]}
+      >
         <View style={[styles.messageBubble, isMe ? styles.myBubble : styles.theirBubble]}>
+          {replyMessage && (
+            <View style={styles.replyContainer}>
+              <Text style={styles.replyText} numberOfLines={1}>
+                Replying to: {replyMessage.content}
+              </Text>
+            </View>
+          )}
+          
           <Text style={[styles.messageText, isMe ? styles.myMessageText : styles.theirMessageText]}>
             {item.content}
           </Text>
+          
           <View style={styles.messageFooter}>
             <Text style={[styles.messageTime, isMe ? styles.myMessageTime : styles.theirMessageTime]}>
               {formatTime(item.sentAt)}
@@ -108,7 +180,7 @@ export default function ChatScreen() {
             )}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -146,16 +218,18 @@ export default function ChatScreen() {
       />
       
       {showOptions && (
-        <View style={styles.optionsMenu}>
-          <TouchableOpacity style={styles.optionItem} onPress={handleReport}>
-            <Flag size={16} color={colors.error} />
-            <Text style={[styles.optionText, { color: colors.error }]}>Report User</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.optionItem} onPress={handleBlock}>
-            <UserX size={16} color={colors.error} />
-            <Text style={[styles.optionText, { color: colors.error }]}>Block User</Text>
-          </TouchableOpacity>
-        </View>
+        <Pressable style={styles.overlay} onPress={() => setShowOptions(false)}>
+          <View style={styles.optionsMenu}>
+            <TouchableOpacity style={styles.optionItem} onPress={handleReport}>
+              <Flag size={16} color={colors.error} />
+              <Text style={[styles.optionText, { color: colors.error }]}>Report User</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.optionItem} onPress={handleBlock}>
+              <UserX size={16} color={colors.error} />
+              <Text style={[styles.optionText, { color: colors.error }]}>Block User</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
       )}
       
       {isLoading ? (
@@ -183,9 +257,25 @@ export default function ChatScreen() {
                 </Text>
               </View>
             )}
+            ListFooterComponent={() => isTyping ? <TypingIndicator visible={true} /> : null}
           />
           
+          {replyingTo && (
+            <View style={styles.replyBar}>
+              <Text style={styles.replyBarText}>
+                Replying to message...
+              </Text>
+              <TouchableOpacity onPress={() => setReplyingTo(null)}>
+                <Text style={styles.replyBarCancel}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
           <View style={styles.inputContainer}>
+            <TouchableOpacity style={styles.mediaButton} onPress={handleMediaPress}>
+              <Camera size={20} color={colors.text.primary} />
+            </TouchableOpacity>
+            
             <TextInput
               style={styles.input}
               placeholder="Type a message..."
@@ -194,6 +284,7 @@ export default function ChatScreen() {
               onChangeText={setInputText}
               multiline
             />
+            
             <TouchableOpacity 
               style={[styles.sendButton, !inputText.trim() && styles.disabledSendButton]} 
               onPress={handleSend}
@@ -204,6 +295,29 @@ export default function ChatScreen() {
           </View>
         </>
       )}
+      
+      <Modal
+        visible={showMessageActions !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMessageActions(null)}
+      >
+        <Pressable style={styles.overlay} onPress={() => setShowMessageActions(null)}>
+          <View style={styles.messageActionsContainer}>
+            {showMessageActions && (
+              <MessageActions
+                messageId={showMessageActions}
+                messageText={chatMessages.find(m => m.id === showMessageActions)?.content || ''}
+                isMyMessage={chatMessages.find(m => m.id === showMessageActions)?.senderId === 'me'}
+                onReply={handleReply}
+                onDelete={handleDeleteMessage}
+                onReport={handleReportMessage}
+                onClose={() => setShowMessageActions(null)}
+              />
+            )}
+          </View>
+        </Pressable>
+      </Modal>
       
       <ReportModal
         visible={showReportModal}
@@ -227,6 +341,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.dark,
   },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 1000,
+  },
   headerButtons: {
     flexDirection: 'row',
     gap: 16,
@@ -246,7 +369,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     borderRadius: 12,
     padding: 8,
-    zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -318,6 +440,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.card,
     borderBottomLeftRadius: 4,
   },
+  replyContainer: {
+    borderLeftWidth: 3,
+    borderLeftColor: 'rgba(255,255,255,0.3)',
+    paddingLeft: 8,
+    marginBottom: 8,
+  },
+  replyText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    fontStyle: 'italic',
+  },
   messageText: {
     fontSize: 16,
     marginBottom: 4,
@@ -347,6 +480,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
   },
+  messageActionsContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -100 }, { translateY: -100 }],
+  },
+  replyBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.background.card,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  replyBarText: {
+    color: colors.text.secondary,
+    fontSize: 14,
+  },
+  replyBarCancel: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -354,6 +512,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  mediaButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
   input: {
     flex: 1,

@@ -7,72 +7,34 @@ import {
   TouchableOpacity,
   Platform
 } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
-import { FileText, ExternalLink, ChevronRight } from 'lucide-react-native';
+import { FileText, Shield, ChevronRight } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
-interface LegalItem {
-  id: string;
-  title: string;
-  description: string;
-  onPress: () => void;
-}
-
 export default function LegalScreen() {
-  const handleTermsPress = async () => {
+  const handleNavigation = async (path: string) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    // In a real app, this would open the terms of service
+    router.push(path as any);
   };
 
-  const handlePrivacyPress = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    // In a real app, this would open the privacy policy
-  };
-
-  const handleCommunityPress = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    // In a real app, this would open community guidelines
-  };
-
-  const handleSafetyPress = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    // In a real app, this would open safety guidelines
-  };
-
-  const legalItems: LegalItem[] = [
+  const legalItems = [
     {
       id: 'terms',
       title: 'Terms of Service',
-      description: 'Read our terms and conditions',
-      onPress: handleTermsPress,
+      description: 'Our terms and conditions for using Floatr',
+      icon: <FileText size={20} color={colors.text.primary} />,
+      path: '/legal/terms',
     },
     {
       id: 'privacy',
       title: 'Privacy Policy',
-      description: 'Learn how we protect your data',
-      onPress: handlePrivacyPress,
-    },
-    {
-      id: 'community',
-      title: 'Community Guidelines',
-      description: 'Rules for respectful interaction',
-      onPress: handleCommunityPress,
-    },
-    {
-      id: 'safety',
-      title: 'Safety Guidelines',
-      description: 'Boating safety and best practices',
-      onPress: handleSafetyPress,
+      description: 'How we collect, use, and protect your data',
+      icon: <Shield size={20} color={colors.text.primary} />,
+      path: '/legal/privacy',
     },
   ];
 
@@ -93,41 +55,36 @@ export default function LegalScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Legal Information</Text>
-          <Text style={styles.subtitle}>
-            Important documents and guidelines for using Floatr
+          <Text style={styles.description}>
+            Important legal documents and policies for using Floatr
           </Text>
         </View>
-        
-        <View style={styles.legalItems}>
+
+        <View style={styles.itemsList}>
           {legalItems.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.legalItem}
-              onPress={item.onPress}
-              activeOpacity={0.7}
+              style={styles.item}
+              onPress={() => handleNavigation(item.path)}
             >
-              <View style={styles.legalIcon}>
-                <FileText size={20} color={colors.text.primary} />
+              <View style={styles.itemIcon}>
+                {item.icon}
               </View>
-              
-              <View style={styles.legalContent}>
-                <Text style={styles.legalTitle}>{item.title}</Text>
-                <Text style={styles.legalDescription}>{item.description}</Text>
+              <View style={styles.itemContent}>
+                <Text style={styles.itemTitle}>{item.title}</Text>
+                <Text style={styles.itemDescription}>{item.description}</Text>
               </View>
-              
-              <ExternalLink size={20} color={colors.text.secondary} />
+              <ChevronRight size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           ))}
         </View>
-        
+
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            By using Floatr, you agree to our Terms of Service and Privacy Policy. 
-            These documents are regularly updated to reflect changes in our practices and applicable laws.
+            By using Floatr, you agree to our Terms of Service and Privacy Policy.
           </Text>
-          
-          <Text style={styles.lastUpdated}>
-            Last updated: December 2024
+          <Text style={styles.footerText}>
+            Last updated: January 1, 2024
           </Text>
         </View>
       </ScrollView>
@@ -142,36 +99,33 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    padding: 16,
   },
   header: {
-    padding: 24,
-    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
-    textAlign: 'center',
   },
-  subtitle: {
+  description: {
     fontSize: 16,
     color: colors.text.secondary,
-    textAlign: 'center',
     lineHeight: 24,
   },
-  legalItems: {
-    paddingHorizontal: 16,
+  itemsList: {
+    gap: 1,
+    marginBottom: 32,
   },
-  legalItem: {
+  item: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background.card,
-    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
   },
-  legalIcon: {
+  itemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -180,33 +134,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
-  legalContent: {
+  itemContent: {
     flex: 1,
   },
-  legalTitle: {
+  itemTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text.primary,
     marginBottom: 4,
   },
-  legalDescription: {
+  itemDescription: {
     fontSize: 14,
     color: colors.text.secondary,
   },
   footer: {
-    padding: 24,
     alignItems: 'center',
+    paddingVertical: 24,
   },
   footerText: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  lastUpdated: {
     fontSize: 12,
     color: colors.text.secondary,
-    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 4,
   },
 });

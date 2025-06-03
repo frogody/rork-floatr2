@@ -3,13 +3,13 @@ import {
   View, 
   StyleSheet, 
   Text, 
-  ScrollView 
+  ScrollView
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import colors from '@/constants/colors';
 
-export default function TermsScreen() {
+export default function TermsOfServiceScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -25,74 +25,61 @@ export default function TermsScreen() {
       />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.title}>Terms of Service</Text>
-          <Text style={styles.lastUpdated}>Last updated: January 1, 2024</Text>
-        </View>
-
+        <Text style={styles.title}>Terms of Service</Text>
+        <Text style={styles.lastUpdated}>Last updated: January 1, 2024</Text>
+        
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Acceptance of Terms</Text>
-          <Text style={styles.text}>
-            By accessing and using Floatr, you accept and agree to be bound by the terms and provision of this agreement.
+          <Text style={styles.sectionText}>
+            By accessing and using Floatr ("the App"), you accept and agree to be bound by the terms and provision of this agreement.
           </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. Use License</Text>
-          <Text style={styles.text}>
-            Permission is granted to temporarily download one copy of Floatr per device for personal, non-commercial transitory viewing only.
+          <Text style={styles.sectionText}>
+            Permission is granted to temporarily use Floatr for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. User Accounts</Text>
-          <Text style={styles.text}>
-            When you create an account with us, you must provide information that is accurate, complete, and current at all times.
+          <Text style={styles.sectionTitle}>3. User Conduct</Text>
+          <Text style={styles.sectionText}>
+            You agree to use Floatr responsibly and in accordance with all applicable laws. You will not use the App to harass, abuse, or harm others.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Prohibited Uses</Text>
-          <Text style={styles.text}>
-            You may not use our service:
-          </Text>
-          <Text style={styles.bulletPoint}>• For any unlawful purpose</Text>
-          <Text style={styles.bulletPoint}>• To harass, abuse, or harm others</Text>
-          <Text style={styles.bulletPoint}>• To transmit spam or unsolicited messages</Text>
-          <Text style={styles.bulletPoint}>• To impersonate others</Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. Safety and Conduct</Text>
-          <Text style={styles.text}>
-            Users are responsible for their own safety when meeting others through the app. Floatr is not responsible for any incidents that occur during meetups.
+          <Text style={styles.sectionTitle}>4. Safety and Boating</Text>
+          <Text style={styles.sectionText}>
+            Floatr is designed to help boaters connect safely. Always follow maritime safety regulations, check weather conditions, and inform others of your plans before meeting.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>6. Privacy Policy</Text>
-          <Text style={styles.text}>
-            Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the Service.
+          <Text style={styles.sectionTitle}>5. Privacy</Text>
+          <Text style={styles.sectionText}>
+            Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the App.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>7. Termination</Text>
-          <Text style={styles.text}>
-            We may terminate or suspend your account immediately, without prior notice, for conduct that we believe violates these Terms.
+          <Text style={styles.sectionTitle}>6. Disclaimer</Text>
+          <Text style={styles.sectionText}>
+            The materials on Floatr are provided on an "as is" basis. Floatr makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>8. Changes to Terms</Text>
-          <Text style={styles.text}>
-            We reserve the right to modify these terms at any time. We will notify users of any changes by posting the new Terms of Service on this page.
+          <Text style={styles.sectionTitle}>7. Limitations</Text>
+          <Text style={styles.sectionText}>
+            In no event shall Floatr or its suppliers be liable for any damages arising out of the use or inability to use the materials on Floatr.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>9. Contact Information</Text>
-          <Text style={styles.text}>
+          <Text style={styles.sectionTitle}>8. Contact Information</Text>
+          <Text style={styles.sectionText}>
             If you have any questions about these Terms of Service, please contact us at legal@floatr.app
           </Text>
         </View>
@@ -110,9 +97,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  section: {
-    marginBottom: 24,
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -122,24 +106,20 @@ const styles = StyleSheet.create({
   lastUpdated: {
     fontSize: 14,
     color: colors.text.secondary,
+    marginBottom: 32,
+  },
+  section: {
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: colors.text.primary,
     marginBottom: 12,
   },
-  text: {
+  sectionText: {
     fontSize: 16,
     color: colors.text.secondary,
     lineHeight: 24,
-    marginBottom: 8,
-  },
-  bulletPoint: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    lineHeight: 24,
-    marginLeft: 16,
-    marginBottom: 4,
   },
 });

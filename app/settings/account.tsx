@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Platform
+  Platform,
+  Switch
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -18,7 +19,11 @@ import {
   Trash2, 
   Shield,
   AlertTriangle,
-  Save
+  Save,
+  Smartphone,
+  Mail,
+  Eye,
+  EyeOff
 } from 'lucide-react-native';
 import Button from '@/components/Button';
 import colors from '@/constants/colors';
@@ -30,6 +35,10 @@ export default function AccountSettingsScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChangePassword = async () => {
     if (Platform.OS !== 'web') {
@@ -46,8 +55,8 @@ export default function AccountSettingsScreen() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+    if (newPassword.length < 8) {
+      Alert.alert('Error', 'Password must be at least 8 characters');
       return;
     }
 
@@ -71,7 +80,7 @@ export default function AccountSettingsScreen() {
 
     Alert.alert(
       'Export Data',
-      'We will prepare your data and send it to your email address within 24 hours.',
+      'We will prepare your data and send it to your email address within 24 hours. This includes your profile information, matches, and message history.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -87,24 +96,24 @@ export default function AccountSettingsScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
-      'This will permanently delete your account and all associated data. This action cannot be undone.\n\nAre you absolutely sure?',
+      'This will permanently delete your account and all associated data including:\n\n• Profile and photos\n• All matches and conversations\n• Boat information\n• Usage history\n\nThis action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Delete Forever', 
+          text: 'Continue', 
           style: 'destructive',
           onPress: () => {
             Alert.alert(
               'Final Confirmation',
-              'Type "DELETE" to confirm account deletion:',
+              'Are you absolutely sure you want to delete your account? Type "DELETE" to confirm:',
               [
                 { text: 'Cancel', style: 'cancel' },
                 { 
-                  text: 'Confirm Delete', 
+                  text: 'Delete Forever', 
                   style: 'destructive',
                   onPress: () => {
                     // In a real app, this would call the deletion API
-                    Alert.alert('Account Deleted', 'Your account has been scheduled for deletion.');
+                    Alert.alert('Account Deleted', 'Your account has been scheduled for deletion. You will be signed out now.');
                     signOut();
                   }
                 },
@@ -116,15 +125,59 @@ export default function AccountSettingsScreen() {
     );
   };
 
-  const handleEnable2FA = async () => {
+  const handleToggle2FA = async (enabled: boolean) => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    if (enabled) {
+      Alert.alert(
+        'Enable Two-Factor Authentication',
+        'We will send a verification code to your email address to set up 2FA.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Send Code', 
+            onPress: () => {
+              setTwoFactorEnabled(true);
+              Alert.alert('Code Sent', 'Check your email for the verification code.');
+            }
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Disable Two-Factor Authentication',
+        'This will make your account less secure. Are you sure?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Disable', 
+            style: 'destructive',
+            onPress: () => setTwoFactorEnabled(false)
+          },
+        ]
+      );
+    }
+  };
+
+  const handleRequestVerification = async () => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     Alert.alert(
-      'Two-Factor Authentication',
-      'This feature will be available in a future update. You will be able to secure your account with SMS or authenticator app.',
-      [{ text: 'OK' }]
+      'Account Verification',
+      'Account verification helps other users trust your profile. We will review your submitted information and photos.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Start Verification', 
+          onPress: () => {
+            Alert.alert('Verification Started', 'We will review your account and notify you within 2-3 business days.');
+          }
+        },
+      ]
     );
   };
 
@@ -151,38 +204,71 @@ export default function AccountSettingsScreen() {
             
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Current Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter current password"
-                placeholderTextColor={colors.text.secondary}
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                secureTextEntry
-              />
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Enter current password"
+                  placeholderTextColor={colors.text.secondary}
+                  value={currentPassword}
+                  onChangeText={setCurrentPassword}
+                  secureTextEntry={!showCurrentPassword}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                >
+                  {showCurrentPassword ? 
+                    <EyeOff size={20} color={colors.text.secondary} /> : 
+                    <Eye size={20} color={colors.text.secondary} />
+                  }
+                </TouchableOpacity>
+              </View>
             </View>
             
             <View style={styles.inputContainer}>
               <Text style={styles.label}>New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter new password"
-                placeholderTextColor={colors.text.secondary}
-                value={newPassword}
-                onChangeText={setNewPassword}
-                secureTextEntry
-              />
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Enter new password (min 8 characters)"
+                  placeholderTextColor={colors.text.secondary}
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  secureTextEntry={!showNewPassword}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? 
+                    <EyeOff size={20} color={colors.text.secondary} /> : 
+                    <Eye size={20} color={colors.text.secondary} />
+                  }
+                </TouchableOpacity>
+              </View>
             </View>
             
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Confirm New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm new password"
-                placeholderTextColor={colors.text.secondary}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
+              <View style={styles.passwordInputContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Confirm new password"
+                  placeholderTextColor={colors.text.secondary}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? 
+                    <EyeOff size={20} color={colors.text.secondary} /> : 
+                    <Eye size={20} color={colors.text.secondary} />
+                  }
+                </TouchableOpacity>
+              </View>
             </View>
             
             <Button
@@ -196,13 +282,35 @@ export default function AccountSettingsScreen() {
             />
           </View>
           
-          <TouchableOpacity style={styles.settingItem} onPress={handleEnable2FA}>
+          <View style={styles.settingItem}>
             <View style={styles.settingIcon}>
               <Shield size={20} color={colors.text.primary} />
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>Two-Factor Authentication</Text>
-              <Text style={styles.settingDescription}>Add an extra layer of security</Text>
+              <Text style={styles.settingDescription}>
+                {twoFactorEnabled ? 'Enabled - Extra security for your account' : 'Add an extra layer of security'}
+              </Text>
+            </View>
+            <Switch
+              value={twoFactorEnabled}
+              onValueChange={handleToggle2FA}
+              trackColor={{ false: colors.text.secondary, true: colors.primary }}
+              thumbColor={colors.text.primary}
+            />
+          </View>
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Verification</Text>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={handleRequestVerification}>
+            <View style={styles.settingIcon}>
+              <Shield size={20} color={colors.text.primary} />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={styles.settingTitle}>Verify Your Account</Text>
+              <Text style={styles.settingDescription}>Get a verified badge to build trust</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -216,7 +324,7 @@ export default function AccountSettingsScreen() {
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingTitle}>Export My Data</Text>
-              <Text style={styles.settingDescription}>Download a copy of your data</Text>
+              <Text style={styles.settingDescription}>Download a copy of your data (GDPR compliant)</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -237,7 +345,7 @@ export default function AccountSettingsScreen() {
           <View style={styles.warningBox}>
             <AlertTriangle size={16} color={colors.warning} />
             <Text style={styles.warningText}>
-              Account deletion is permanent and cannot be undone. All your matches, messages, and profile data will be lost forever.
+              Account deletion is permanent and cannot be undone. All your matches, messages, photos, and profile data will be lost forever. Consider exporting your data first.
             </Text>
           </View>
         </View>
@@ -269,7 +377,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.text.primary,
     marginBottom: 16,
-    marginHorizontal: 16,
   },
   passwordSection: {
     backgroundColor: colors.background.card,
@@ -287,12 +394,20 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: 8,
   },
-  input: {
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.background.dark,
     borderRadius: 12,
+  },
+  passwordInput: {
+    flex: 1,
     padding: 16,
     color: colors.text.primary,
     fontSize: 16,
+  },
+  eyeButton: {
+    padding: 16,
   },
   changePasswordButton: {
     marginTop: 8,

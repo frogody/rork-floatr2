@@ -1,95 +1,89 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, Animated } from 'react-native';
+import { View, StyleSheet, Animated } from 'react-native';
 import colors from '@/constants/colors';
 
 interface TypingIndicatorProps {
-  userName: string;
+  visible: boolean;
 }
 
-export default function TypingIndicator({ userName }: TypingIndicatorProps) {
+export default function TypingIndicator({ visible }: TypingIndicatorProps) {
   const dot1 = useRef(new Animated.Value(0)).current;
   const dot2 = useRef(new Animated.Value(0)).current;
   const dot3 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const animateDots = () => {
-      const duration = 600;
-      const delay = 200;
-
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(dot1, {
-            toValue: 1,
-            duration,
-            useNativeDriver: true,
-          }),
-          Animated.timing(dot1, {
-            toValue: 0,
-            duration,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-
-      setTimeout(() => {
-        Animated.loop(
+    if (visible) {
+      const animateDot = (dot: Animated.Value, delay: number) => {
+        return Animated.loop(
           Animated.sequence([
-            Animated.timing(dot2, {
+            Animated.delay(delay),
+            Animated.timing(dot, {
               toValue: 1,
-              duration,
+              duration: 400,
               useNativeDriver: true,
             }),
-            Animated.timing(dot2, {
+            Animated.timing(dot, {
               toValue: 0,
-              duration,
+              duration: 400,
               useNativeDriver: true,
             }),
           ])
-        ).start();
-      }, delay);
+        );
+      };
 
-      setTimeout(() => {
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(dot3, {
-              toValue: 1,
-              duration,
-              useNativeDriver: true,
-            }),
-            Animated.timing(dot3, {
-              toValue: 0,
-              duration,
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-      }, delay * 2);
-    };
+      const animation = Animated.parallel([
+        animateDot(dot1, 0),
+        animateDot(dot2, 200),
+        animateDot(dot3, 400),
+      ]);
 
-    animateDots();
-  }, []);
+      animation.start();
+
+      return () => animation.stop();
+    } else {
+      dot1.setValue(0);
+      dot2.setValue(0);
+      dot3.setValue(0);
+    }
+  }, [visible, dot1, dot2, dot3]);
+
+  if (!visible) return null;
 
   return (
     <View style={styles.container}>
       <View style={styles.bubble}>
-        <Text style={styles.text}>{userName} is typing</Text>
         <View style={styles.dotsContainer}>
           <Animated.View 
             style={[
               styles.dot, 
-              { opacity: dot1 }
+              { 
+                opacity: dot1.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 1],
+                })
+              }
             ]} 
           />
           <Animated.View 
             style={[
               styles.dot, 
-              { opacity: dot2 }
+              { 
+                opacity: dot2.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 1],
+                })
+              }
             ]} 
           />
           <Animated.View 
             style={[
               styles.dot, 
-              { opacity: dot3 }
+              { 
+                opacity: dot3.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 1],
+                })
+              }
             ]} 
           />
         </View>
@@ -103,7 +97,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginVertical: 4,
     maxWidth: '80%',
-    paddingHorizontal: 16,
   },
   bubble: {
     backgroundColor: colors.background.card,
@@ -111,23 +104,16 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  text: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    fontStyle: 'italic',
   },
   dotsContainer: {
     flexDirection: 'row',
-    gap: 2,
+    alignItems: 'center',
+    gap: 4,
   },
   dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: colors.text.secondary,
   },
 });
