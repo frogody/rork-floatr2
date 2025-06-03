@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { X, Heart, Anchor } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -8,30 +9,42 @@ interface SwipeButtonsProps {
   onWave: () => void;
   onPass: () => void;
   onAnchor: () => void;
+  isAnchored?: boolean;
 }
 
-export default function SwipeButtons({ onWave, onPass, onAnchor }: SwipeButtonsProps) {
+export default function SwipeButtons({ onWave, onPass, onAnchor, isAnchored = false }: SwipeButtonsProps) {
+  const handlePress = async (callback: () => void) => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    callback();
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity 
         style={[styles.button, styles.passButton]} 
-        onPress={onPass}
+        onPress={() => handlePress(onPass)}
         activeOpacity={0.8}
       >
         <X size={24} color={colors.error} />
       </TouchableOpacity>
       
       <TouchableOpacity 
-        style={[styles.button, styles.anchorButton]} 
-        onPress={onAnchor}
+        style={[
+          styles.button, 
+          styles.anchorButton,
+          isAnchored && styles.anchorButtonActive
+        ]} 
+        onPress={() => handlePress(onAnchor)}
         activeOpacity={0.8}
       >
-        <Anchor size={24} color={colors.primary} />
+        <Anchor size={24} color={isAnchored ? colors.text.primary : colors.primary} />
       </TouchableOpacity>
       
       <TouchableOpacity 
         style={styles.waveButtonContainer}
-        onPress={onWave}
+        onPress={() => handlePress(onWave)}
         activeOpacity={0.8}
       >
         <LinearGradient
@@ -75,6 +88,10 @@ const styles = StyleSheet.create({
   anchorButton: {
     backgroundColor: 'white',
     borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  anchorButtonActive: {
+    backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   waveButtonContainer: {

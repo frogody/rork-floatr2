@@ -6,10 +6,12 @@ import {
   Dimensions, 
   ViewToken,
   NativeSyntheticEvent,
-  NativeScrollEvent
+  NativeScrollEvent,
+  Platform
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 import Button from '@/components/Button';
 import OnboardingStep from '@/components/OnboardingStep';
 import ProgressDots from '@/components/ProgressDots';
@@ -42,7 +44,7 @@ const onboardingSteps: OnboardingStepType[] = [
   {
     id: '4',
     title: 'Drop Anchor',
-    description: "Let others know when you're stationary and open to raft-ups.",
+    description: "Let others know when you are stationary and open to raft-ups.",
     imageUrl: 'https://images.unsplash.com/photo-1566438480900-0609be27a4be?q=80&w=1000',
   },
 ];
@@ -58,7 +60,11 @@ export default function OnboardingScreen() {
     }
   }).current;
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
     if (currentIndex < onboardingSteps.length - 1) {
       flatListRef.current?.scrollToIndex({
         index: currentIndex + 1,
@@ -81,7 +87,11 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
     // Skip to the last step
     flatListRef.current?.scrollToIndex({
       index: onboardingSteps.length - 1,

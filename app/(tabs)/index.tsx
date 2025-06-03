@@ -6,13 +6,17 @@ import {
   Animated, 
   PanResponder,
   Dimensions,
-  Alert
+  Alert,
+  Platform,
+  RefreshControl
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 import { useSwipeStore } from '@/store/swipeStore';
 import CrewCard from '@/components/CrewCard';
 import SwipeButtons from '@/components/SwipeButtons';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import colors from '@/constants/colors';
 import { Crew } from '@/types';
 
@@ -22,7 +26,9 @@ const SWIPE_THRESHOLD = 120;
 export default function DiscoverScreen() {
   const { crews, fetchCrews, swipeLeft, swipeRight, isLoading, error, setAnchor, isAnchored } = useSwipeStore();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const position = useRef(new Animated.ValueXY()).current;
+  
   const rotate = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
     outputRange: ['-10deg', '0deg', '10deg'],
@@ -61,9 +67,9 @@ export default function DiscoverScreen() {
       },
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > SWIPE_THRESHOLD) {
-          handleSwipeRight(gesture.dx);
+          handleSwipeRightGesture(gesture.dx);
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          handleSwipeLeft(gesture.dx);
+          handleSwipeLeftGesture(gesture.dx);
         } else {
           Animated.spring(position, {
             toValue: { x: 0, y: 0 },
@@ -79,8 +85,19 @@ export default function DiscoverScreen() {
     fetchCrews();
   }, []);
 
-  const handleSwipeLeft = (dx: number) => {
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchCrews();
+    setCurrentIndex(0);
+    setRefreshing(false);
+  };
+
+  const handleSwipeLeftGesture = async (dx: number) => {
     if (crews.length <= currentIndex) return;
+    
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     
     Animated.timing(position, {
       toValue: { x: -SCREEN_WIDTH * 1.5, y: dx },
@@ -93,8 +110,12 @@ export default function DiscoverScreen() {
     });
   };
 
-  const handleSwipeRight = (dx: number) => {
+  const handleSwipeRightGesture = async (dx: number) => {
     if (crews.length <= currentIndex) return;
+    
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
     
     Animated.timing(position, {
       toValue: { x: SCREEN_WIDTH * 1.5, y: dx },
@@ -120,14 +141,18 @@ export default function DiscoverScreen() {
   };
 
   const handleWave = () => {
-    handleSwipeRight(0);
+    handleSwipeRightGesture(0);
   };
 
   const handlePass = () => {
-    handleSwipeLeft(0);
+    handleSwipeLeftGesture(0);
   };
 
-  const handleAnchor = () => {
+  const handleAnchor = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
     setAnchor(!isAnchored);
     Alert.alert(
       isAnchored ? 'Anchor Lifted' : 'Anchor Dropped',
@@ -139,12 +164,8 @@ export default function DiscoverScreen() {
   };
 
   const renderCards = () => {
-    if (isLoading) {
-      return (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Loading crews...</Text>
-        </View>
-      );
+    if (isLoading && !refreshing) {
+      return <SkeletonLoader type="card" />;
     }
 
     if (error) {
@@ -232,12 +253,15 @@ export default function DiscoverScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      <View style={styles.cardsContainer}>{renderCards()}</View>
+      <View style={styles.cardsContainer}>
+        {renderCards()}
+      </View>
       
       <SwipeButtons
         onWave={handleWave}
         onPass={handlePass}
         onAnchor={handleAnchor}
+        isAnchored={isAnchored}
       />
     </View>
   );

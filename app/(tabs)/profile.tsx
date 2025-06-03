@@ -6,10 +6,12 @@ import {
   Image, 
   ScrollView, 
   TouchableOpacity,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 import { 
   Settings, 
   Edit, 
@@ -29,16 +31,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function ProfileScreen() {
   const { user, boat, signOut } = useAuthStore();
 
-  const handleEditProfile = () => {
+  const handleEditProfile = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     router.push('/profile/edit');
   };
 
-  const handleEditBoat = () => {
+  const handleEditBoat = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     router.push('/boat/edit');
   };
 
-  const handleGoPremium = () => {
+  const handleGoPremium = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     router.push('/premium');
+  };
+
+  const handleSettingsPress = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    router.push('/settings');
   };
 
   const handleSignOut = () => {
@@ -47,7 +65,16 @@ export default function ProfileScreen() {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', onPress: signOut, style: 'destructive' },
+        { 
+          text: 'Sign Out', 
+          onPress: async () => {
+            if (Platform.OS !== 'web') {
+              await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            signOut();
+          }, 
+          style: 'destructive' 
+        },
       ]
     );
   };
@@ -57,7 +84,7 @@ export default function ProfileScreen() {
       <StatusBar style="light" />
       
       <View style={styles.header}>
-        <TouchableOpacity style={styles.settingsButton}>
+        <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
           <Settings size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>

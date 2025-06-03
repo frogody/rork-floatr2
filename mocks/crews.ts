@@ -91,7 +91,7 @@ export const mockMatches = [
     location: 'Clear Lake',
     matchedAt: new Date(Date.now() - 3600000),
     lastMessage: {
-      content: "We're anchored at the south cove. Come join us!",
+      content: "We are anchored at the south cove. Come join us!",
       timestamp: new Date(Date.now() - 1800000),
     },
     photoUrl: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1000',
@@ -127,19 +127,19 @@ export const premiumFeatures = [
     id: 'meetup_zones',
     name: 'Meet-Up Zones',
     description: 'Create and join exclusive gathering spots',
-    icon: 'map-pin',
+    icon: 'mapPin',
   },
   {
     id: 'incognito',
     name: 'Incognito Mode',
     description: 'Browse without being seen',
-    icon: 'eye-off',
+    icon: 'eyeOff',
   },
   {
     id: 'read_receipts',
     name: 'Read Receipts',
     description: 'Know when your messages are read',
-    icon: 'check-check',
+    icon: 'checkCheck',
   },
 ];
 

@@ -1,42 +1,77 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   StyleSheet, 
   Text, 
   FlatList, 
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
+  RefreshControl,
+  Platform
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 import { useMatchStore } from '@/store/matchStore';
 import MatchCard from '@/components/MatchCard';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import colors from '@/constants/colors';
 import { Plus } from 'lucide-react-native';
 
 export default function MatchesScreen() {
   const { matches, fetchMatches, isLoading, error } = useMatchStore();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchMatches();
   }, []);
 
-  const handleMatchPress = (matchId: string) => {
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchMatches();
+    setRefreshing(false);
+  };
+
+  const handleMatchPress = async (matchId: string) => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     router.push(`/chat/${matchId}`);
   };
 
-  if (isLoading) {
+  const handleCreatePress = async () => {
+    if (Platform.OS !== 'web') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    // In a real app, this would open a create group chat or invite friends modal
+  };
+
+  if (isLoading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Matches</Text>
+          <TouchableOpacity style={styles.createButton} onPress={handleCreatePress}>
+            <Plus size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+        <SkeletonLoader type="list" />
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.emptyStateContainer}>
-        <Text style={styles.emptyStateText}>Error: {error}</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Your Matches</Text>
+          <TouchableOpacity style={styles.createButton} onPress={handleCreatePress}>
+            <Plus size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>Error: {error}</Text>
+        </View>
       </View>
     );
   }
@@ -47,7 +82,7 @@ export default function MatchesScreen() {
       
       <View style={styles.header}>
         <Text style={styles.title}>Your Matches</Text>
-        <TouchableOpacity style={styles.createButton}>
+        <TouchableOpacity style={styles.createButton} onPress={handleCreatePress}>
           <Plus size={20} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
@@ -68,6 +103,14 @@ export default function MatchesScreen() {
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
     </View>
@@ -101,12 +144,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 24,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background.dark,
   },
   emptyStateContainer: {
     flex: 1,
