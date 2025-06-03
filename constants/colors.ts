@@ -39,8 +39,6 @@ const colors = {
     secondary: ['#EC4899', '#BE185D'],
     accent: ['#10B981', '#047857'],
   },
-  
-  error: '#EF4444',
 };
 
 export default colors;
