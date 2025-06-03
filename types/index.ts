@@ -24,11 +24,15 @@ export interface Crew {
   id: string;
   name: string;
   description: string;
+  bio: string;
   photoUrl: string;
+  photoUrls: string[];
   location: string;
   distance: number;
   boatType: string;
   boatLength: number;
+  boatCapacity: number;
+  memberCount: number;
   crewSize: number;
   tags: string[];
   verified?: boolean;
@@ -42,7 +46,10 @@ export interface Match {
   photoUrl: string;
   location: string;
   matchedAt: Date;
-  lastMessage?: string;
+  lastMessage?: {
+    content: string;
+    timestamp: Date;
+  };
   lastMessageAt?: Date;
   unreadCount?: number;
 }

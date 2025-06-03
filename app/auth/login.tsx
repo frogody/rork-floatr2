@@ -25,7 +25,7 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const { signIn, isLoading, error, clearError } = useAuthStore();
-  const { toast, hideToast, showError, showSuccess } = useToast();
+  const { toast, hideToast, showError, showSuccess, showInfo } = useToast();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

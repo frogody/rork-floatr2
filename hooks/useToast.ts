@@ -1,25 +1,23 @@
 import { useState, useCallback } from 'react';
 
-interface ToastState {
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
   visible: boolean;
-  type: 'success' | 'error' | 'match' | 'boost' | 'info';
+  type: ToastType;
   title: string;
-  message?: string;
+  message: string;
 }
 
 export const useToast = () => {
-  const [toast, setToast] = useState<ToastState>({
+  const [toast, setToast] = useState<Toast>({
     visible: false,
     type: 'info',
     title: '',
     message: '',
   });
 
-  const showToast = useCallback((
-    type: ToastState['type'],
-    title: string,
-    message?: string
-  ) => {
+  const showToast = useCallback((type: ToastType, title: string, message: string) => {
     setToast({
       visible: true,
       type,
@@ -32,24 +30,20 @@ export const useToast = () => {
     setToast(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const showSuccess = useCallback((title: string, message?: string) => {
+  const showSuccess = useCallback((title: string, message: string) => {
     showToast('success', title, message);
   }, [showToast]);
 
-  const showError = useCallback((title: string, message?: string) => {
+  const showError = useCallback((title: string, message: string) => {
     showToast('error', title, message);
   }, [showToast]);
 
-  const showMatch = useCallback((title: string, message?: string) => {
-    showToast('match', title, message);
-  }, [showToast]);
-
-  const showBoost = useCallback((title: string, message?: string) => {
-    showToast('boost', title, message);
-  }, [showToast]);
-
-  const showInfo = useCallback((title: string, message?: string) => {
+  const showInfo = useCallback((title: string, message: string) => {
     showToast('info', title, message);
+  }, [showToast]);
+
+  const showWarning = useCallback((title: string, message: string) => {
+    showToast('warning', title, message);
   }, [showToast]);
 
   return {
@@ -58,8 +52,7 @@ export const useToast = () => {
     hideToast,
     showSuccess,
     showError,
-    showMatch,
-    showBoost,
     showInfo,
+    showWarning,
   };
 };
