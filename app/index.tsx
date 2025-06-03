@@ -19,7 +19,7 @@ import { useAuthStore } from '@/store/authStore';
 
 const { width, height } = Dimensions.get('window');
 
-// Fallback background image for the hero section
+// Hero image with FLOATR floaties
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
