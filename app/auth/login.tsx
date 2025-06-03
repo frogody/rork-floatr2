@@ -25,7 +25,6 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // Mock user data for now
       await signIn({
         id: '1',
         email,

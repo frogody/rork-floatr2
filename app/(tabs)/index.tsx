@@ -1,9 +1,62 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import colors from '@/constants/colors';
+import { CrewCard } from '@/components/CrewCard';
+import { SwipeButtons } from '@/components/SwipeButtons';
+import { useSwipeStore } from '@/store/swipeStore';
+import { useToast } from '@/hooks/useToast';
 
-export default function HomeScreen() {
+export default function DiscoveryScreen() {
+  const { 
+    crews, 
+    currentIndex,
+    fetchCrews,
+    likeCrewAtIndex,
+    dislikeCrewAtIndex,
+    superlikeCrewAtIndex,
+    undoLastAction,
+    isLoading,
+    error,
+    lastAction,
+  } = useSwipeStore();
+  
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    fetchCrews().catch(error => {
+      showToast({
+        message: "Couldn't load crews",
+        type: 'error'
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (error) {
+      showToast({
+        message: error,
+        type: 'error'
+      });
+    }
+  }, [error]);
+
+  const handleLike = () => {
+    likeCrewAtIndex(currentIndex);
+  };
+
+  const handleDislike = () => {
+    dislikeCrewAtIndex(currentIndex);
+  };
+
+  const handleSuperlike = () => {
+    superlikeCrewAtIndex(currentIndex);
+  };
+
+  const currentCrew = crews[currentIndex];
+  const hasMoreCrews = currentIndex < crews.length;
+  const canUndo = lastAction.type !== null;
+
   return (
     <View style={styles.container}>
       <Stack.Screen 
@@ -16,10 +69,42 @@ export default function HomeScreen() {
         }}
       />
       
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Floatr</Text>
-        <Text style={styles.subtitle}>Start exploring nearby boaters</Text>
-      </View>
+      {isLoading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : !hasMoreCrews ? (
+        <View style={styles.centered}>
+          <CrewCard 
+            crew={{
+              id: 'empty',
+              name: 'No More Crews',
+              description: 'Check back later for more crews!',
+              location: '',
+              distance: 0,
+              photoUrl: 'https://images.unsplash.com/photo-1468581264429-2548ef9eb732',
+              tags: [],
+              crewSize: 0,
+              boatType: '',
+              boatLength: 0,
+            }}
+          />
+        </View>
+      ) : (
+        <>
+          <View style={styles.cardContainer}>
+            {currentCrew && <CrewCard crew={currentCrew} />}
+          </View>
+          
+          <SwipeButtons
+            onLike={handleLike}
+            onDislike={handleDislike}
+            onSuperlike={handleSuperlike}
+            onUndo={undoLastAction}
+            canUndo={canUndo}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -29,21 +114,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.primary,
   },
-  content: {
+  cardContainer: {
     flex: 1,
-    padding: 24,
-    alignItems: 'center',
+    padding: 16,
+  },
+  centered: {
+    flex: 1,
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text.secondary,
-    textAlign: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
 });

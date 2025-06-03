@@ -4,7 +4,7 @@ import { Stack, router } from 'expo-router';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
-import { useToastStore } from '@/hooks/useToast';
+import { useToast } from '@/hooks/useToast';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signUp } = useAuthStore();
-  const showToast = useToastStore(state => state.showToast);
+  const { showToast } = useToast();
 
   const handleSignup = async () => {
     if (!email || !password || !displayName) {
@@ -26,7 +26,11 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp({
+        email,
+        password,
+        displayName,
+      });
       router.replace('/(tabs)');
     } catch (error) {
       showToast({

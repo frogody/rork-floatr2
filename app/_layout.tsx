@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -29,6 +29,16 @@ export default function RootLayout() {
     }
   }, [isInitialized, checkAuth]);
 
+  useEffect(() => {
+    if (isInitialized) {
+      if (isAuthenticated) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/auth/login');
+      }
+    }
+  }, [isInitialized, isAuthenticated]);
+
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -41,13 +51,19 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+        <Stack.Screen 
+          name="(tabs)" 
+          options={{ 
+            animation: 'fade',
+            headerShown: false,
+          }} 
+        />
         <Stack.Screen 
           name="auth" 
           options={{ 
             animation: 'slide_from_bottom',
             presentation: 'modal',
+            headerShown: false,
           }} 
         />
       </Stack>
