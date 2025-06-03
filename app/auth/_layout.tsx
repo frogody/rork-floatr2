@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import colors from '@/constants/colors';
 
 export default function AuthLayout() {
@@ -9,7 +9,6 @@ export default function AuthLayout() {
         screenOptions={{
           headerStyle: {
             backgroundColor: colors.background.primary,
-            borderBottomWidth: 0,
           },
           headerTintColor: colors.text.primary,
           headerTitleStyle: styles.headerTitle,

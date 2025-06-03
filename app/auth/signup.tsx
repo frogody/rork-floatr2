@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Platform } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
@@ -17,11 +17,7 @@ export default function SignupScreen() {
 
   const handleSignup = async () => {
     if (!email || !password || !displayName) {
-      showToast({
-        message: 'Please fill in all fields',
-        type: 'error',
-        duration: 3000
-      });
+      showToast('Please fill in all fields', 'error', 3000);
       return;
     }
 
@@ -30,11 +26,7 @@ export default function SignupScreen() {
       await signUp({ email, password, displayName });
       router.replace('/(tabs)');
     } catch (error) {
-      showToast({
-        message: 'Failed to create account',
-        type: 'error',
-        duration: 3000
-      });
+      showToast('Failed to create account', 'error', 3000);
     } finally {
       setIsLoading(false);
     }
