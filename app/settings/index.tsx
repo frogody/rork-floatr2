@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -6,384 +6,202 @@ import {
   ScrollView, 
   TouchableOpacity,
   Switch,
-  Alert,
-  Platform
+  useColorScheme,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
 import { 
+  User, 
   Bell, 
   Shield, 
-  MapPin, 
   Eye, 
-  Volume2, 
-  Smartphone,
   HelpCircle,
-  FileText,
-  Star,
+  LogOut,
   ChevronRight,
-  User,
-  CreditCard,
   Moon,
-  Sun,
-  RefreshCw,
-  Trash2,
-  Key,
-  UserX,
-  LogOut
+  Globe,
+  Database
 } from 'lucide-react-native';
-import colors from '@/constants/colors';
-import { useAuthStore } from '@/store/authStore';
-
-interface SettingItem {
-  id: string;
-  title: string;
-  description?: string;
-  icon: React.ReactNode;
-  type: 'toggle' | 'navigation' | 'action';
-  value?: boolean;
-  onPress?: () => void;
-  onToggle?: (value: boolean) => void;
-  destructive?: boolean;
-}
+import { getColors } from '@/constants/colors';
 
 export default function SettingsScreen() {
-  const { user, signOut, deleteAccount, isLoading } = useAuthStore();
-  const [notifications, setNotifications] = useState(true);
-  const [locationSharing, setLocationSharing] = useState(true);
-  const [incognitoMode, setIncognitoMode] = useState(false);
-  const [soundEffects, setSoundEffects] = useState(true);
-  const [hapticFeedback, setHapticFeedback] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
 
-  const handleToggle = async (setter: (value: boolean) => void, currentValue: boolean) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setter(!currentValue);
-  };
+  const [darkMode, setDarkMode] = React.useState(isDark);
+  const [notifications, setNotifications] = React.useState(true);
+  const [locationSharing, setLocationSharing] = React.useState(true);
 
-  const handleNavigation = async (path: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push(path as any);
-  };
-
-  const handleAction = async (action: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    switch (action) {
-      case 'rate':
-        Alert.alert('Rate App', 'Thank you for using Floatr! This would open the app store.');
-        break;
-      case 'feedback':
-        Alert.alert('Send Feedback', 'This would open a feedback form or email client.');
-        break;
-      case 'replay-onboarding':
-        Alert.alert(
-          'Replay Tutorial',
-          'This will restart the onboarding flow. Continue?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Continue', 
-              onPress: () => {
-                // Reset onboarding state and navigate
-                router.push('/onboarding');
-              }
-            },
-          ]
-        );
-        break;
-      case 'change-password':
-        handleNavigation('/settings/account');
-        break;
-      case 'delete-account':
-        Alert.alert(
-          'Delete Account',
-          'This action cannot be undone. All your data will be permanently deleted.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Delete Account', 
-              style: 'destructive',
-              onPress: async () => {
-                if (Platform.OS !== 'web') {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                }
-                await deleteAccount();
-              }
-            },
-          ]
-        );
-        break;
-      case 'sign-out':
-        Alert.alert(
-          'Sign Out',
-          'Are you sure you want to sign out?',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Sign Out', 
-              onPress: async () => {
-                if (Platform.OS !== 'web') {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                }
-                signOut();
-              }, 
-              style: 'destructive' 
-            },
-          ]
-        );
-        break;
-      default:
-        break;
-    }
-  };
-
-  const settings: SettingItem[] = [
+  const settingsSections = [
     {
-      id: 'account',
-      title: 'Account Settings',
-      description: 'Password, security, and account management',
-      icon: <User size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/settings/account'),
+      title: 'Account',
+      items: [
+        {
+          id: 'profile',
+          title: 'Edit Profile',
+          icon: User,
+          route: '/profile/edit',
+          type: 'navigation' as const,
+        },
+        {
+          id: 'notifications',
+          title: 'Notifications',
+          icon: Bell,
+          route: '/settings/notifications',
+          type: 'navigation' as const,
+        },
+        {
+          id: 'privacy',
+          title: 'Privacy & Safety',
+          icon: Shield,
+          route: '/settings/privacy',
+          type: 'navigation' as const,
+        },
+      ],
     },
     {
-      id: 'premium',
-      title: 'Floatr Premium',
-      description: 'Unlock premium features and boosts',
-      icon: <CreditCard size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/premium'),
+      title: 'Preferences',
+      items: [
+        {
+          id: 'darkMode',
+          title: 'Dark Mode',
+          icon: Moon,
+          type: 'toggle' as const,
+          value: darkMode,
+          onToggle: setDarkMode,
+        },
+        {
+          id: 'location',
+          title: 'Location Sharing',
+          icon: Globe,
+          type: 'toggle' as const,
+          value: locationSharing,
+          onToggle: setLocationSharing,
+        },
+      ],
     },
     {
-      id: 'notifications',
-      title: 'Push Notifications',
-      description: 'Get notified about matches and messages',
-      icon: <Bell size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: notifications,
-      onToggle: (value) => handleToggle(setNotifications, notifications),
-    },
-    {
-      id: 'location',
-      title: 'Location Sharing',
-      description: 'Share your location with nearby boaters',
-      icon: <MapPin size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: locationSharing,
-      onToggle: (value) => handleToggle(setLocationSharing, locationSharing),
-    },
-    {
-      id: 'incognito',
-      title: 'Incognito Mode',
-      description: 'Browse without being seen (Premium)',
-      icon: <Eye size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: incognitoMode,
-      onToggle: (value) => handleToggle(setIncognitoMode, incognitoMode),
-    },
-    {
-      id: 'dark-mode',
-      title: 'Dark Mode',
-      description: 'Switch between light and dark themes',
-      icon: darkMode ? <Moon size={20} color={colors.text.primary} /> : <Sun size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: darkMode,
-      onToggle: (value) => handleToggle(setDarkMode, darkMode),
-    },
-    {
-      id: 'sound',
-      title: 'Sound Effects',
-      description: 'Play sounds for app interactions',
-      icon: <Volume2 size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: soundEffects,
-      onToggle: (value) => handleToggle(setSoundEffects, soundEffects),
-    },
-    {
-      id: 'haptic',
-      title: 'Haptic Feedback',
-      description: 'Feel vibrations for app interactions',
-      icon: <Smartphone size={20} color={colors.text.primary} />,
-      type: 'toggle',
-      value: hapticFeedback,
-      onToggle: (value) => handleToggle(setHapticFeedback, hapticFeedback),
-    },
-    {
-      id: 'blocked-users',
-      title: 'Blocked Users',
-      description: 'Manage your blocked users list',
-      icon: <UserX size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/settings/blocked-users'),
-    },
-    {
-      id: 'privacy',
-      title: 'Privacy & Safety',
-      description: 'Manage your privacy settings',
-      icon: <Shield size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/privacy'),
-    },
-    {
-      id: 'change-password',
-      title: 'Change Password',
-      description: 'Update your account password',
-      icon: <Key size={20} color={colors.text.primary} />,
-      type: 'action',
-      onPress: () => handleAction('change-password'),
-    },
-    {
-      id: 'replay-tutorial',
-      title: 'Replay Tutorial',
-      description: 'Go through the onboarding again',
-      icon: <RefreshCw size={20} color={colors.text.primary} />,
-      type: 'action',
-      onPress: () => handleAction('replay-onboarding'),
-    },
-    {
-      id: 'help',
-      title: 'Help & Support',
-      description: 'Get help and contact support',
-      icon: <HelpCircle size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/help'),
-    },
-    {
-      id: 'terms',
-      title: 'Terms & Privacy Policy',
-      description: 'Read our terms and privacy policy',
-      icon: <FileText size={20} color={colors.text.primary} />,
-      type: 'navigation',
-      onPress: () => handleNavigation('/legal/terms'),
-    },
-    {
-      id: 'rate',
-      title: 'Rate Floatr',
-      description: 'Help us improve by rating the app',
-      icon: <Star size={20} color={colors.text.primary} />,
-      type: 'action',
-      onPress: () => handleAction('rate'),
-    },
-    {
-      id: 'sign-out',
-      title: 'Sign Out',
-      description: 'Sign out of your account',
-      icon: <LogOut size={20} color={colors.error} />,
-      type: 'action',
-      onPress: () => handleAction('sign-out'),
-      destructive: true,
-    },
-    {
-      id: 'delete-account',
-      title: 'Delete Account',
-      description: 'Permanently delete your account and data',
-      icon: <Trash2 size={20} color={colors.error} />,
-      type: 'action',
-      onPress: () => handleAction('delete-account'),
-      destructive: true,
+      title: 'Support',
+      items: [
+        {
+          id: 'help',
+          title: 'Help & Support',
+          icon: HelpCircle,
+          route: '/help',
+          type: 'navigation' as const,
+        },
+        {
+          id: 'analytics',
+          title: 'Data & Analytics',
+          icon: Database,
+          route: '/settings/analytics',
+          type: 'navigation' as const,
+        },
+      ],
     },
   ];
 
-  const renderSettingItem = (item: SettingItem) => {
-    return (
-      <TouchableOpacity
-        key={item.id}
-        style={[styles.settingItem, item.destructive && styles.destructiveItem]}
-        onPress={item.onPress}
-        disabled={item.type === 'toggle' || isLoading}
-        activeOpacity={item.type === 'toggle' ? 1 : 0.7}
-      >
-        <View style={styles.settingIcon}>
-          {item.icon}
-        </View>
-        
-        <View style={styles.settingContent}>
-          <Text style={[styles.settingTitle, item.destructive && styles.destructiveText]}>
-            {item.title}
-          </Text>
-          {item.description && (
-            <Text style={styles.settingDescription}>{item.description}</Text>
-          )}
-        </View>
-        
-        <View style={styles.settingAction}>
-          {item.type === 'toggle' ? (
-            <Switch
-              value={item.value}
-              onValueChange={item.onToggle}
-              trackColor={{ false: colors.text.secondary, true: colors.primary }}
-              thumbColor={colors.text.primary}
-              disabled={item.id === 'incognito' && !user?.isPremium}
-            />
-          ) : (
-            <ChevronRight size={20} color={colors.text.secondary} />
-          )}
-        </View>
-      </TouchableOpacity>
-    );
+  const handleNavigation = (route: string) => {
+    router.push(route as any);
+  };
+
+  const handleLogout = () => {
+    // In a real app, this would handle logout
+    console.log('Logout');
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      <Stack.Screen
-        options={{
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <Stack.Screen 
+        options={{ 
           title: 'Settings',
-          headerStyle: {
-            backgroundColor: colors.background.dark,
-          },
+          headerStyle: { backgroundColor: colors.background.primary },
           headerTintColor: colors.text.primary,
-        }}
+        }} 
       />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileSection}>
-          <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
-          <Text style={styles.profileEmail}>Manage your Floatr experience</Text>
-          {user?.isPremium && (
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumText}>Premium Member</Text>
+        {settingsSections.map((section, sectionIndex) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              {section.title}
+            </Text>
+            
+            <View style={[styles.sectionContent, { backgroundColor: colors.surface.primary }]}>
+              {section.items.map((item, itemIndex) => {
+                const IconComponent = item.icon;
+                const isLast = itemIndex === section.items.length - 1;
+                
+                if (item.type === 'toggle') {
+                  return (
+                    <View 
+                      key={item.id}
+                      style={[
+                        styles.settingItem,
+                        !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border.primary }
+                      ]}
+                    >
+                      <View style={styles.settingLeft}>
+                        <IconComponent size={20} color={colors.text.secondary} />
+                        <Text style={[styles.settingTitle, { color: colors.text.primary }]}>
+                          {item.title}
+                        </Text>
+                      </View>
+                      
+                      <Switch
+                        value={item.value}
+                        onValueChange={item.onToggle}
+                        trackColor={{ false: colors.border.primary, true: colors.primary }}
+                        thumbColor={colors.text.primary}
+                      />
+                    </View>
+                  );
+                }
+                
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.settingItem,
+                      !isLast && { borderBottomWidth: 1, borderBottomColor: colors.border.primary }
+                    ]}
+                    onPress={() => handleNavigation(item.route!)}
+                  >
+                    <View style={styles.settingLeft}>
+                      <IconComponent size={20} color={colors.text.secondary} />
+                      <Text style={[styles.settingTitle, { color: colors.text.primary }]}>
+                        {item.title}
+                      </Text>
+                    </View>
+                    
+                    <ChevronRight size={16} color={colors.text.secondary} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-          )}
-        </View>
-        
+          </View>
+        ))}
+
+        {/* Logout Button */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          {settings.slice(0, 2).map(renderSettingItem)}
+          <TouchableOpacity 
+            style={[styles.logoutButton, { backgroundColor: colors.surface.primary }]}
+            onPress={handleLogout}
+          >
+            <LogOut size={20} color={colors.error} />
+            <Text style={[styles.logoutText, { color: colors.error }]}>
+              Sign Out
+            </Text>
+          </TouchableOpacity>
         </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          {settings.slice(2, 8).map(renderSettingItem)}
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Privacy & Security</Text>
-          {settings.slice(8, 11).map(renderSettingItem)}
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          {settings.slice(11, 15).map(renderSettingItem)}
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Actions</Text>
-          {settings.slice(15).map(renderSettingItem)}
-        </View>
-        
-        <View style={styles.footer}>
-          <Text style={styles.version}>Floatr v1.0.0</Text>
-          <Text style={styles.copyright}>© 2024 Floatr. All rights reserved.</Text>
+
+        {/* App Version */}
+        <View style={styles.versionContainer}>
+          <Text style={[styles.versionText, { color: colors.text.secondary }]}>
+            Floatr v1.0.0
+          </Text>
         </View>
       </ScrollView>
     </View>
@@ -393,104 +211,56 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
   },
   content: {
     flex: 1,
   },
-  profileSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-    marginBottom: 16,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 8,
-  },
-  premiumBadge: {
-    backgroundColor: colors.warning,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-  },
-  premiumText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.background.dark,
-  },
   section: {
-    marginBottom: 32,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 16,
-    marginHorizontal: 16,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  sectionContent: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: colors.background.card,
-    marginHorizontal: 16,
-    marginBottom: 1,
+    paddingVertical: 16,
   },
-  destructiveItem: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-  },
-  settingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
+  settingLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
-  },
-  settingContent: {
+    gap: 12,
     flex: 1,
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: colors.text.primary,
-    marginBottom: 2,
   },
-  destructiveText: {
-    color: colors.error,
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: colors.text.secondary,
-  },
-  settingAction: {
-    marginLeft: 16,
-  },
-  footer: {
+  logoutButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 32,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
   },
-  version: {
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  versionContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  versionText: {
     fontSize: 14,
-    color: colors.text.secondary,
-    marginBottom: 4,
-  },
-  copyright: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    textAlign: 'center',
   },
 });

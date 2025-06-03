@@ -99,7 +99,7 @@ export default function NearbyScreen() {
         </View>
       </View>
 
-      {/* Filter Tabs */}
+      {/* Compact Filter Tabs */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -122,7 +122,7 @@ export default function NearbyScreen() {
               onPress={() => setSelectedFilter(filter.id)}
             >
               <IconComponent 
-                size={10} 
+                size={12} 
                 color={isSelected ? colors.text.primary : colors.text.secondary} 
               />
               <Text style={[
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 28,
@@ -278,14 +278,14 @@ const styles = StyleSheet.create({
   filterTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
-    gap: 3,
+    gap: 4,
   },
   filterTabText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
   },
   content: {
