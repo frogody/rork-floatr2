@@ -18,6 +18,7 @@
     "@trpc/client": "^11.2.0",
     "@trpc/react-query": "^11.2.0",
     "@trpc/server": "^11.2.0",
+    "@types/react-native-maps": "^0.24.2",
     "date-fns": "^4.1.0",
     "expo": "^53.0.4",
     "expo-application": "~6.1.4",

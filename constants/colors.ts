@@ -34,6 +34,7 @@ const colors = {
     error: '#EF4444',
     warning: '#F59E0B',
     info: '#3B82F6',
+    disabled: '#3F3F46', // Add disabled status
   },
   
   gradient: {
@@ -50,3 +51,5 @@ const colors = {
     cluster: '#EC4899',
   },
 };
+
+export default colors;

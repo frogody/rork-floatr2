@@ -24,7 +24,9 @@ const boatTypes = [
   'Cabin Cruiser',
   'Trawler',
   'Speedboat'
-];
+] as const;
+
+type BoatType = typeof boatTypes[number];
 
 interface FilterModalProps {
   visible: boolean;
@@ -34,7 +36,7 @@ interface FilterModalProps {
 
 export interface FilterOptions {
   distance: number;
-  boatTypes: string[];
+  boatTypes: BoatType[];
   crewSize: { min: number; max: number };
   tags: string[];
 }
@@ -42,41 +44,44 @@ export interface FilterOptions {
 const availableTags = [
   'Chill', 'Party', 'Fishing', 'Adventure', 'Sunset', 'Music', 
   'Social', 'Drinks', 'Swimming', 'Explore', 'Relaxed', 'Luxury'
-];
+] as const;
 
-const distanceOptions = [1, 5, 10, 25, 50, 100];
+type Tag = typeof availableTags[number];
+
+const distanceOptions = [1, 5, 10, 25, 50, 100] as const;
+type Distance = typeof distanceOptions[number];
 
 export default function FilterModal({ visible, onClose, onApply }: FilterModalProps) {
-  const [distance, setDistance] = useState(25);
-  const [selectedBoatTypes, setSelectedBoatTypes] = useState<string[]>([]);
+  const [distance, setDistance] = useState<Distance>(25);
+  const [selectedBoatTypes, setSelectedBoatTypes] = useState<BoatType[]>([]);
   const [crewSize, setCrewSize] = useState({ min: 1, max: 12 });
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
-  const handleBoatTypeToggle = async (boatType: string) => {
+  const handleBoatTypeToggle = async (boatType: BoatType) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     
     setSelectedBoatTypes(prev => 
       prev.includes(boatType) 
-        ? prev.filter((t: string) => t !== boatType)
+        ? prev.filter((t: BoatType) => t !== boatType)
         : [...prev, boatType]
     );
   };
 
-  const handleTagToggle = async (tag: string) => {
+  const handleTagToggle = async (tag: Tag) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     
     setSelectedTags(prev => 
       prev.includes(tag) 
-        ? prev.filter((t: string) => t !== tag)
+        ? prev.filter((t: Tag) => t !== tag)
         : [...prev, tag]
     );
   };
 
-  const handleDistanceSelect = async (dist: number) => {
+  const handleDistanceSelect = async (dist: Distance) => {
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -145,7 +150,7 @@ export default function FilterModal({ visible, onClose, onApply }: FilterModalPr
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Boat Types</Text>
             <View style={styles.optionsGrid}>
-              {boatTypes.map((type: string) => (
+              {boatTypes.map((type) => (
                 <TouchableOpacity
                   key={type}
                   style={[

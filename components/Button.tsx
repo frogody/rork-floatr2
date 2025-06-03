@@ -70,7 +70,12 @@ export function Button({
   const getVariantStyles = (): ViewStyle => {
     const baseStyles: ViewStyle = {
       opacity: disabled ? 0.5 : 1,
+      backgroundColor: disabled ? colors.status.disabled : undefined,
     };
+
+    if (disabled) {
+      return baseStyles;
+    }
 
     switch (variant) {
       case 'primary':
