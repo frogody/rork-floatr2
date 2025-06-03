@@ -33,9 +33,8 @@ export default function RootLayout() {
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        // Only redirect to login if we're not already on a welcome or auth screen
-        const currentPath = router.getCurrentOptions()?.initialRouteName;
-        if (!currentPath?.includes('index') && !currentPath?.includes('auth')) {
+        const pathname = router.canGoBack() ? router.getPathname() : '';
+        if (!pathname.includes('index') && !pathname.includes('auth')) {
           router.replace('/auth/login');
         }
       }

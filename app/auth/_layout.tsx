@@ -9,9 +9,6 @@ export default function AuthLayout() {
         screenOptions={{
           headerStyle: {
             backgroundColor: colors.background.primary,
-            borderBottomWidth: 0,
-            shadowOpacity: 0,
-            elevation: 0,
           },
           headerTintColor: colors.text.primary,
           headerTitleStyle: {
