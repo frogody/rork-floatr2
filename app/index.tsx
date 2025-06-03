@@ -35,12 +35,12 @@ export default function WelcomeScreen() {
       <StatusBar style="light" />
       
       <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000' }}
+        source={{ uri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000' }}
         style={styles.backgroundImage}
       />
       
       <LinearGradient
-        colors={['transparent', 'rgba(15, 23, 42, 0.8)', 'rgba(15, 23, 42, 1)']}
+        colors={['transparent', 'rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.8)']}
         style={styles.gradient}
       />
       
