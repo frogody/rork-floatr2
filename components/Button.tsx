@@ -68,6 +68,12 @@ export function Button({
   };
 
   const getVariantStyles = (): ViewStyle => {
+    if (disabled) {
+      return {
+        backgroundColor: colors.background.disabled,
+      };
+    }
+
     switch (variant) {
       case 'primary':
         return {
@@ -162,7 +168,6 @@ export function Button({
           styles.button,
           getVariantStyles(),
           getSizeStyles(),
-          disabled && styles.disabled,
           style,
         ]}
         activeOpacity={0.9}
@@ -173,17 +178,11 @@ export function Button({
   );
 }
 
-// Default export for backward compatibility
-export default Button;
-
 const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  disabled: {
-    opacity: 0.5,
   },
   text: {
     fontSize: 16,

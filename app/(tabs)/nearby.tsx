@@ -4,7 +4,6 @@ import {
   StyleSheet, 
   Text, 
   TouchableOpacity,
-  TextInput,
   Platform,
   Dimensions,
   Alert,
@@ -73,7 +72,6 @@ export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
   const [selectedCrew, setSelectedCrew] = useState<CrewLocation | null>(null);
   const [mapType, setMapType] = useState<'standard' | 'satellite'>('standard');
-  const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [region, setRegion] = useState<Region>(INITIAL_REGION);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,30 +118,6 @@ export default function MapScreen() {
       status: 'docked',
       lastSeen: '5 min ago'
     },
-    {
-      id: '4',
-      name: 'Wind Riders',
-      latitude: 37.7549,
-      longitude: -122.4394,
-      distance: 3.5,
-      photoUrl: 'https://images.unsplash.com/photo-1540946485063-a40da27545f8?q=80&w=400',
-      crewSize: 5,
-      boatType: 'Sailboat',
-      status: 'moving',
-      lastSeen: '1 min ago'
-    },
-    {
-      id: '5',
-      name: 'Marina Masters',
-      latitude: 37.8049,
-      longitude: -122.4194,
-      distance: 1.9,
-      photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400',
-      crewSize: 7,
-      boatType: 'Motor Yacht',
-      status: 'docked',
-      lastSeen: '10 min ago'
-    }
   ]);
 
   useEffect(() => {
@@ -390,26 +364,6 @@ export default function MapScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Search Header */}
-      <View style={styles.searchHeader}>
-        <View style={styles.searchContainer}>
-          <Search size={20} color={colors.text.secondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search marinas, spots..."
-            placeholderTextColor={colors.text.secondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <TouchableOpacity 
-            style={styles.filterButton}
-            onPress={() => setShowFilters(true)}
-          >
-            <Filter size={20} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       {/* Interactive Map */}
       <View style={styles.mapContainer}>
         <MapView
@@ -614,32 +568,6 @@ const styles = StyleSheet.create({
   loadingSubtext: {
     fontSize: 14,
     color: colors.text.secondary,
-  },
-  searchHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: colors.background.primary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.primary,
-    zIndex: 1000,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.card,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text.primary,
-  },
-  filterButton: {
-    padding: 4,
   },
   mapContainer: {
     flex: 1,

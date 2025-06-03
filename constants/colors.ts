@@ -8,6 +8,7 @@ const colors = {
     secondary: '#18181B',
     tertiary: '#27272A',
     card: '#1F1F23',
+    disabled: '#3F3F46',
   },
   
   surface: {
@@ -49,5 +50,3 @@ const colors = {
     cluster: '#EC4899',
   },
 };
-
-export default colors;
