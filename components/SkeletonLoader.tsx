@@ -11,7 +11,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   const isDark = colorScheme === 'dark';
   const fadeAnim = useRef(new Animated.Value(0.3)).current;
   
-  const currentColors = getColors(isDark);
+  const colors = getColors(isDark);
   
   useEffect(() => {
     Animated.loop(
@@ -31,43 +31,43 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   }, [fadeAnim]);
   
   const renderCardSkeleton = () => (
-    <View style={[styles.cardContainer, { backgroundColor: currentColors.surface.primary }]}>
+    <View style={[styles.cardContainer, { backgroundColor: colors.surface.primary }]}>
       <Animated.View 
         style={[
           styles.cardImage, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <View style={styles.cardContent}>
         <Animated.View 
           style={[
             styles.cardTitle, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.cardSubtitle, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <View style={styles.cardTags}>
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+              { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
             ]} 
           />
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+              { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
             ]} 
           />
           <Animated.View 
             style={[
               styles.cardTag, 
-              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+              { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
             ]} 
           />
         </View>
@@ -78,24 +78,24 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
   const renderListSkeleton = () => (
     <View style={styles.listContainer}>
       {[1, 2, 3, 4, 5].map((item) => (
-        <View key={item} style={[styles.listItem, { borderBottomColor: currentColors.border.primary }]}>
+        <View key={item} style={[styles.listItem, { borderBottomColor: colors.border.primary }]}>
           <Animated.View 
             style={[
               styles.listAvatar, 
-              { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+              { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
             ]} 
           />
           <View style={styles.listContent}>
             <Animated.View 
               style={[
                 styles.listTitle, 
-                { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+                { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
               ]} 
             />
             <Animated.View 
               style={[
                 styles.listSubtitle, 
-                { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+                { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
               ]} 
             />
           </View>
@@ -109,38 +109,38 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
       <Animated.View 
         style={[
           styles.profileAvatar, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.profileName, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.profileBio, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <View style={styles.profileStats}>
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileStat, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
       </View>
@@ -148,13 +148,13 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
         <Animated.View 
           style={[
             styles.profileButton, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.profileButton, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
       </View>
@@ -166,51 +166,51 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ type }) => {
       <Animated.View 
         style={[
           styles.detailImage, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailTitle, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailSubtitle, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <View style={styles.detailInfo}>
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
         <Animated.View 
           style={[
             styles.detailInfoItem, 
-            { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+            { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
           ]} 
         />
       </View>
       <Animated.View 
         style={[
           styles.detailDescription, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
       <Animated.View 
         style={[
           styles.detailButton, 
-          { opacity: fadeAnim, backgroundColor: currentColors.surface.secondary }
+          { opacity: fadeAnim, backgroundColor: colors.surface.secondary }
         ]} 
       />
     </View>

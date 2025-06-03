@@ -27,7 +27,7 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const currentColors = getColors(isDark);
+  const colors = getColors(isDark);
   
   const handlePress = async (action: () => void) => {
     if (Platform.OS !== 'web') {
@@ -46,7 +46,7 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
         style={[
           styles.button, 
           styles.smallButton, 
-          { backgroundColor: currentColors.surface.primary },
+          { backgroundColor: colors.surface.primary },
           !canUndo && styles.disabledButton
         ]}
         onPress={() => canUndo && handlePress(onUndo)}
@@ -55,7 +55,7 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
       >
         <RotateCcw 
           size={24} 
-          color={canUndo ? currentColors.text.secondary : currentColors.text.disabled} 
+          color={canUndo ? colors.text.secondary : colors.text.disabled} 
         />
       </TouchableOpacity>
       
@@ -65,14 +65,14 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.largeButton, 
           styles.dislikeButton,
           { 
-            backgroundColor: currentColors.surface.primary,
-            borderColor: currentColors.status.error,
+            backgroundColor: colors.surface.primary,
+            borderColor: colors.error,
           }
         ]}
         onPress={() => handlePress(onDislike)}
         activeOpacity={0.7}
       >
-        <X size={32} color={currentColors.status.error} />
+        <X size={32} color={colors.error} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -81,14 +81,14 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.largeButton, 
           styles.superlikeButton,
           { 
-            backgroundColor: currentColors.surface.primary,
-            borderColor: currentColors.status.warning,
+            backgroundColor: colors.surface.primary,
+            borderColor: colors.warning,
           }
         ]}
         onPress={() => handlePress(onSuperlike)}
         activeOpacity={0.7}
       >
-        <Star size={32} color={currentColors.status.warning} fill={currentColors.status.warning} />
+        <Star size={32} color={colors.warning} fill={colors.warning} />
       </TouchableOpacity>
       
       <TouchableOpacity
@@ -97,14 +97,14 @@ export const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           styles.largeButton, 
           styles.likeButton,
           { 
-            backgroundColor: currentColors.surface.primary,
-            borderColor: currentColors.status.success,
+            backgroundColor: colors.surface.primary,
+            borderColor: colors.success,
           }
         ]}
         onPress={() => handlePress(onLike)}
         activeOpacity={0.7}
       >
-        <Heart size={32} color={currentColors.status.success} fill={currentColors.status.success} />
+        <Heart size={32} color={colors.success} fill={colors.success} />
       </TouchableOpacity>
     </View>
   );

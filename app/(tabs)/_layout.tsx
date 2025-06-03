@@ -1,12 +1,13 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { useColorScheme, Platform } from 'react-native';
-import { Heart, MessageCircle, MapPin, User, Compass } from 'lucide-react-native';
-import colors from '@/constants/colors';
+import { Heart, MessageCircle, MapPin, User, Compass, Zap } from 'lucide-react-native';
+import { getColors } from '@/constants/colors';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
 
   return (
     <Tabs
@@ -54,6 +55,16 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <MapPin size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="match"
+        options={{
+          title: 'Match',
+          tabBarIcon: ({ color, size }) => (
+            <Zap size={size} color={color} />
+          ),
+          headerShown: false,
         }}
       />
       <Tabs.Screen

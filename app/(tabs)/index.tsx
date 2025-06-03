@@ -1,18 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   StyleSheet, 
-  ActivityIndicator, 
   Text, 
   ScrollView, 
   TouchableOpacity,
   TextInput,
   Image,
-  Dimensions
+  useColorScheme,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { CrewCard } from '@/components/CrewCard';
-import { SwipeButtons } from '@/components/SwipeButtons';
 import { 
   Search, 
   Filter, 
@@ -23,31 +20,15 @@ import {
   Compass,
   Waves
 } from 'lucide-react-native';
-import colors from '@/constants/colors';
-import { useSwipeStore } from '@/store/swipeStore';
-
-const { width } = Dimensions.get('window');
+import { getColors } from '@/constants/colors';
 
 export default function DiscoveryScreen() {
-  const { 
-    crews,
-    currentIndex,
-    fetchCrews,
-    likeCrewAtIndex,
-    dislikeCrewAtIndex,
-    superlikeCrewAtIndex,
-    undoLastAction,
-    lastAction,
-    isLoading,
-  } = useSwipeStore();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [showNearby, setShowNearby] = useState(true);
-
-  useEffect(() => {
-    fetchCrews();
-  }, [fetchCrews]);
 
   const filters = [
     { id: 'all', label: 'All', icon: Users },
@@ -81,6 +62,22 @@ export default function DiscoveryScreen() {
       photoUrl: 'https://images.unsplash.com/photo-1566024287286-457247b70310?q=80&w=400',
       crewSize: 3,
     },
+    {
+      id: '4',
+      name: 'Marina Masters',
+      distance: '3.1 mi',
+      status: 'anchored',
+      photoUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400',
+      crewSize: 5,
+    },
+    {
+      id: '5',
+      name: 'Coastal Cruisers',
+      distance: '0.5 mi',
+      status: 'moving',
+      photoUrl: 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?q=80&w=400',
+      crewSize: 2,
+    },
   ];
 
   const getStatusColor = (status: string) => {
@@ -92,50 +89,34 @@ export default function DiscoveryScreen() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <StatusBar style="light" />
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
-  const currentCrew = crews[currentIndex];
-  const canUndo = lastAction.type !== null && currentIndex > 0;
-
-  if (!showNearby && !currentCrew) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <StatusBar style="light" />
-        <Text style={styles.noMoreText}>No more crews available</Text>
-      </View>
-    );
-  }
+  const filteredCrews = nearbyCrews.filter(crew => {
+    if (selectedFilter === 'all') return true;
+    return crew.status === selectedFilter;
+  });
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Discover</Text>
-        <Text style={styles.headerSubtitle}>Find your perfect crew</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Discover</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>Find crews near you</Text>
       </View>
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
+        <View style={[styles.searchInputContainer, { backgroundColor: colors.surface.primary }]}>
           <Search size={20} color={colors.text.secondary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search crews, boats, locations..."
             placeholderTextColor={colors.text.secondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={styles.filterButton}>
+        <TouchableOpacity style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}>
           <Filter size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
@@ -153,7 +134,10 @@ export default function DiscoveryScreen() {
           return (
             <TouchableOpacity
               key={filter.id}
-              style={[styles.filterTab, isSelected && styles.filterTabActive]}
+              style={[
+                styles.filterTab, 
+                { backgroundColor: isSelected ? colors.primary : colors.surface.primary }
+              ]}
               onPress={() => setSelectedFilter(filter.id)}
             >
               <IconComponent 
@@ -162,7 +146,7 @@ export default function DiscoveryScreen() {
               />
               <Text style={[
                 styles.filterTabText, 
-                isSelected && styles.filterTabTextActive
+                { color: isSelected ? colors.text.primary : colors.text.secondary }
               ]}>
                 {filter.label}
               </Text>
@@ -171,101 +155,73 @@ export default function DiscoveryScreen() {
         })}
       </ScrollView>
 
-      {/* Toggle View */}
-      <View style={styles.viewToggle}>
-        <TouchableOpacity
-          style={[styles.toggleButton, !showNearby && styles.toggleButtonActive]}
-          onPress={() => setShowNearby(false)}
-        >
-          <Text style={[styles.toggleText, !showNearby && styles.toggleTextActive]}>
-            Swipe Mode
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.toggleButton, showNearby && styles.toggleButtonActive]}
-          onPress={() => setShowNearby(true)}
-        >
-          <Text style={[styles.toggleText, showNearby && styles.toggleTextActive]}>
-            Nearby List
-          </Text>
-        </TouchableOpacity>
+      {/* Stats */}
+      <View style={styles.statsContainer}>
+        <View style={[styles.statsCard, { backgroundColor: colors.surface.primary }]}>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
+              {filteredCrews.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+              {selectedFilter === 'all' ? 'Nearby' : selectedFilter}
+            </Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: colors.text.primary }]}>3</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Anchored</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: colors.text.primary }]}>2</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Marinas</Text>
+          </View>
+        </View>
       </View>
 
-      {/* Content */}
-      {showNearby ? (
-        <ScrollView style={styles.nearbyContainer} showsVerticalScrollIndicator={false}>
-          <View style={styles.nearbyHeader}>
-            <View style={styles.nearbyStats}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>12</Text>
-                <Text style={styles.statLabel}>Nearby</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>3</Text>
-                <Text style={styles.statLabel}>Anchored</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>2</Text>
-                <Text style={styles.statLabel}>Marinas</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.nearbyList}>
-            {nearbyCrews.map((crew) => (
-              <TouchableOpacity key={crew.id} style={styles.nearbyCrewCard}>
-                <Image source={{ uri: crew.photoUrl }} style={styles.nearbyCrewImage} />
-                <View style={styles.nearbyCrewInfo}>
-                  <View style={styles.nearbyCrewHeader}>
-                    <Text style={styles.nearbyCrewName}>{crew.name}</Text>
-                    <Text style={styles.nearbyCrewDistance}>{crew.distance}</Text>
-                  </View>
-                  <View style={styles.nearbyCrewDetails}>
-                    <View style={styles.nearbyCrewStatus}>
-                      <View style={[styles.statusDot, { backgroundColor: getStatusColor(crew.status) }]} />
-                      <Text style={styles.statusText}>{crew.status}</Text>
-                    </View>
-                    <Text style={styles.crewSizeText}>{crew.crewSize} crew</Text>
-                  </View>
+      {/* Crew List */}
+      <ScrollView style={styles.crewList} showsVerticalScrollIndicator={false}>
+        <View style={styles.crewListContent}>
+          {filteredCrews.map((crew) => (
+            <TouchableOpacity key={crew.id} style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}>
+              <Image source={{ uri: crew.photoUrl }} style={styles.crewImage} />
+              <View style={styles.crewInfo}>
+                <View style={styles.crewHeader}>
+                  <Text style={[styles.crewName, { color: colors.text.primary }]}>{crew.name}</Text>
+                  <Text style={[styles.crewDistance, { color: colors.text.secondary }]}>{crew.distance}</Text>
                 </View>
-                <TouchableOpacity style={styles.nearbyActionButton}>
-                  <Compass size={16} color={colors.primary} />
-                </TouchableOpacity>
+                <View style={styles.crewDetails}>
+                  <View style={styles.crewStatus}>
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(crew.status) }]} />
+                    <Text style={[styles.statusText, { color: colors.text.secondary }]}>{crew.status}</Text>
+                  </View>
+                  <Text style={[styles.crewSizeText, { color: colors.text.secondary }]}>{crew.crewSize} crew</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}>
+                <Compass size={16} color={colors.primary} />
               </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Quick Actions */}
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <MapPin size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionTitle}>Popular Spots</Text>
-              <Text style={styles.quickActionSubtitle}>Discover trending locations</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Waves size={24} color={colors.accent} />
-              </View>
-              <Text style={styles.quickActionTitle}>Weather</Text>
-              <Text style={styles.quickActionSubtitle}>Check conditions</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      ) : (
-        <View style={styles.swipeContainer}>
-          {currentCrew && <CrewCard crew={currentCrew} />}
-          <SwipeButtons 
-            onLike={() => likeCrewAtIndex(currentIndex)}
-            onDislike={() => dislikeCrewAtIndex(currentIndex)}
-            onSuperlike={() => superlikeCrewAtIndex(currentIndex)}
-            onUndo={undoLastAction}
-            canUndo={canUndo}
-          />
+          ))}
         </View>
-      )}
+
+        {/* Quick Actions */}
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}>
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <MapPin size={24} color={colors.primary} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Popular Spots</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Discover trending locations</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}>
+            <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
+              <Waves size={24} color={colors.accent} />
+            </View>
+            <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Weather</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Check conditions</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -273,11 +229,6 @@ export default function DiscoveryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     paddingHorizontal: 20,
@@ -287,12 +238,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: colors.text.secondary,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -304,7 +253,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background.card,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -313,12 +261,10 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: colors.text.primary,
   },
   filterButton: {
     width: 48,
     height: 48,
-    backgroundColor: colors.background.card,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -335,56 +281,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: colors.background.card,
     borderRadius: 20,
     gap: 8,
-  },
-  filterTabActive: {
-    backgroundColor: colors.primary,
   },
   filterTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.text.secondary,
   },
-  filterTabTextActive: {
-    color: colors.text.primary,
-  },
-  viewToggle: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 20,
-    backgroundColor: colors.background.card,
-    borderRadius: 12,
-    padding: 4,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  toggleButtonActive: {
-    backgroundColor: colors.primary,
-  },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text.secondary,
-  },
-  toggleTextActive: {
-    color: colors.text.primary,
-  },
-  nearbyContainer: {
-    flex: 1,
-  },
-  nearbyHeader: {
+  statsContainer: {
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-  nearbyStats: {
+  statsCard: {
     flexDirection: 'row',
-    backgroundColor: colors.background.card,
     borderRadius: 16,
     padding: 20,
     justifyContent: 'space-around',
@@ -395,55 +304,53 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: colors.text.secondary,
   },
-  nearbyList: {
+  crewList: {
+    flex: 1,
+  },
+  crewListContent: {
     paddingHorizontal: 20,
     gap: 12,
     marginBottom: 20,
   },
-  nearbyCrewCard: {
+  crewCard: {
     flexDirection: 'row',
-    backgroundColor: colors.background.card,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
   },
-  nearbyCrewImage: {
+  crewImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
     marginRight: 16,
   },
-  nearbyCrewInfo: {
+  crewInfo: {
     flex: 1,
   },
-  nearbyCrewHeader: {
+  crewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6,
   },
-  nearbyCrewName: {
+  crewName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text.primary,
   },
-  nearbyCrewDistance: {
+  crewDistance: {
     fontSize: 14,
-    color: colors.text.secondary,
   },
-  nearbyCrewDetails: {
+  crewDetails: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  nearbyCrewStatus: {
+  crewStatus: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -455,17 +362,14 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: colors.text.secondary,
     textTransform: 'capitalize',
   },
   crewSizeText: {
     fontSize: 12,
-    color: colors.text.secondary,
   },
-  nearbyActionButton: {
+  actionButton: {
     width: 40,
     height: 40,
-    backgroundColor: colors.background.secondary,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
@@ -479,7 +383,6 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     flex: 1,
-    backgroundColor: colors.background.card,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -487,7 +390,6 @@ const styles = StyleSheet.create({
   quickActionIcon: {
     width: 48,
     height: 48,
-    backgroundColor: colors.background.secondary,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
@@ -496,21 +398,10 @@ const styles = StyleSheet.create({
   quickActionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   quickActionSubtitle: {
     fontSize: 12,
-    color: colors.text.secondary,
     textAlign: 'center',
-  },
-  swipeContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  noMoreText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text.secondary,
   },
 });

@@ -8,10 +8,11 @@ import {
   Dimensions,
   Animated,
   Platform,
+  useColorScheme,
 } from 'react-native';
-import colors from '@/constants/colors';
 import { MapPin, Anchor, Users, Info } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getColors } from '@/constants/colors';
 
 interface CrewCardProps {
   crew: {
@@ -32,6 +33,10 @@ interface CrewCardProps {
 const { width, height } = Dimensions.get('window');
 
 export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
+
   const [showInfo, setShowInfo] = useState(false);
   const infoAnim = React.useRef(new Animated.Value(0)).current;
   
@@ -53,7 +58,7 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
   };
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface.primary }]}>
       <Image 
         source={{ uri: crew.photoUrl }}
         style={styles.image}
@@ -68,10 +73,10 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
       <View style={styles.content}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.name}>{crew.name}</Text>
+            <Text style={[styles.name, { color: colors.text.primary }]}>{crew.name}</Text>
             <View style={styles.locationContainer}>
               <MapPin size={16} color={colors.text.secondary} />
-              <Text style={styles.location}>
+              <Text style={[styles.location, { color: colors.text.secondary }]}>
                 {crew.location} • {crew.distance} mi away
               </Text>
             </View>
@@ -89,14 +94,14 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
         <View style={styles.details}>
           <View style={styles.detailItem}>
             <Anchor size={16} color={colors.text.secondary} />
-            <Text style={styles.detailText}>
+            <Text style={[styles.detailText, { color: colors.text.secondary }]}>
               {crew.boatType}, {crew.boatLength}ft
             </Text>
           </View>
           
           <View style={styles.detailItem}>
             <Users size={16} color={colors.text.secondary} />
-            <Text style={styles.detailText}>
+            <Text style={[styles.detailText, { color: colors.text.secondary }]}>
               {crew.crewSize} {crew.crewSize === 1 ? 'person' : 'people'}
             </Text>
           </View>
@@ -105,7 +110,7 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
         <View style={styles.tags}>
           {crew.tags.map((tag, index) => (
             <View key={index} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
+              <Text style={[styles.tagText, { color: colors.text.primary }]}>{tag}</Text>
             </View>
           ))}
         </View>
@@ -115,6 +120,7 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
         <Animated.View 
           style={[
             styles.infoPanel,
+            { backgroundColor: colors.surface.primary },
             {
               opacity: infoAnim,
               transform: [
@@ -128,32 +134,48 @@ export const CrewCard: React.FC<CrewCardProps> = ({ crew }) => {
             },
           ]}
         >
-          <Text style={styles.infoPanelTitle}>About {crew.name}</Text>
-          <Text style={styles.infoPanelDescription}>{crew.description}</Text>
+          <Text style={[styles.infoPanelTitle, { color: colors.text.primary }]}>
+            About {crew.name}
+          </Text>
+          <Text style={[styles.infoPanelDescription, { color: colors.text.secondary }]}>
+            {crew.description}
+          </Text>
           
           <View style={styles.infoPanelDetails}>
             <View style={styles.infoPanelDetailItem}>
-              <Text style={styles.infoPanelDetailLabel}>Boat Type</Text>
-              <Text style={styles.infoPanelDetailValue}>{crew.boatType}</Text>
+              <Text style={[styles.infoPanelDetailLabel, { color: colors.text.tertiary }]}>
+                Boat Type
+              </Text>
+              <Text style={[styles.infoPanelDetailValue, { color: colors.text.primary }]}>
+                {crew.boatType}
+              </Text>
             </View>
             
             <View style={styles.infoPanelDetailItem}>
-              <Text style={styles.infoPanelDetailLabel}>Length</Text>
-              <Text style={styles.infoPanelDetailValue}>{crew.boatLength}ft</Text>
+              <Text style={[styles.infoPanelDetailLabel, { color: colors.text.tertiary }]}>
+                Length
+              </Text>
+              <Text style={[styles.infoPanelDetailValue, { color: colors.text.primary }]}>
+                {crew.boatLength}ft
+              </Text>
             </View>
             
             <View style={styles.infoPanelDetailItem}>
-              <Text style={styles.infoPanelDetailLabel}>Crew Size</Text>
-              <Text style={styles.infoPanelDetailValue}>{crew.crewSize}</Text>
+              <Text style={[styles.infoPanelDetailLabel, { color: colors.text.tertiary }]}>
+                Crew Size
+              </Text>
+              <Text style={[styles.infoPanelDetailValue, { color: colors.text.primary }]}>
+                {crew.crewSize}
+              </Text>
             </View>
           </View>
           
           <TouchableOpacity
-            style={styles.closeButton}
+            style={[styles.closeButton, { borderTopColor: colors.border.primary }]}
             onPress={toggleInfo}
             activeOpacity={0.7}
           >
-            <Text style={styles.closeButtonText}>Close</Text>
+            <Text style={[styles.closeButtonText, { color: colors.primary }]}>Close</Text>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -166,7 +188,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: colors.surface?.primary || colors.background.primary,
     height: height * 0.7,
     position: 'relative',
   },
@@ -197,7 +218,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   locationContainer: {
@@ -206,7 +226,6 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 16,
-    color: colors.text.secondary,
     marginLeft: 4,
   },
   infoButton: {
@@ -229,7 +248,6 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.text.secondary,
     marginLeft: 4,
   },
   tags: {
@@ -247,14 +265,12 @@ const styles = StyleSheet.create({
   tagText: {
     fontSize: 12,
     fontWeight: '500',
-    color: colors.text.primary,
   },
   infoPanel: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.surface?.primary || colors.background.primary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -276,12 +292,10 @@ const styles = StyleSheet.create({
   infoPanelTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 8,
   },
   infoPanelDescription: {
     fontSize: 16,
-    color: colors.text.secondary,
     lineHeight: 24,
     marginBottom: 16,
   },
@@ -295,23 +309,19 @@ const styles = StyleSheet.create({
   },
   infoPanelDetailLabel: {
     fontSize: 12,
-    color: colors.text.tertiary,
     marginBottom: 4,
   },
   infoPanelDetailValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text.primary,
   },
   closeButton: {
     alignItems: 'center',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.border?.primary || '#333',
   },
   closeButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.primary,
   },
 });
