@@ -27,25 +27,25 @@ const onboardingSteps: OnboardingStepType[] = [
     id: '1',
     title: 'Welcome to Floatr',
     description: 'Connect with fellow boaters, raft-up, and share amazing experiences on the water.',
-    imageUrl: 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000',
   },
   {
     id: '2',
     title: 'Discover Nearby Crews',
     description: 'Swipe through profiles of boaters in your area and find your perfect match.',
-    imageUrl: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?q=80&w=1000',
   },
   {
     id: '3',
     title: 'Chat & Meet Up',
     description: 'Connect through chat and coordinate meet-ups on the water.',
-    imageUrl: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000',
   },
   {
     id: '4',
     title: 'Drop Anchor',
     description: "Let others know when you are stationary and open to raft-ups.",
-    imageUrl: 'https://images.unsplash.com/photo-1566438480900-0609be27a4be?q=80&w=1000',
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000',
   },
 ];
 
@@ -80,7 +80,7 @@ export default function OnboardingScreen() {
         type: boatTypes[Math.floor(Math.random() * boatTypes.length)],
         length: 24,
         capacity: 8,
-        photoUrl: 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000',
+        photoUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000',
       });
       
       setOnboarded(true);

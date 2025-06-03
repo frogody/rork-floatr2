@@ -91,7 +91,7 @@ export default function ProfileScreen() {
       
       <View style={styles.profileSection}>
         <Image 
-          source={{ uri: user?.avatarUrl || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000' }} 
+          source={{ uri: user?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000' }} 
           style={styles.profileImage}
         />
         
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
         {boat ? (
           <View style={styles.boatCard}>
             <Image 
-              source={{ uri: boat.photoUrl || 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000' }} 
+              source={{ uri: boat.photoUrl || 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000' }} 
               style={styles.boatImage}
             />
             

@@ -1,9 +1,9 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Match } from '@/types';
 import colors from '@/constants/colors';
-import { MapPin, MessageCircle, Sparkles } from 'lucide-react-native';
+import { MapPin, Clock } from 'lucide-react-native';
 
 interface MatchCardProps {
   match: Match;
@@ -11,188 +11,93 @@ interface MatchCardProps {
 }
 
 export default function MatchCard({ match, onPress }: MatchCardProps) {
-  const scale = useRef(new Animated.Value(1)).current;
-  const glow = useRef(new Animated.Value(0)).current;
-
-  React.useEffect(() => {
-    // Subtle glow animation for new matches
-    if (!match.lastMessage) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(glow, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(glow, {
-            toValue: 0,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [match.lastMessage]);
-
-  // Format the time since match
-  const getTimeSince = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    
-    if (diffDays > 0) return `${diffDays}d`;
-    if (diffHours > 0) return `${diffHours}h`;
-    return `${diffMins}m`;
-  };
-
   const handlePress = async () => {
-    // Enhanced press animation
-    Animated.sequence([
-      Animated.timing(scale, {
-        toValue: 0.96,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scale, {
-        toValue: 1,
-        tension: 400,
-        friction: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
     if (Platform.OS !== 'web') {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    
     onPress();
   };
 
-  const glowOpacity = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0.3],
-  });
+  const formatTime = (date: Date) => {
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d ago`;
+    }
+  };
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
-        {/* Glow effect for new matches */}
-        {!match.lastMessage && (
-          <Animated.View
-            style={[
-              styles.glowOverlay,
-              { opacity: glowOpacity }
-            ]}
-          />
-        )}
-        
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: match.photoUrl }} style={styles.image} />
-          {!match.lastMessage && (
-            <View style={styles.newMatchBadge}>
-              <Sparkles size={12} color={colors.text.primary} />
-            </View>
-          )}
+    <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+      <Image source={{ uri: match.photoUrl }} style={styles.image} />
+      
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.name}>{match.crewName}</Text>
+          <View style={styles.locationContainer}>
+            <MapPin size={12} color={colors.text.secondary} />
+            <Text style={styles.location}>{match.location}</Text>
+          </View>
         </View>
         
-        <View style={styles.content}>
-          <View>
-            <Text style={styles.name}>{match.crewName}</Text>
-            <View style={styles.locationContainer}>
-              <MapPin size={12} color={colors.text.secondary} />
-              <Text style={styles.location}>{match.location}</Text>
-            </View>
-          </View>
-          
+        {match.lastMessage && (
           <View style={styles.messageContainer}>
-            {match.lastMessage ? (
-              <>
-                <MessageCircle size={12} color={colors.text.secondary} />
-                <Text style={styles.message} numberOfLines={1}>
-                  {match.lastMessage.content}
-                </Text>
-              </>
-            ) : (
-              <View style={styles.newMatchContainer}>
-                <Text style={styles.newMatch}>New Match!</Text>
-                <Sparkles size={14} color={colors.secondary} />
-              </View>
-            )}
-          </View>
-        </View>
-        
-        <View style={styles.timeContainer}>
-          <Text style={styles.time}>{getTimeSince(match.matchedAt)}</Text>
-          {match.unreadCount && match.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>
-                {match.unreadCount > 9 ? '9+' : match.unreadCount}
+            <Text style={styles.lastMessage} numberOfLines={1}>
+              {typeof match.lastMessage === 'string' ? match.lastMessage : match.lastMessage.content}
+            </Text>
+            <View style={styles.timeContainer}>
+              <Clock size={10} color={colors.text.secondary} />
+              <Text style={styles.time}>
+                {typeof match.lastMessage === 'string' 
+                  ? formatTime(match.matchedAt)
+                  : formatTime(match.lastMessage.timestamp)
+                }
               </Text>
             </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
+          </View>
+        )}
+        
+        {!match.lastMessage && (
+          <Text style={styles.newMatch}>New match! Say hello 👋</Text>
+        )}
+      </View>
+      
+      <View style={styles.indicator} />
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
     backgroundColor: colors.background.card,
     borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  glowOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.secondary,
-    borderRadius: 16,
-  },
-  imageContainer: {
-    position: 'relative',
-    marginRight: 16,
+    alignItems: 'center',
   },
   image: {
     width: 60,
     height: 60,
     borderRadius: 30,
-  },
-  newMatchBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.background.card,
+    marginRight: 16,
   },
   content: {
     flex: 1,
-    gap: 4,
+  },
+  header: {
+    marginBottom: 4,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: colors.text.primary,
+    marginBottom: 2,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -206,44 +111,32 @@ const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
+    justifyContent: 'space-between',
   },
-  message: {
+  lastMessage: {
     fontSize: 14,
     color: colors.text.secondary,
     flex: 1,
+    marginRight: 8,
   },
-  newMatchContainer: {
+  timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
+  },
+  time: {
+    fontSize: 10,
+    color: colors.text.secondary,
   },
   newMatch: {
     fontSize: 14,
-    color: colors.secondary,
-    fontWeight: '600',
+    color: colors.primary,
+    fontStyle: 'italic',
   },
-  timeContainer: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  time: {
-    fontSize: 12,
-    color: colors.text.secondary,
-  },
-  unreadBadge: {
-    backgroundColor: colors.secondary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  unreadText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.text.primary,
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
   },
 });

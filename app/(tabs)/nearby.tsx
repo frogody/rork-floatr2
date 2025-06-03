@@ -100,7 +100,7 @@ export default function NearbyScreen() {
       {mapView ? (
         <View style={styles.mapContainer}>
           <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1569163139599-0f4517e36f31?q=80&w=1000' }} 
+            source={{ uri: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=1000' }} 
             style={styles.mapImage}
             resizeMode="cover"
           />
@@ -132,7 +132,7 @@ export default function NearbyScreen() {
           {mockCrews.map((crew) => (
             <TouchableOpacity key={crew.id} style={styles.card} activeOpacity={0.9}>
               <Image 
-                source={{ uri: crew.photoUrls[0] }} 
+                source={{ uri: crew.photoUrls?.[0] || crew.photoUrl }} 
                 style={styles.cardImage}
                 resizeMode="cover"
               />

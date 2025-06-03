@@ -1,73 +1,57 @@
 export interface User {
   id: string;
+  email: string;
   displayName: string;
-  bio?: string;
   avatarUrl?: string;
-  createdAt: Date;
-  verified?: boolean;
+  bio?: string;
   isPremium?: boolean;
 }
 
 export interface Boat {
-  id: string;
-  ownerId: string;
   name: string;
   type: string;
   length: number;
   capacity: number;
   photoUrl?: string;
   verified?: boolean;
-  createdAt: Date;
 }
 
 export interface Crew {
   id: string;
   name: string;
   description: string;
-  bio?: string;
-  photoUrl: string;
-  photoUrls?: string[];
   location: string;
   distance: number;
+  photoUrl: string;
+  photoUrls?: string[];
+  tags: string[];
+  crewSize: number;
   boatType: string;
   boatLength: number;
-  boatCapacity: number;
+  boatCapacity?: number;
+  bio?: string;
   memberCount?: number;
-  crewSize: number;
-  tags: string[];
-  verified?: boolean;
-  lastActive?: Date;
 }
 
 export interface Match {
   id: string;
   crewId: string;
   crewName: string;
-  photoUrl: string;
   location: string;
   matchedAt: Date;
   lastMessage?: {
     content: string;
     timestamp: Date;
   };
-  lastMessageAt?: Date;
-  unreadCount?: number;
+  photoUrl: string;
 }
 
 export interface Message {
   id: string;
-  senderId: string;
   content: string;
-  sentAt: Date;
-  readAt?: Date;
-  type?: 'text' | 'image' | 'location';
-}
-
-export interface SwipeAction {
-  id: string;
-  crewId: string;
-  action: 'like' | 'pass' | 'boost';
+  senderId: string;
   timestamp: Date;
+  type: 'text' | 'image' | 'location';
 }
 
 export interface OnboardingStep {
@@ -79,23 +63,19 @@ export interface OnboardingStep {
 
 export interface PremiumFeature {
   id: string;
-  title: string;
+  name: string;
   description: string;
   icon: string;
-  available: boolean;
 }
 
-export interface Meetup {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  date: string;
-  time: string;
-  maxAttendees?: number;
-  currentAttendees: number;
+export type ToastType = 'success' | 'error' | 'info' | 'warning' | 'match' | 'boost';
+
+export interface FilterOptions {
+  distance: number;
+  boatTypes: string[];
+  crewSize: {
+    min: number;
+    max: number;
+  };
   tags: string[];
-  organizerId: string;
-  attendeeIds: string[];
-  createdAt: Date;
 }
