@@ -6,10 +6,10 @@ import {
   Platform,
   Dimensions,
   Animated,
-  ImageBackground,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Video, ResizeMode } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
@@ -18,13 +18,18 @@ import { Anchor, Waves } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
+// You can replace this with your local video file path
+// Place your video file in assets/videos/hero-video.mp4
+const HERO_VIDEO = require('../assets/videos/hero-video.mp4');
+// Fallback image for web or if video fails to load
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
-  const imageAnim = React.useRef(new Animated.Value(0)).current;
+  const videoAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+  const [videoError, setVideoError] = React.useState(false);
   
   const { isAuthenticated, isInitialized, checkAuth } = useAuthStore();
   const colors = getColors(true); // Use dark colors for welcome screen
@@ -63,7 +68,7 @@ export default function WelcomeScreen() {
         friction: 8,
         useNativeDriver: true,
       }),
-      Animated.timing(imageAnim, {
+      Animated.timing(videoAnim, {
         toValue: 1,
         duration: 1500,
         useNativeDriver: true,
@@ -81,7 +86,7 @@ export default function WelcomeScreen() {
     return () => {
       animations.stop();
     };
-  }, [fadeAnim, slideAnim, imageAnim, scaleAnim]);
+  }, [fadeAnim, slideAnim, videoAnim, scaleAnim]);
 
   const handleGetStarted = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
@@ -105,6 +110,11 @@ export default function WelcomeScreen() {
     router.push('/auth/login');
   }, []);
 
+  const handleVideoError = React.useCallback(() => {
+    console.warn('Video failed to load, using fallback image');
+    setVideoError(true);
+  }, []);
+
   if (!isInitialized) {
     return (
       <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.primary }]}>
@@ -125,21 +135,32 @@ export default function WelcomeScreen() {
       
       <Animated.View 
         style={[
-          styles.heroImageContainer,
+          styles.heroContainer,
           {
-            opacity: imageAnim,
+            opacity: videoAnim,
             transform: [{ scale: scaleAnim }],
           }
         ]}
       >
-        <ImageBackground 
-          source={{ uri: HERO_IMAGE }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        >
-          <View style={styles.overlay} />
-          <View style={styles.gradientOverlay} />
-        </ImageBackground>
+        {!videoError ? (
+          <Video
+            source={HERO_VIDEO}
+            style={styles.heroVideo}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+            isLooping
+            isMuted
+            onError={handleVideoError}
+          />
+        ) : (
+          <View style={styles.heroFallback}>
+            <Text style={[styles.fallbackText, { color: colors.text.secondary }]}>
+              Video background unavailable
+            </Text>
+          </View>
+        )}
+        <View style={styles.overlay} />
+        <View style={styles.gradientOverlay} />
       </Animated.View>
       
       <Animated.View 
@@ -233,24 +254,35 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
   },
-  heroImageContainer: {
+  heroContainer: {
     position: 'absolute',
     width: '100%',
     height: '100%',
   },
-  heroImage: {
+  heroVideo: {
     width: '100%',
     height: '100%',
   },
+  heroFallback: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1a1a1a',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fallbackText: {
+    fontSize: 16,
+    opacity: 0.6,
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
     background: Platform.select({
-      web: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)',
+      web: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%)',
       default: undefined,
     }),
   },

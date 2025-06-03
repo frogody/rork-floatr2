@@ -1,15 +1,15 @@
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Image,
-  useColorScheme,
-  Platform
+  Platform,
+  Alert,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { 
@@ -17,258 +17,245 @@ import {
   Edit3, 
   Camera, 
   Heart, 
-  MessageCircle, 
-  MapPin,
-  Star,
-  Crown,
-  Anchor,
-  Users,
+  MapPin, 
   Calendar,
-  Award,
-  Shield
+  Anchor,
+  ChevronRight,
+  Star,
+  Shield,
+  Crown
 } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = getColors(isDark);
-  const { user, boat } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const colors = getColors();
 
-  const handleSettingsPress = async () => {
+  const handleHaptic = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
-    router.push('/settings/index');
-  };
+  }, []);
 
-  const handleEditProfile = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+  const handleEditProfile = React.useCallback(async () => {
+    await handleHaptic();
     router.push('/profile/edit');
-  };
+  }, [handleHaptic]);
 
-  const handleEditPhotos = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+  const handleEditPhotos = React.useCallback(async () => {
+    await handleHaptic();
     router.push('/profile/photos');
-  };
+  }, [handleHaptic]);
 
-  const handleEditBoat = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    router.push('/boat/edit');
-  };
+  const handleSettings = React.useCallback(async () => {
+    await handleHaptic();
+    router.push('/settings');
+  }, [handleHaptic]);
 
-  const handlePremium = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+  const handlePreferences = React.useCallback(async () => {
+    await handleHaptic();
+    router.push('/profile/preferences');
+  }, [handleHaptic]);
+
+  const handlePremium = React.useCallback(async () => {
+    await handleHaptic();
     router.push('/premium');
-  };
+  }, [handleHaptic]);
 
-  const stats = [
-    { label: 'Matches', value: '47', icon: Heart },
-    { label: 'Chats', value: '23', icon: MessageCircle },
-    { label: 'Meetups', value: '12', icon: Users },
-    { label: 'Miles', value: '1.2k', icon: MapPin },
-  ];
+  const handleLogout = React.useCallback(async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await handleHaptic();
+            await logout();
+            router.replace('/');
+          },
+        },
+      ]
+    );
+  }, [handleHaptic, logout]);
 
-  const achievements = [
-    { title: 'First Mate', description: 'Completed your first meetup', icon: Star },
-    { title: 'Navigator', description: 'Visited 10 different spots', icon: MapPin },
-    { title: 'Social Sailor', description: 'Made 25 connections', icon: Users },
+  const profileActions = [
+    {
+      icon: Edit3,
+      title: 'Edit Profile',
+      subtitle: 'Update your info and bio',
+      onPress: handleEditProfile,
+    },
+    {
+      icon: Camera,
+      title: 'Manage Photos',
+      subtitle: 'Add or reorder your photos',
+      onPress: handleEditPhotos,
+    },
+    {
+      icon: Heart,
+      title: 'Dating Preferences',
+      subtitle: 'Who you want to meet',
+      onPress: handlePreferences,
+    },
+    {
+      icon: Crown,
+      title: 'Floatr Premium',
+      subtitle: 'Unlock exclusive features',
+      onPress: handlePremium,
+      premium: true,
+    },
+    {
+      icon: Settings,
+      title: 'Settings',
+      subtitle: 'Privacy, notifications & more',
+      onPress: handleSettings,
+    },
   ];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <Stack.Screen 
-        options={{ 
-          title: 'Profile',
-          headerStyle: { backgroundColor: colors.background.primary },
-          headerTintColor: colors.text.primary,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleSettingsPress} style={styles.settingsButton}>
-              <Settings size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          ),
-        }} 
-      />
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="dark" />
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <View style={[styles.profileHeader, { backgroundColor: colors.surface.primary }]}>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Profile</Text>
+          <TouchableOpacity
+            style={[styles.settingsButton, { backgroundColor: colors.background.secondary }]}
+            onPress={handleSettings}
+            accessibilityLabel="Settings"
+          >
+            <Settings size={20} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Profile Card */}
+        <View style={[styles.profileCard, { backgroundColor: colors.background.secondary }]}>
           <View style={styles.profileImageContainer}>
-            <Image 
-              source={{ uri: user?.avatarUrl || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000' }} 
+            <Image
+              source={{ 
+                uri: user?.photos?.[0] || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+              }}
               style={styles.profileImage}
             />
-            <TouchableOpacity style={styles.cameraButton} onPress={handleEditPhotos}>
-              <Camera size={16} color={colors.text.primary} />
+            <TouchableOpacity 
+              style={[styles.editPhotoButton, { backgroundColor: colors.primary }]}
+              onPress={handleEditPhotos}
+            >
+              <Camera size={16} color={colors.background.primary} />
             </TouchableOpacity>
           </View>
           
           <View style={styles.profileInfo}>
-            <View style={styles.nameContainer}>
-              <Text style={[styles.name, { color: colors.text.primary }]}>
-                {user?.displayName || 'Your Name'}
-              </Text>
-              {user?.isVerified && (
-                <Shield size={20} color={colors.primary} />
-              )}
-            </View>
-            <Text style={[styles.bio, { color: colors.text.secondary }]}>
-              {user?.bio || 'Add a bio to tell others about yourself...'}
+            <Text style={[styles.profileName, { color: colors.text.primary }]}>
+              {user?.name || 'Your Name'}, {user?.age || 25}
             </Text>
             
-            <View style={styles.profileActions}>
-              <Button
-                title="Edit Profile"
-                onPress={handleEditProfile}
-                variant="secondary"
-                size="small"
-                icon={<Edit3 size={16} color={colors.text.primary} />}
-                style={styles.editButton}
-              />
-              <Button
-                title="Premium"
-                onPress={handlePremium}
-                variant="primary"
-                size="small"
-                icon={<Crown size={16} color={colors.text.primary} />}
-                style={styles.premiumButton}
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Stats */}
-        <View style={[styles.statsContainer, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Your Stats</Text>
-          <View style={styles.statsGrid}>
-            {stats.map((stat, index) => {
-              const IconComponent = stat.icon;
-              return (
-                <View key={index} style={styles.statItem}>
-                  <IconComponent size={20} color={colors.primary} />
-                  <Text style={[styles.statValue, { color: colors.text.primary }]}>{stat.value}</Text>
-                  <Text style={[styles.statLabel, { color: colors.text.secondary }]}>{stat.label}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Boat Information */}
-        {boat && (
-          <View style={[styles.boatContainer, { backgroundColor: colors.surface.primary }]}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>My Boat</Text>
-              <TouchableOpacity onPress={handleEditBoat}>
-                <Edit3 size={20} color={colors.text.secondary} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.boatInfo}>
-              <Image 
-                source={{ uri: boat.photoUrl || 'https://images.unsplash.com/photo-1564762861003-0e8c17d1dab7?q=80&w=1000' }} 
-                style={styles.boatImage}
-              />
-              <View style={styles.boatDetails}>
-                <Text style={[styles.boatName, { color: colors.text.primary }]}>{boat.name}</Text>
-                <Text style={[styles.boatType, { color: colors.text.secondary }]}>{boat.type}</Text>
-                <View style={styles.boatSpecs}>
-                  <Text style={[styles.boatSpec, { color: colors.text.secondary }]}>{boat.length}ft</Text>
-                  <Text style={[styles.boatSpec, { color: colors.text.secondary }]}>•</Text>
-                  <Text style={[styles.boatSpec, { color: colors.text.secondary }]}>{boat.capacity} people</Text>
-                </View>
+            <View style={styles.profileDetails}>
+              <View style={styles.detailItem}>
+                <MapPin size={14} color={colors.text.secondary} />
+                <Text style={[styles.detailText, { color: colors.text.secondary }]}>
+                  {user?.location || 'Miami, FL'}
+                </Text>
+              </View>
+              
+              <View style={styles.detailItem}>
+                <Anchor size={14} color={colors.text.secondary} />
+                <Text style={[styles.detailText, { color: colors.text.secondary }]}>
+                  {user?.boatType || 'Yacht Owner'}
+                </Text>
+              </View>
+              
+              <View style={styles.detailItem}>
+                <Star size={14} color={colors.accent} />
+                <Text style={[styles.detailText, { color: colors.text.secondary }]}>
+                  4.8 Rating
+                </Text>
               </View>
             </View>
-          </View>
-        )}
 
-        {!boat && (
-          <View style={[styles.addBoatContainer, { backgroundColor: colors.surface.primary }]}>
-            <Anchor size={32} color={colors.text.secondary} />
-            <Text style={[styles.addBoatTitle, { color: colors.text.primary }]}>Add Your Boat</Text>
-            <Text style={[styles.addBoatDescription, { color: colors.text.secondary }]}>
-              Let others know what you are sailing with
-            </Text>
-            <Button
-              title="Add Boat"
-              onPress={handleEditBoat}
-              variant="primary"
-              size="medium"
-              style={styles.addBoatButton}
-            />
-          </View>
-        )}
-
-        {/* Achievements */}
-        <View style={[styles.achievementsContainer, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Achievements</Text>
-          <View style={styles.achievementsList}>
-            {achievements.map((achievement, index) => {
-              const IconComponent = achievement.icon;
-              return (
-                <View key={index} style={[styles.achievementItem, { borderBottomColor: colors.border.primary }]}>
-                  <View style={[styles.achievementIcon, { backgroundColor: colors.primary + '20' }]}>
-                    <IconComponent size={20} color={colors.primary} />
-                  </View>
-                  <View style={styles.achievementContent}>
-                    <Text style={[styles.achievementTitle, { color: colors.text.primary }]}>
-                      {achievement.title}
-                    </Text>
-                    <Text style={[styles.achievementDescription, { color: colors.text.secondary }]}>
-                      {achievement.description}
-                    </Text>
-                  </View>
-                  <Award size={16} color={colors.warning} />
-                </View>
-              );
-            })}
+            {user?.bio && (
+              <Text style={[styles.profileBio, { color: colors.text.secondary }]}>
+                {user.bio}
+              </Text>
+            )}
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={[styles.quickActions, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Quick Actions</Text>
-          
-          <TouchableOpacity 
-            style={[styles.quickActionItem, { borderBottomColor: colors.border.primary }]}
-            onPress={() => router.push('/profile/preferences')}
-          >
-            <Heart size={20} color={colors.text.secondary} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>
-              Matching Preferences
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.quickActionItem, { borderBottomColor: colors.border.primary }]}
-            onPress={() => router.push('/who-liked-you')}
-          >
-            <Star size={20} color={colors.text.secondary} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>
-              Who Liked You
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.quickActionItem}
-            onPress={() => router.push('/settings/privacy')}
-          >
-            <Shield size={20} color={colors.text.secondary} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>
-              Privacy & Safety
-            </Text>
-          </TouchableOpacity>
+        {/* Quick Stats */}
+        <View style={styles.statsContainer}>
+          <View style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>12</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Matches</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>8</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Meetups</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: colors.background.secondary }]}>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>24</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Days Active</Text>
+          </View>
+        </View>
+
+        {/* Profile Actions */}
+        <View style={styles.actionsContainer}>
+          {profileActions.map((action, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.actionItem, { backgroundColor: colors.background.secondary }]}
+              onPress={action.onPress}
+              accessibilityLabel={action.title}
+            >
+              <View style={styles.actionLeft}>
+                <View style={[
+                  styles.actionIcon, 
+                  { 
+                    backgroundColor: action.premium ? colors.accent : colors.primary + '20' 
+                  }
+                ]}>
+                  <action.icon 
+                    size={20} 
+                    color={action.premium ? colors.background.primary : colors.primary} 
+                  />
+                </View>
+                <View style={styles.actionText}>
+                  <Text style={[styles.actionTitle, { color: colors.text.primary }]}>
+                    {action.title}
+                  </Text>
+                  <Text style={[styles.actionSubtitle, { color: colors.text.secondary }]}>
+                    {action.subtitle}
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Logout Button */}
+        <View style={styles.logoutContainer}>
+          <Button
+            title="Sign Out"
+            onPress={handleLogout}
+            variant="ghost"
+            size="large"
+            style={[styles.logoutButton, { borderColor: colors.error }]}
+            textStyle={{ color: colors.error }}
+          />
         </View>
       </ScrollView>
     </View>
@@ -279,194 +266,146 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  scrollView: {
     flex: 1,
   },
-  settingsButton: {
-    padding: 8,
+  scrollContent: {
+    paddingBottom: 32,
   },
-  profileHeader: {
-    padding: 20,
-    marginBottom: 16,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileCard: {
+    marginHorizontal: 24,
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 24,
   },
   profileImageContainer: {
     alignSelf: 'center',
-    position: 'relative',
     marginBottom: 16,
+    position: 'relative',
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
   },
-  cameraButton: {
+  editPhotoButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    justifyContent: 'center',
   },
   profileInfo: {
     alignItems: 'center',
   },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  name: {
+  profileName: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 12,
   },
-  bio: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  profileActions: {
+  profileDetails: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 12,
   },
-  editButton: {
-    flex: 1,
-  },
-  premiumButton: {
-    flex: 1,
-  },
-  statsContainer: {
-    padding: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  sectionHeader: {
+  detailItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
     alignItems: 'center',
     gap: 4,
   },
-  statValue: {
-    fontSize: 20,
+  detailText: {
+    fontSize: 14,
+  },
+  profileBio: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 24,
+    gap: 12,
+    marginBottom: 24,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
+    fontWeight: '500',
   },
-  boatContainer: {
-    padding: 20,
-    marginBottom: 16,
+  actionsContainer: {
+    marginHorizontal: 24,
+    gap: 2,
+    marginBottom: 32,
   },
-  boatInfo: {
+  actionItem: {
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
   },
-  boatImage: {
-    width: 80,
-    height: 60,
-    borderRadius: 8,
-  },
-  boatDetails: {
+  actionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
-    justifyContent: 'center',
   },
-  boatName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  boatType: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  boatSpecs: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  boatSpec: {
-    fontSize: 12,
-  },
-  addBoatContainer: {
-    padding: 20,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  addBoatTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  addBoatDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  addBoatButton: {
-    minWidth: 120,
-  },
-  achievementsContainer: {
-    padding: 20,
-    marginBottom: 16,
-  },
-  achievementsList: {
-    gap: 0,
-  },
-  achievementItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    gap: 12,
-  },
-  achievementIcon: {
+  actionIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  achievementContent: {
+  actionText: {
     flex: 1,
   },
-  achievementTitle: {
+  actionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
   },
-  achievementDescription: {
+  actionSubtitle: {
     fontSize: 14,
   },
-  quickActions: {
-    padding: 20,
-    marginBottom: 32,
+  logoutContainer: {
+    marginHorizontal: 24,
   },
-  quickActionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    gap: 12,
-  },
-  quickActionText: {
-    fontSize: 16,
+  logoutButton: {
+    borderWidth: 1,
   },
 });

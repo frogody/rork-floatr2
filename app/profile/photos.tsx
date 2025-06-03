@@ -1,224 +1,291 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  ScrollView, 
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Image,
   Alert,
   Platform,
-  useColorScheme
+  Dimensions,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { router, Stack } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
-import { Camera, Plus, X, Star, Move } from 'lucide-react-native';
+import { Plus, X, Camera, Image as ImageIcon, Move } from 'lucide-react-native';
 import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
 
+const { width } = Dimensions.get('window');
+const PHOTO_SIZE = (width - 48 - 16) / 3; // 3 photos per row with margins
+
 export default function ManagePhotosScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = getColors(isDark);
   const { user, updateUser } = useAuthStore();
-  
-  const [photos, setPhotos] = useState([
-    { id: '1', url: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=1000', isMain: true },
-    { id: '2', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000', isMain: false },
-    { id: '3', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1000', isMain: false },
-  ]);
+  const colors = getColors();
+  const [photos, setPhotos] = React.useState<string[]>(user?.photos || []);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const maxPhotos = 6;
-
-  const handleAddPhoto = async () => {
+  const handleHaptic = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
+  }, []);
+
+  const requestPermissions = React.useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'We need access to your photo library to add photos to your profile.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+    }
+    return true;
+  }, []);
+
+  const pickImage = React.useCallback(async () => {
+    await handleHaptic();
     
-    if (photos.length >= maxPhotos) {
-      Alert.alert('Photo Limit', `You can only have up to ${maxPhotos} photos.`);
+    if (photos.length >= 6) {
+      Alert.alert('Maximum Photos', 'You can add up to 6 photos to your profile.');
       return;
     }
+
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 5],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const newPhoto = result.assets[0].uri;
+        setPhotos(prev => [...prev, newPhoto]);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  }, [handleHaptic, photos.length, requestPermissions]);
+
+  const takePhoto = React.useCallback(async () => {
+    await handleHaptic();
     
+    if (photos.length >= 6) {
+      Alert.alert('Maximum Photos', 'You can add up to 6 photos to your profile.');
+      return;
+    }
+
+    if (Platform.OS !== 'web') {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'We need access to your camera to take photos.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 5],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const newPhoto = result.assets[0].uri;
+        setPhotos(prev => [...prev, newPhoto]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  }, [handleHaptic, photos.length]);
+
+  const removePhoto = React.useCallback(async (index: number) => {
+    await handleHaptic();
+    
+    Alert.alert(
+      'Remove Photo',
+      'Are you sure you want to remove this photo?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            setPhotos(prev => prev.filter((_, i) => i !== index));
+          },
+        },
+      ]
+    );
+  }, [handleHaptic]);
+
+  const movePhoto = React.useCallback(async (fromIndex: number, toIndex: number) => {
+    await handleHaptic();
+    
+    setPhotos(prev => {
+      const newPhotos = [...prev];
+      const [movedPhoto] = newPhotos.splice(fromIndex, 1);
+      newPhotos.splice(toIndex, 0, movedPhoto);
+      return newPhotos;
+    });
+  }, [handleHaptic]);
+
+  const savePhotos = React.useCallback(async () => {
+    if (photos.length === 0) {
+      Alert.alert('No Photos', 'Please add at least one photo to your profile.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await updateUser({ photos });
+      await handleHaptic();
+      router.back();
+    } catch (error) {
+      console.error('Error saving photos:', error);
+      Alert.alert('Error', 'Failed to save photos. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [photos, updateUser, handleHaptic]);
+
+  const showAddPhotoOptions = React.useCallback(() => {
     Alert.alert(
       'Add Photo',
       'Choose how you would like to add a photo',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Camera', onPress: () => handleCameraAction('camera') },
-        { text: 'Photo Library', onPress: () => handleCameraAction('library') },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickImage },
       ]
     );
-  };
-
-  const handleCameraAction = (type: 'camera' | 'library') => {
-    // In a real app, this would open camera or photo library
-    Alert.alert('Photo Action', `In a real app, this would open the ${type}.`);
-  };
-
-  const handleDeletePhoto = async (photoId: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-    
-    const photo = photos.find(p => p.id === photoId);
-    if (photo?.isMain) {
-      Alert.alert('Cannot Delete', 'You cannot delete your main photo. Set another photo as main first.');
-      return;
-    }
-    
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: () => {
-            setPhotos(photos.filter(p => p.id !== photoId));
-          }
-        },
-      ]
-    );
-  };
-
-  const handleSetMainPhoto = async (photoId: string) => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    setPhotos(photos.map(photo => ({
-      ...photo,
-      isMain: photo.id === photoId
-    })));
-    
-    const mainPhoto = photos.find(p => p.id === photoId);
-    if (mainPhoto) {
-      updateUser({ avatarUrl: mainPhoto.url });
-    }
-  };
-
-  const handleSave = async () => {
-    if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    
-    const mainPhoto = photos.find(p => p.isMain);
-    if (mainPhoto) {
-      updateUser({ avatarUrl: mainPhoto.url });
-    }
-    
-    Alert.alert('Success', 'Photos updated successfully!', [
-      { text: 'OK', onPress: () => router.back() }
-    ]);
-  };
+  }, [takePhoto, pickImage]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      
-      <Stack.Screen
-        options={{
+      <Stack.Screen 
+        options={{ 
           title: 'Manage Photos',
           headerStyle: { backgroundColor: colors.background.primary },
           headerTintColor: colors.text.primary,
-          headerRight: () => (
-            <Button
-              title="Save"
-              onPress={handleSave}
-              variant="text"
-              size="small"
-            />
-          ),
-        }}
+        }} 
       />
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.infoCard, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.infoTitle, { color: colors.text.primary }]}>Photo Tips</Text>
-          <Text style={[styles.infoText, { color: colors.text.secondary }]}>
-            {`• Add up to ${maxPhotos} photos to show your personality
-• Your first photo will be your main profile picture
-• Include photos of you on the water for best results
-• Clear, well-lit photos get more matches`}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Your Photos</Text>
+          <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+            Add up to 6 photos. Your first photo will be your main profile picture.
           </Text>
         </View>
-        
-        <View style={[styles.photosContainer, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Your Photos ({photos.length}/{maxPhotos})
-          </Text>
-          
-          <View style={styles.photosGrid}>
-            {photos.map((photo, index) => (
-              <View key={photo.id} style={styles.photoContainer}>
-                <Image source={{ uri: photo.url }} style={styles.photo} />
-                
-                {photo.isMain && (
-                  <View style={styles.mainBadge}>
-                    <Star size={12} color={colors.text.primary} />
-                    <Text style={[styles.mainBadgeText, { color: colors.text.primary }]}>MAIN</Text>
+
+        <View style={styles.photosGrid}>
+          {Array.from({ length: 6 }).map((_, index) => {
+            const photo = photos[index];
+            const isEmpty = !photo;
+
+            return (
+              <View key={index} style={styles.photoSlot}>
+                {isEmpty ? (
+                  <TouchableOpacity
+                    style={[styles.addPhotoButton, { backgroundColor: colors.background.secondary }]}
+                    onPress={showAddPhotoOptions}
+                    accessibilityLabel={`Add photo ${index + 1}`}
+                  >
+                    <Plus size={24} color={colors.text.tertiary} />
+                    <Text style={[styles.addPhotoText, { color: colors.text.tertiary }]}>
+                      Add Photo
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.photoContainer}>
+                    <Image source={{ uri: photo }} style={styles.photo} />
+                    
+                    {index === 0 && (
+                      <View style={[styles.mainPhotoBadge, { backgroundColor: colors.primary }]}>
+                        <Text style={[styles.mainPhotoText, { color: colors.background.primary }]}>
+                          Main
+                        </Text>
+                      </View>
+                    )}
+                    
+                    <TouchableOpacity
+                      style={[styles.removeButton, { backgroundColor: colors.error }]}
+                      onPress={() => removePhoto(index)}
+                      accessibilityLabel={`Remove photo ${index + 1}`}
+                    >
+                      <X size={16} color={colors.background.primary} />
+                    </TouchableOpacity>
+                    
+                    {index > 0 && (
+                      <TouchableOpacity
+                        style={[styles.moveButton, { backgroundColor: colors.background.primary }]}
+                        onPress={() => movePhoto(index, 0)}
+                        accessibilityLabel={`Make photo ${index + 1} main photo`}
+                      >
+                        <Move size={16} color={colors.text.primary} />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
-                
-                <View style={styles.photoActions}>
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={() => handleDeletePhoto(photo.id)}
-                  >
-                    <X size={16} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  
-                  {!photo.isMain && (
-                    <TouchableOpacity 
-                      style={[styles.actionButton, styles.starButton]}
-                      onPress={() => handleSetMainPhoto(photo.id)}
-                    >
-                      <Star size={16} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                
-                <View style={styles.photoNumber}>
-                  <Text style={styles.photoNumberText}>{index + 1}</Text>
-                </View>
               </View>
-            ))}
-            
-            {photos.length < maxPhotos && (
-              <TouchableOpacity style={styles.addPhotoContainer} onPress={handleAddPhoto}>
-                <Plus size={32} color={colors.text.secondary} />
-                <Text style={[styles.addPhotoText, { color: colors.text.secondary }]}>Add Photo</Text>
-              </TouchableOpacity>
-            )}
+            );
+          })}
+        </View>
+
+        <View style={styles.tipsContainer}>
+          <Text style={[styles.tipsTitle, { color: colors.text.primary }]}>Photo Tips</Text>
+          <View style={styles.tipsList}>
+            <Text style={[styles.tipItem, { color: colors.text.secondary }]}>
+              • Use high-quality, well-lit photos
+            </Text>
+            <Text style={[styles.tipItem, { color: colors.text.secondary }]}>
+              • Show yourself clearly in your main photo
+            </Text>
+            <Text style={[styles.tipItem, { color: colors.text.secondary }]}>
+              • Include photos of you on or near boats
+            </Text>
+            <Text style={[styles.tipItem, { color: colors.text.secondary }]}>
+              • Smile and look approachable
+            </Text>
+            <Text style={[styles.tipItem, { color: colors.text.secondary }]}>
+              • Avoid group photos as your main picture
+            </Text>
           </View>
         </View>
-        
-        <View style={[styles.guidelinesContainer, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Photo Guidelines</Text>
-          
-          <View style={styles.guideline}>
-            <Text style={[styles.guidelineTitle, { color: colors.text.primary }]}>✅ Good Photos</Text>
-            <Text style={[styles.guidelineText, { color: colors.text.secondary }]}>
-              {`• Clear face shots with good lighting
-• Photos of you enjoying water activities
-• Genuine smiles and natural poses
-• Recent photos (within 2 years)`}
-            </Text>
-          </View>
-          
-          <View style={styles.guideline}>
-            <Text style={[styles.guidelineTitle, { color: colors.error }]}>❌ Avoid</Text>
-            <Text style={[styles.guidelineText, { color: colors.text.secondary }]}>
-              {`• Group photos where you cannot be identified
-• Heavily filtered or edited photos
-• Photos with inappropriate content
-• Screenshots or low-quality images`}
-            </Text>
-          </View>
+
+        <View style={styles.actionButtons}>
+          <Button
+            title="Save Photos"
+            onPress={savePhotos}
+            variant="primary"
+            size="large"
+            loading={isLoading}
+            disabled={photos.length === 0}
+            style={styles.saveButton}
+          />
         </View>
       </ScrollView>
     </View>
@@ -229,42 +296,54 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  scrollView: {
     flex: 1,
-    padding: 16,
   },
-  infoCard: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+  scrollContent: {
+    paddingBottom: 32,
   },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  header: {
+    padding: 24,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
     marginBottom: 8,
   },
-  infoText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  photosContainer: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  subtitle: {
+    fontSize: 16,
+    lineHeight: 22,
   },
   photosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 8,
+  },
+  photoSlot: {
+    width: PHOTO_SIZE,
+    height: PHOTO_SIZE * 1.25,
+    marginBottom: 8,
+  },
+  addPhotoButton: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#E5E5E5',
+  },
+  addPhotoText: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
   },
   photoContainer: {
-    width: '48%',
-    aspectRatio: 3/4,
+    width: '100%',
+    height: '100%',
     position: 'relative',
   },
   photo: {
@@ -272,87 +351,62 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 12,
   },
-  mainBadge: {
+  mainPhotoBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#007AFF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
   },
-  mainBadgeText: {
+  mainPhotoText: {
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
-  photoActions: {
+  removeButton: {
     position: 'absolute',
     top: 8,
     right: 8,
-    gap: 8,
-  },
-  actionButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.9)',
-  },
-  starButton: {
-    backgroundColor: 'rgba(255, 204, 0, 0.9)',
-  },
-  photoNumber: {
-    position: 'absolute',
-    bottom: 8,
-    left: 8,
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  photoNumberText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  addPhotoContainer: {
-    width: '48%',
-    aspectRatio: 3/4,
+  moveButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 24,
+    height: 24,
     borderRadius: 12,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#8E8E93',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tipsContainer: {
+    margin: 24,
+    marginTop: 32,
+    padding: 20,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+  },
+  tipsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  tipsList: {
     gap: 8,
   },
-  addPhotoText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  guidelinesContainer: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 32,
-  },
-  guideline: {
-    marginBottom: 16,
-  },
-  guidelineTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  guidelineText: {
+  tipItem: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  actionButtons: {
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  saveButton: {
+    width: '100%',
   },
 });

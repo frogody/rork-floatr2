@@ -1,404 +1,266 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User, Boat, UserPreferences, UserPhoto } from '@/types';
 
-interface SignUpParams {
+export interface UserPreferences {
+  ageRange: [number, number];
+  maxDistance: number;
+  showMe: 'men' | 'women' | 'everyone';
+  boatTypes: string[];
+  experienceLevel: string[];
+  activities: string[];
+  onlyVerified: boolean;
+  onlyWithBoats: boolean;
+}
+
+export interface User {
+  id: string;
   email: string;
-  password: string;
-  displayName: string;
+  name: string;
+  age: number;
+  bio?: string;
+  photos: string[];
+  location: string;
+  boatType?: string;
+  verified: boolean;
+  preferences: UserPreferences;
+  createdAt: string;
+  lastActive: string;
 }
 
 interface AuthState {
   user: User | null;
-  boat: Boat | null;
   isAuthenticated: boolean;
-  isOnboarded: boolean;
+  isInitialized: boolean;
   isLoading: boolean;
   error: string | null;
-  hasSeenTutorial: boolean;
-  blockedUsers: string[];
-  isInitialized: boolean;
-  
-  // Actions
-  checkAuth: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (params: SignUpParams) => Promise<void>;
-  signOut: () => Promise<void>;
-  updateUser: (userData: Partial<User>) => void;
-  updateBoat: (boatData: Partial<Boat>) => void;
-  updatePreferences: (preferences: Partial<UserPreferences>) => void;
-  addPhoto: (photo: UserPhoto) => void;
-  removePhoto: (photoId: string) => void;
-  setMainPhoto: (photoId: string) => void;
-  setOnboarded: (value: boolean) => void;
-  setHasSeenTutorial: (value: boolean) => void;
-  blockUser: (userId: string) => void;
-  unblockUser: (userId: string) => void;
-  deleteAccount: () => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  clearError: () => void;
-  refreshUser: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
+interface AuthActions {
+  login: (email: string, password: string) => Promise<void>;
+  signup: (userData: Partial<User>) => Promise<void>;
+  logout: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => Promise<void>;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
+  resetPassword: (email: string) => Promise<void>;
+}
+
+type AuthStore = AuthState & AuthActions;
+
+// Mock user data for development
+const mockUser: User = {
+  id: '1',
+  email: 'demo@floatr.com',
+  name: 'Alex Johnson',
+  age: 28,
+  bio: 'Passionate sailor and ocean lover. Looking for someone to share amazing adventures on the water. Love sunset cruises and discovering hidden coves.',
+  photos: [
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=500&fit=crop&crop=face',
+    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=500&fit=crop&crop=face',
+  ],
+  location: 'Miami, FL',
+  boatType: 'Sailing Yacht',
+  verified: true,
+  preferences: {
+    ageRange: [21, 35],
+    maxDistance: 25,
+    showMe: 'everyone',
+    boatTypes: ['Sailing Yacht', 'Motor Yacht', 'Catamaran'],
+    experienceLevel: ['Intermediate', 'Advanced'],
+    activities: ['Sailing', 'Swimming', 'Sunset Cruises', 'Island Hopping'],
+    onlyVerified: false,
+    onlyWithBoats: true,
+  },
+  createdAt: new Date().toISOString(),
+  lastActive: new Date().toISOString(),
+};
+
+export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
+      // Initial state
       user: null,
-      boat: null,
       isAuthenticated: false,
-      isOnboarded: false,
+      isInitialized: false,
       isLoading: false,
       error: null,
-      hasSeenTutorial: false,
-      blockedUsers: [],
-      isInitialized: false,
-      
-      checkAuth: async () => {
-        set({ isLoading: true });
+
+      // Actions
+      login: async (email: string, password: string) => {
+        set({ isLoading: true, error: null });
+        
         try {
-          const { user } = get();
-          // Simulate auth check delay
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Mock authentication - accept any email/password for demo
+          if (email && password) {
+            set({ 
+              user: mockUser, 
+              isAuthenticated: true, 
+              isLoading: false,
+              isInitialized: true 
+            });
+          } else {
+            throw new Error('Invalid credentials');
+          }
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Login failed', 
+            isLoading: false 
+          });
+          throw error;
+        }
+      },
+
+      signup: async (userData: Partial<User>) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const newUser: User = {
+            ...mockUser,
+            ...userData,
+            id: Math.random().toString(36).substr(2, 9),
+            email: userData.email || '',
+            name: userData.name || '',
+            age: userData.age || 25,
+            photos: userData.photos || [],
+            createdAt: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            preferences: {
+              ageRange: [21, 35],
+              maxDistance: 25,
+              showMe: 'everyone',
+              boatTypes: [],
+              experienceLevel: [],
+              activities: [],
+              onlyVerified: false,
+              onlyWithBoats: true,
+              ...userData.preferences,
+            },
+          };
+          
+          set({ 
+            user: newUser, 
+            isAuthenticated: true, 
+            isLoading: false,
+            isInitialized: true 
+          });
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Signup failed', 
+            isLoading: false 
+          });
+          throw error;
+        }
+      },
+
+      logout: async () => {
+        set({ isLoading: true });
+        
+        try {
+          // Simulate API call
           await new Promise(resolve => setTimeout(resolve, 500));
           
           set({ 
-            isAuthenticated: !!user,
+            user: null, 
+            isAuthenticated: false, 
             isLoading: false,
-            isInitialized: true
+            error: null 
           });
         } catch (error) {
-          console.error('Auth check failed:', error);
           set({ 
-            error: 'Authentication check failed',
-            isLoading: false,
-            isInitialized: true,
-            isAuthenticated: false,
-            user: null,
+            error: error instanceof Error ? error.message : 'Logout failed', 
+            isLoading: false 
           });
-        }
-      },
-
-      signIn: async (email: string, password: string) => {
-        set({ isLoading: true, error: null });
-        try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Basic email validation
-          if (!email.includes('@')) {
-            throw new Error('Invalid email format');
-          }
-          
-          if (password.length < 6) {
-            throw new Error('Password must be at least 6 characters');
-          }
-          
-          const newUser: User = {
-            id: `user_${Date.now()}`,
-            email: email.toLowerCase().trim(),
-            displayName: email.split('@')[0],
-            createdAt: new Date(),
-            lastActive: new Date(),
-            photos: [],
-            preferences: {
-              ageRange: [25, 45],
-              maxDistance: 50,
-              showMe: 'everyone',
-              boatTypes: [],
-              experienceLevel: [],
-              activities: [],
-              onlyVerified: false,
-              onlyWithBoats: false,
-            },
-          };
-          
-          set({ 
-            user: newUser, 
-            isAuthenticated: true, 
-            isLoading: false,
-            error: null
-          });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Sign in failed';
-          set({ error: errorMessage, isLoading: false });
           throw error;
         }
       },
 
-      signUp: async ({ email, password, displayName }: SignUpParams) => {
+      updateUser: async (userData: Partial<User>) => {
+        const { user } = get();
+        if (!user) throw new Error('No user logged in');
+        
         set({ isLoading: true, error: null });
+        
         try {
           // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1200));
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          // Validation
-          if (!email.includes('@')) {
-            throw new Error('Invalid email format');
-          }
-          
-          if (password.length < 6) {
-            throw new Error('Password must be at least 6 characters');
-          }
-          
-          if (displayName.trim().length < 2) {
-            throw new Error('Display name must be at least 2 characters');
-          }
-          
-          const newUser: User = {
-            id: `user_${Date.now()}`,
-            email: email.toLowerCase().trim(),
-            displayName: displayName.trim(),
-            createdAt: new Date(),
-            lastActive: new Date(),
-            photos: [],
-            preferences: {
-              ageRange: [25, 45],
-              maxDistance: 50,
-              showMe: 'everyone',
-              boatTypes: [],
-              experienceLevel: [],
-              activities: [],
-              onlyVerified: false,
-              onlyWithBoats: false,
-            },
-          };
-          
-          set({ 
-            user: newUser, 
-            isAuthenticated: true, 
-            isLoading: false,
-            error: null
-          });
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
-          set({ error: errorMessage, isLoading: false });
-          throw error;
-        }
-      },
-
-      signOut: async () => {
-        set({ isLoading: true });
-        try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          set({
-            user: null,
-            boat: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            isOnboarded: false,
-          });
-        } catch (error) {
-          console.error('Sign out error:', error);
-          // Force sign out even if API fails
-          set({
-            user: null,
-            boat: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
-        }
-      },
-
-      updateUser: (userData: Partial<User>) => {
-        const { user } = get();
-        if (user) {
-          const updatedUser = { 
-            ...user, 
-            ...userData,
-            lastActive: new Date(),
-          };
-          set({ user: updatedUser });
-        }
-      },
-
-      updateBoat: (boatData: Partial<Boat>) => {
-        const { boat } = get();
-        const updatedBoat = boat ? { ...boat, ...boatData } : boatData as Boat;
-        set({ boat: updatedBoat });
-      },
-
-      updatePreferences: (preferences: Partial<UserPreferences>) => {
-        const { user } = get();
-        if (user) {
-          const updatedUser = {
+          const updatedUser: User = {
             ...user,
+            ...userData,
             preferences: {
               ...user.preferences,
-              ...preferences,
+              ...userData.preferences,
             },
-            lastActive: new Date(),
+            lastActive: new Date().toISOString(),
           };
-          set({ user: updatedUser });
-        }
-      },
-
-      addPhoto: (photo: UserPhoto) => {
-        const { user } = get();
-        if (user) {
-          const updatedPhotos = [...(user.photos || []), photo];
-          const updatedUser = {
-            ...user,
-            photos: updatedPhotos,
-            lastActive: new Date(),
-          };
-          set({ user: updatedUser });
-        }
-      },
-
-      removePhoto: (photoId: string) => {
-        const { user } = get();
-        if (user && user.photos) {
-          const updatedPhotos = user.photos.filter(photo => photo.id !== photoId);
-          const updatedUser = {
-            ...user,
-            photos: updatedPhotos,
-            lastActive: new Date(),
-          };
-          set({ user: updatedUser });
-        }
-      },
-
-      setMainPhoto: (photoId: string) => {
-        const { user } = get();
-        if (user && user.photos) {
-          const updatedPhotos = user.photos.map(photo => ({
-            ...photo,
-            isMain: photo.id === photoId,
-          }));
-          const mainPhoto = updatedPhotos.find(photo => photo.isMain);
-          const updatedUser = {
-            ...user,
-            photos: updatedPhotos,
-            avatarUrl: mainPhoto?.url,
-            lastActive: new Date(),
-          };
-          set({ user: updatedUser });
-        }
-      },
-
-      setOnboarded: (value: boolean) => {
-        set({ isOnboarded: value });
-      },
-
-      setHasSeenTutorial: (value: boolean) => {
-        set({ hasSeenTutorial: value });
-      },
-
-      blockUser: (userId: string) => {
-        const { blockedUsers } = get();
-        if (!blockedUsers.includes(userId)) {
-          set({ blockedUsers: [...blockedUsers, userId] });
-        }
-      },
-
-      unblockUser: (userId: string) => {
-        const { blockedUsers } = get();
-        set({ blockedUsers: blockedUsers.filter(id => id !== userId) });
-      },
-
-      deleteAccount: async () => {
-        set({ isLoading: true, error: null });
-        try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          set({
-            user: null,
-            boat: null,
-            isAuthenticated: false,
-            isLoading: false,
-            isOnboarded: false,
-            hasSeenTutorial: false,
-            blockedUsers: [],
+          set({ 
+            user: updatedUser, 
+            isLoading: false 
           });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
-          set({ error: errorMessage, isLoading: false });
+          set({ 
+            error: error instanceof Error ? error.message : 'Update failed', 
+            isLoading: false 
+          });
           throw error;
         }
       },
 
-      changePassword: async (currentPassword: string, newPassword: string) => {
-        set({ isLoading: true, error: null });
+      checkAuth: async () => {
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Simulate checking stored auth token
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          if (newPassword.length < 6) {
-            throw new Error('New password must be at least 6 characters');
-          }
-          
-          set({ isLoading: false });
+          const { user } = get();
+          set({ 
+            isAuthenticated: !!user,
+            isInitialized: true 
+          });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
-          set({ error: errorMessage, isLoading: false });
-          throw error;
+          set({ 
+            isAuthenticated: false,
+            isInitialized: true,
+            error: error instanceof Error ? error.message : 'Auth check failed'
+          });
         }
       },
 
       resetPassword: async (email: string) => {
         set({ isLoading: true, error: null });
+        
         try {
           // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 600));
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          if (!email.includes('@')) {
-            throw new Error('Invalid email format');
-          }
-          
+          // Mock success
           set({ isLoading: false });
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to reset password';
-          set({ error: errorMessage, isLoading: false });
+          set({ 
+            error: error instanceof Error ? error.message : 'Password reset failed', 
+            isLoading: false 
+          });
           throw error;
         }
       },
 
-      refreshUser: async () => {
-        const { user } = get();
-        if (!user) return;
-        
-        try {
-          // Simulate API call to refresh user data
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
-          const updatedUser = {
-            ...user,
-            lastActive: new Date(),
-          };
-          
-          set({ user: updatedUser });
-        } catch (error) {
-          console.error('Failed to refresh user:', error);
-        }
-      },
-
-      clearError: () => {
-        set({ error: null });
-      }
+      clearError: () => set({ error: null }),
     }),
     {
-      name: 'floatr-auth-storage',
+      name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
+      partialize: (state) => ({ 
         user: state.user,
-        boat: state.boat,
         isAuthenticated: state.isAuthenticated,
-        isOnboarded: state.isOnboarded,
-        hasSeenTutorial: state.hasSeenTutorial,
-        blockedUsers: state.blockedUsers,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.isInitialized = true;
-          state.isLoading = false;
-        }
-      },
     }
   )
 );
