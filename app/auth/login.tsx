@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -26,10 +26,24 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
   const { signIn, isLoading, error, clearError } = useAuthStore();
   const { toast, hideToast, showError, showSuccess, showInfo } = useToast();
+  
+  // Animation refs for enhanced feedback
+  const emailShake = useRef(new Animated.Value(0)).current;
+  const passwordShake = useRef(new Animated.Value(0)).current;
+  const formScale = useRef(new Animated.Value(1)).current;
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  const shakeInput = (animValue: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(animValue, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: -10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: 10, duration: 50, useNativeDriver: true }),
+      Animated.timing(animValue, { toValue: 0, duration: 50, useNativeDriver: true }),
+    ]).start();
   };
 
   const handleLogin = async () => {
@@ -38,31 +52,57 @@ export default function LoginScreen() {
     setPasswordError('');
     clearError();
 
-    // Validate inputs
+    // Validate inputs with enhanced animations
     let hasError = false;
     
     if (!email) {
       setEmailError('Email is required');
+      shakeInput(emailShake);
       hasError = true;
     } else if (!validateEmail(email)) {
       setEmailError('Please enter a valid email');
+      shakeInput(emailShake);
       hasError = true;
     }
     
     if (!password) {
       setPasswordError('Password is required');
+      shakeInput(passwordShake);
       hasError = true;
     } else if (password.length < 6) {
       setPasswordError('Password must be at least 6 characters');
+      shakeInput(passwordShake);
       hasError = true;
     }
 
     if (hasError) {
+      // Form shake animation
+      Animated.sequence([
+        Animated.timing(formScale, { toValue: 0.98, duration: 100, useNativeDriver: true }),
+        Animated.spring(formScale, { toValue: 1, tension: 300, friction: 10, useNativeDriver: true }),
+      ]).start();
+      
       showError('Invalid Input', 'Please check your email and password');
       return;
     }
     
+    // Success animation before API call
+    Animated.spring(formScale, {
+      toValue: 0.99,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+    
     const result = await signIn(email, password);
+    
+    // Reset form scale
+    Animated.spring(formScale, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
     
     if (error) {
       showError('Login Failed', error);
@@ -98,8 +138,18 @@ export default function LoginScreen() {
           <Text style={styles.subtitle}>Sign in to continue</Text>
         </View>
         
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
+        <Animated.View 
+          style={[
+            styles.form,
+            { transform: [{ scale: formScale }] }
+          ]}
+        >
+          <Animated.View 
+            style={[
+              styles.inputContainer,
+              { transform: [{ translateX: emailShake }] }
+            ]}
+          >
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={[styles.input, emailError && styles.inputError]}
@@ -118,9 +168,14 @@ export default function LoginScreen() {
                 <Text style={styles.errorText}>{emailError}</Text>
               </Animated.View>
             ) : null}
-          </View>
+          </Animated.View>
           
-          <View style={styles.inputContainer}>
+          <Animated.View 
+            style={[
+              styles.inputContainer,
+              { transform: [{ translateX: passwordShake }] }
+            ]}
+          >
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={[styles.input, passwordError && styles.inputError]}
@@ -138,7 +193,7 @@ export default function LoginScreen() {
                 <Text style={styles.errorText}>{passwordError}</Text>
               </Animated.View>
             ) : null}
-          </View>
+          </Animated.View>
           
           <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -175,7 +230,7 @@ export default function LoginScreen() {
             size="large"
             style={styles.button}
           />
-        </View>
+        </Animated.View>
         
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
@@ -207,6 +262,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.background.card,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     marginBottom: 32,
@@ -255,6 +316,7 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     alignSelf: 'flex-end',
+    padding: 8,
   },
   forgotPasswordText: {
     color: colors.primary,

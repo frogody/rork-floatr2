@@ -15,6 +15,25 @@ const CARD_WIDTH = width - 32;
 
 export default function CrewCard({ crew, onPress }: CrewCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    // Subtle shimmer effect for premium feel
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmer, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const handlePressIn = () => {
     Animated.spring(scale, {
@@ -34,6 +53,11 @@ export default function CrewCard({ crew, onPress }: CrewCardProps) {
     }).start();
   };
 
+  const shimmerTranslateX = shimmer.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-CARD_WIDTH, CARD_WIDTH],
+  });
+
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <Pressable 
@@ -46,6 +70,16 @@ export default function CrewCard({ crew, onPress }: CrewCardProps) {
           source={{ uri: crew.photoUrls?.[0] || crew.photoUrl }} 
           style={styles.image}
           resizeMode="cover"
+        />
+        
+        {/* Shimmer overlay for premium effect */}
+        <Animated.View
+          style={[
+            styles.shimmerOverlay,
+            {
+              transform: [{ translateX: shimmerTranslateX }],
+            },
+          ]}
         />
         
         <LinearGradient
@@ -61,12 +95,16 @@ export default function CrewCard({ crew, onPress }: CrewCardProps) {
               </View>
             </View>
             
-            <Text style={styles.bio} numberOfLines={2}>{crew.bio || crew.description}</Text>
+            <Text style={styles.bio} numberOfLines={2}>
+              {crew.bio || crew.description}
+            </Text>
             
             <View style={styles.detailsContainer}>
               <View style={styles.detail}>
                 <Users size={14} color={colors.text.primary} />
-                <Text style={styles.detailText}>{crew.memberCount || crew.crewSize} crew</Text>
+                <Text style={styles.detailText}>
+                  {crew.memberCount || crew.crewSize} crew
+                </Text>
               </View>
               <View style={styles.detail}>
                 <Ship size={14} color={colors.text.primary} />
@@ -96,20 +134,30 @@ const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH,
     height: CARD_WIDTH * 1.4,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: colors.background.card,
     marginHorizontal: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
   },
   image: {
     width: '100%',
     height: '100%',
     position: 'absolute',
+  },
+  shimmerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: 100,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    transform: [{ skewX: '-20deg' }],
   },
   gradient: {
     position: 'absolute',
@@ -118,7 +166,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: '60%',
     justifyContent: 'flex-end',
-    padding: 16,
+    padding: 20,
   },
   infoContainer: {
     gap: 8,
@@ -130,6 +178,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.text.primary,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -146,6 +197,7 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     opacity: 0.9,
     marginBottom: 8,
+    lineHeight: 22,
   },
   detailsContainer: {
     flexDirection: 'row',
@@ -168,10 +220,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   tagText: {
     fontSize: 12,
