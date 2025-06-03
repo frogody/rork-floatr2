@@ -13,7 +13,6 @@ import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { 
   Search, 
-  Filter, 
   MapPin, 
   Users, 
   Anchor, 
@@ -22,7 +21,8 @@ import {
   Waves,
   TrendingUp,
   Calendar,
-  Star
+  Star,
+  Zap
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 import { mockCrews } from '@/mocks/crews';
@@ -67,8 +67,8 @@ export default function DiscoveryScreen() {
       case 'events':
         router.push('/meetups/create');
         break;
-      case 'trending':
-        router.push('/(tabs)/nearby');
+      case 'match':
+        router.push('/(tabs)/match');
         break;
     }
   };
@@ -99,7 +99,7 @@ export default function DiscoveryScreen() {
           style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
           onPress={() => router.push('/(tabs)/nearby')}
         >
-          <Filter size={20} color={colors.primary} />
+          <Compass size={20} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -166,10 +166,10 @@ export default function DiscoveryScreen() {
           
           <TouchableOpacity 
             style={[styles.quickActionCard, { backgroundColor: colors.surface.primary }]}
-            onPress={() => router.push('/(tabs)/match')}
+            onPress={() => handleQuickAction('match')}
           >
             <View style={[styles.quickActionIcon, { backgroundColor: colors.background.secondary }]}>
-              <TrendingUp size={24} color={colors.success} />
+              <Zap size={24} color={colors.success} />
             </View>
             <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Match</Text>
             <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Find crews</Text>

@@ -15,11 +15,9 @@ import {
   MapPin, 
   Users, 
   Star, 
-  Filter,
   Navigation2,
   Anchor,
-  Waves,
-  Clock
+  Waves
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 import { mockCrews } from '@/mocks/crews';
@@ -124,7 +122,7 @@ export default function NearbyScreen() {
               onPress={() => setSelectedFilter(filter.id)}
             >
               <IconComponent 
-                size={12} 
+                size={10} 
                 color={isSelected ? colors.text.primary : colors.text.secondary} 
               />
               <Text style={[
@@ -275,19 +273,19 @@ const styles = StyleSheet.create({
   },
   filtersContent: {
     paddingHorizontal: 20,
-    gap: 8,
+    gap: 6,
   },
   filterTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
-    gap: 4,
+    gap: 3,
   },
   filterTabText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
   },
   content: {
