@@ -45,7 +45,7 @@ export default function WelcomeScreen() {
     if (isInitialized && isAuthenticated) {
       // Use replace to avoid navigation stack issues
       setTimeout(() => {
-        router.replace('/(tabs)/index');
+        router.replace('/(tabs)');
       }, 100);
     }
   }, [isAuthenticated, isInitialized]);

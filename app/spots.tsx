@@ -8,16 +8,15 @@ import {
   Image,
   useColorScheme,
 } from 'react-native';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { router, Stack } from 'expo-router';
 import { 
   MapPin, 
   Star, 
-  Users,
+  Users, 
   Navigation2,
   Anchor,
-  Waves,
-  ArrowLeft
+  Waves
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 
@@ -26,61 +25,61 @@ const popularSpots = [
     id: '1',
     name: 'Stiltsville',
     description: 'Historic stilt houses in the middle of Biscayne Bay',
-    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+    distance: '8.2 mi',
     rating: 4.8,
-    distance: '3.2 mi',
-    visitors: 156,
+    visitors: 234,
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
     tags: ['Historic', 'Scenic', 'Photography'],
   },
   {
     id: '2',
     name: 'Sandbar Paradise',
     description: 'Popular sandbar perfect for swimming and socializing',
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+    distance: '3.1 mi',
     rating: 4.6,
-    distance: '1.8 mi',
-    visitors: 89,
+    visitors: 156,
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
     tags: ['Swimming', 'Social', 'Shallow'],
   },
   {
     id: '3',
     name: 'Coral Reef Gardens',
-    description: 'Beautiful coral reef perfect for snorkeling and diving',
-    imageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop',
+    description: 'Pristine coral reef perfect for snorkeling and diving',
+    distance: '12.5 mi',
     rating: 4.9,
-    distance: '4.5 mi',
-    visitors: 234,
-    tags: ['Snorkeling', 'Diving', 'Marine Life'],
+    visitors: 89,
+    imageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop',
+    tags: ['Diving', 'Snorkeling', 'Marine Life'],
   },
   {
     id: '4',
     name: 'Sunset Point',
     description: 'Best spot in Miami for watching spectacular sunsets',
-    imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
+    distance: '5.7 mi',
     rating: 4.7,
-    distance: '2.1 mi',
-    visitors: 178,
+    visitors: 312,
+    imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=300&fit=crop',
     tags: ['Sunset', 'Romantic', 'Views'],
   },
   {
     id: '5',
     name: 'Fishing Grounds',
-    description: 'Prime fishing location with abundant marine life',
-    imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+    description: 'Deep water fishing spot known for large catches',
+    distance: '15.3 mi',
     rating: 4.5,
-    distance: '6.8 mi',
     visitors: 67,
-    tags: ['Fishing', 'Deep Water', 'Peaceful'],
+    imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
+    tags: ['Fishing', 'Deep Water', 'Sport'],
   },
   {
     id: '6',
-    name: 'Party Cove',
-    description: 'Lively spot where boaters gather for music and fun',
-    imageUrl: 'https://images.unsplash.com/photo-1566024287286-457247b70310?w=400&h=300&fit=crop',
+    name: 'Mangrove Tunnels',
+    description: 'Peaceful kayaking through natural mangrove tunnels',
+    distance: '6.8 mi',
     rating: 4.4,
-    distance: '3.7 mi',
-    visitors: 312,
-    tags: ['Party', 'Music', 'Social'],
+    visitors: 123,
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+    tags: ['Kayaking', 'Nature', 'Peaceful'],
   },
 ];
 
@@ -89,21 +88,13 @@ export default function SpotsScreen() {
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
 
-  const handleSpotPress = (spotId: string) => {
-    // In a real app, this would navigate to spot details
-    console.log('Navigate to spot:', spotId);
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <Stack.Screen 
         options={{ 
           title: 'Popular Spots',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <ArrowLeft size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          ),
+          headerStyle: { backgroundColor: colors.background.primary },
+          headerTintColor: colors.text.primary,
         }} 
       />
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -123,7 +114,6 @@ export default function SpotsScreen() {
             <TouchableOpacity 
               key={spot.id} 
               style={[styles.spotCard, { backgroundColor: colors.surface.primary }]}
-              onPress={() => handleSpotPress(spot.id)}
             >
               <Image source={{ uri: spot.imageUrl }} style={styles.spotImage} />
               
@@ -134,7 +124,7 @@ export default function SpotsScreen() {
                   </Text>
                   <View style={styles.ratingContainer}>
                     <Star size={14} color={colors.primary} fill={colors.primary} />
-                    <Text style={[styles.rating, { color: colors.text.primary }]}>
+                    <Text style={[styles.rating, { color: colors.text.secondary }]}>
                       {spot.rating}
                     </Text>
                   </View>
@@ -170,7 +160,6 @@ export default function SpotsScreen() {
 
               <TouchableOpacity 
                 style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}
-                onPress={() => handleSpotPress(spot.id)}
               >
                 <MapPin size={16} color={colors.primary} />
               </TouchableOpacity>
@@ -195,7 +184,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
     marginBottom: 8,
   },

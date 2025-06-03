@@ -30,7 +30,6 @@ export default function NearbyScreen() {
   const colors = getColors(isDark);
 
   const [refreshing, setRefreshing] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
   // Ensure mockCrews is always an array
@@ -41,13 +40,6 @@ export default function NearbyScreen() {
     { id: 'anchored', label: 'Anchored', icon: Anchor },
     { id: 'moving', label: 'Moving', icon: Navigation2 },
     { id: 'nearby', label: 'Nearby', icon: MapPin },
-  ];
-
-  const quickFilters = [
-    { id: 'all', label: 'All Crews', count: safeCrews.length },
-    { id: 'active', label: 'Active Now', count: safeCrews.filter(c => c.isActive).length },
-    { id: 'nearby', label: 'Under 2 mi', count: safeCrews.filter(c => c.distance < 2).length },
-    { id: 'verified', label: 'Verified', count: safeCrews.filter(c => c.verified).length },
   ];
 
   const filteredCrews = safeCrews.filter(crew => {
@@ -107,20 +99,14 @@ export default function NearbyScreen() {
             {filteredCrews.length} crews found
           </Text>
         </View>
-        <TouchableOpacity 
-          style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
-          onPress={() => setShowFilters(!showFilters)}
-        >
-          <Filter size={20} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
-      {/* Quick Filter Tabs */}
+      {/* Filter Tabs */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
-        style={styles.quickFiltersContainer}
-        contentContainerStyle={styles.quickFiltersContent}
+        style={styles.filtersContainer}
+        contentContainerStyle={styles.filtersContent}
       >
         {filters.map((filter) => {
           const IconComponent = filter.icon;
@@ -129,17 +115,20 @@ export default function NearbyScreen() {
             <TouchableOpacity
               key={filter.id}
               style={[
-                styles.quickFilterTab, 
-                { backgroundColor: isSelected ? colors.primary : colors.surface.primary }
+                styles.filterTab, 
+                { 
+                  backgroundColor: isSelected ? colors.primary : colors.surface.primary,
+                  borderColor: isSelected ? colors.primary : colors.border.primary,
+                }
               ]}
               onPress={() => setSelectedFilter(filter.id)}
             >
               <IconComponent 
-                size={14} 
+                size={12} 
                 color={isSelected ? colors.text.primary : colors.text.secondary} 
               />
               <Text style={[
-                styles.quickFilterTabText, 
+                styles.filterTabText, 
                 { color: isSelected ? colors.text.primary : colors.text.secondary }
               ]}>
                 {filter.label}
@@ -148,41 +137,6 @@ export default function NearbyScreen() {
           );
         })}
       </ScrollView>
-
-      {/* Detailed Filters */}
-      {showFilters && (
-        <View style={styles.filtersContainer}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filtersContent}
-          >
-            {quickFilters.map((filter) => {
-              const isSelected = selectedFilter === filter.id;
-              return (
-                <TouchableOpacity
-                  key={filter.id}
-                  style={[
-                    styles.filterChip,
-                    { 
-                      backgroundColor: isSelected ? colors.primary : colors.surface.primary,
-                      borderColor: isSelected ? colors.primary : colors.border.primary,
-                    }
-                  ]}
-                  onPress={() => setSelectedFilter(filter.id)}
-                >
-                  <Text style={[
-                    styles.filterChipText,
-                    { color: isSelected ? colors.text.primary : colors.text.secondary }
-                  ]}>
-                    {filter.label} ({filter.count})
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
 
       {/* Crew List */}
       <ScrollView 
@@ -316,47 +270,24 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
   },
-  filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickFiltersContainer: {
-    marginBottom: 8,
-  },
-  quickFiltersContent: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  quickFilterTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
-  },
-  quickFilterTabText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
   filtersContainer: {
-    paddingBottom: 16,
+    marginBottom: 16,
   },
   filtersContent: {
     paddingHorizontal: 20,
     gap: 8,
   },
-  filterChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
+    gap: 4,
   },
-  filterChipText: {
-    fontSize: 12,
+  filterTabText: {
+    fontSize: 11,
     fontWeight: '500',
   },
   content: {

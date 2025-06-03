@@ -4,21 +4,19 @@ import {
   StyleSheet, 
   Text, 
   ScrollView, 
-  TouchableOpacity,
   useColorScheme,
 } from 'react-native';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { router, Stack } from 'expo-router';
 import { 
   Cloud, 
   Sun, 
-  Wind,
+  Wind, 
   Waves,
   Thermometer,
   Eye,
-  ArrowLeft,
-  CloudRain,
-  Navigation
+  Droplets,
+  Navigation2
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 
@@ -29,25 +27,18 @@ const weatherData = {
     windSpeed: 12,
     windDirection: 'NE',
     waveHeight: 2.1,
-    visibility: 8.5,
+    visibility: 10,
     humidity: 68,
     uvIndex: 6,
   },
   forecast: [
     { time: '12 PM', temp: 78, condition: 'sunny', windSpeed: 12, waves: 2.1 },
-    { time: '1 PM', temp: 79, condition: 'partly-cloudy', windSpeed: 14, waves: 2.3 },
-    { time: '2 PM', temp: 80, condition: 'partly-cloudy', windSpeed: 15, waves: 2.5 },
-    { time: '3 PM', temp: 81, condition: 'cloudy', windSpeed: 16, waves: 2.8 },
-    { time: '4 PM', temp: 79, condition: 'rain', windSpeed: 18, waves: 3.2 },
-    { time: '5 PM', temp: 77, condition: 'rain', windSpeed: 20, waves: 3.5 },
+    { time: '1 PM', temp: 80, condition: 'sunny', windSpeed: 14, waves: 2.3 },
+    { time: '2 PM', temp: 82, condition: 'partly-cloudy', windSpeed: 16, waves: 2.5 },
+    { time: '3 PM', temp: 81, condition: 'partly-cloudy', windSpeed: 15, waves: 2.4 },
+    { time: '4 PM', temp: 79, condition: 'cloudy', windSpeed: 13, waves: 2.2 },
+    { time: '5 PM', temp: 77, condition: 'cloudy', windSpeed: 11, waves: 2.0 },
   ],
-  marine: {
-    tideHigh: '2:34 PM',
-    tideLow: '8:47 PM',
-    sunrise: '6:42 AM',
-    sunset: '7:28 PM',
-    moonPhase: 'Waxing Crescent',
-  }
 };
 
 export default function WeatherScreen() {
@@ -63,8 +54,6 @@ export default function WeatherScreen() {
         return <Cloud size={24} color={colors.text.secondary} />;
       case 'cloudy':
         return <Cloud size={24} color={colors.text.secondary} />;
-      case 'rain':
-        return <CloudRain size={24} color={colors.accent} />;
       default:
         return <Sun size={24} color={colors.primary} />;
     }
@@ -75,11 +64,9 @@ export default function WeatherScreen() {
       case 'sunny':
         return colors.primary;
       case 'partly-cloudy':
-        return colors.text.secondary;
+        return colors.accent;
       case 'cloudy':
         return colors.text.secondary;
-      case 'rain':
-        return colors.accent;
       default:
         return colors.primary;
     }
@@ -89,48 +76,82 @@ export default function WeatherScreen() {
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <Stack.Screen 
         options={{ 
-          title: 'Marine Weather',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <ArrowLeft size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          ),
+          title: 'Weather',
+          headerStyle: { backgroundColor: colors.background.primary },
+          headerTintColor: colors.text.primary,
         }} 
       />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Current Conditions */}
+        {/* Current Weather */}
         <View style={[styles.currentWeatherCard, { backgroundColor: colors.surface.primary }]}>
           <View style={styles.currentHeader}>
             <View>
-              <Text style={[styles.temperature, { color: colors.text.primary }]}>
-                {weatherData.current.temperature}°F
+              <Text style={[styles.location, { color: colors.text.primary }]}>
+                Miami, FL
               </Text>
-              <Text style={[styles.condition, { color: colors.text.secondary }]}>
-                {weatherData.current.condition}
+              <Text style={[styles.currentTime, { color: colors.text.secondary }]}>
+                Current Conditions
               </Text>
             </View>
-            <Cloud size={64} color={colors.text.secondary} />
+            <Sun size={48} color={colors.primary} />
           </View>
           
-          <View style={styles.currentDetails}>
-            <View style={styles.detailItem}>
-              <Wind size={16} color={colors.text.secondary} />
-              <Text style={[styles.detailText, { color: colors.text.secondary }]}>
-                {weatherData.current.windSpeed} mph {weatherData.current.windDirection}
+          <View style={styles.temperatureContainer}>
+            <Text style={[styles.temperature, { color: colors.text.primary }]}>
+              {weatherData.current.temperature}°F
+            </Text>
+            <Text style={[styles.condition, { color: colors.text.secondary }]}>
+              {weatherData.current.condition}
+            </Text>
+          </View>
+        </View>
+
+        {/* Marine Conditions */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Marine Conditions
+          </Text>
+          
+          <View style={styles.conditionsGrid}>
+            <View style={[styles.conditionCard, { backgroundColor: colors.surface.primary }]}>
+              <Wind size={24} color={colors.primary} />
+              <Text style={[styles.conditionValue, { color: colors.text.primary }]}>
+                {weatherData.current.windSpeed} mph
+              </Text>
+              <Text style={[styles.conditionLabel, { color: colors.text.secondary }]}>
+                Wind {weatherData.current.windDirection}
               </Text>
             </View>
-            <View style={styles.detailItem}>
-              <Waves size={16} color={colors.text.secondary} />
-              <Text style={[styles.detailText, { color: colors.text.secondary }]}>
-                {weatherData.current.waveHeight} ft waves
+
+            <View style={[styles.conditionCard, { backgroundColor: colors.surface.primary }]}>
+              <Waves size={24} color={colors.accent} />
+              <Text style={[styles.conditionValue, { color: colors.text.primary }]}>
+                {weatherData.current.waveHeight} ft
+              </Text>
+              <Text style={[styles.conditionLabel, { color: colors.text.secondary }]}>
+                Wave Height
               </Text>
             </View>
-            <View style={styles.detailItem}>
-              <Eye size={16} color={colors.text.secondary} />
-              <Text style={[styles.detailText, { color: colors.text.secondary }]}>
-                {weatherData.current.visibility} mi visibility
+
+            <View style={[styles.conditionCard, { backgroundColor: colors.surface.primary }]}>
+              <Eye size={24} color={colors.secondary} />
+              <Text style={[styles.conditionValue, { color: colors.text.primary }]}>
+                {weatherData.current.visibility} mi
+              </Text>
+              <Text style={[styles.conditionLabel, { color: colors.text.secondary }]}>
+                Visibility
+              </Text>
+            </View>
+
+            <View style={[styles.conditionCard, { backgroundColor: colors.surface.primary }]}>
+              <Droplets size={24} color={colors.primary} />
+              <Text style={[styles.conditionValue, { color: colors.text.primary }]}>
+                {weatherData.current.humidity}%
+              </Text>
+              <Text style={[styles.conditionLabel, { color: colors.text.secondary }]}>
+                Humidity
               </Text>
             </View>
           </View>
@@ -141,33 +162,40 @@ export default function WeatherScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
             Hourly Forecast
           </Text>
+          
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
-            style={styles.forecastScroll}
+            style={styles.forecastContainer}
           >
             {weatherData.forecast.map((hour, index) => (
               <View 
                 key={index} 
-                style={[styles.hourlyCard, { backgroundColor: colors.surface.primary }]}
+                style={[styles.forecastCard, { backgroundColor: colors.surface.primary }]}
               >
-                <Text style={[styles.hourTime, { color: colors.text.secondary }]}>
+                <Text style={[styles.forecastTime, { color: colors.text.secondary }]}>
                   {hour.time}
                 </Text>
-                {getWeatherIcon(hour.condition)}
-                <Text style={[styles.hourTemp, { color: colors.text.primary }]}>
+                
+                <View style={styles.forecastIcon}>
+                  {getWeatherIcon(hour.condition)}
+                </View>
+                
+                <Text style={[styles.forecastTemp, { color: colors.text.primary }]}>
                   {hour.temp}°
                 </Text>
-                <View style={styles.hourDetails}>
-                  <View style={styles.hourDetailItem}>
+                
+                <View style={styles.forecastDetails}>
+                  <View style={styles.forecastDetail}>
                     <Wind size={12} color={colors.text.secondary} />
-                    <Text style={[styles.hourDetailText, { color: colors.text.secondary }]}>
+                    <Text style={[styles.forecastDetailText, { color: colors.text.secondary }]}>
                       {hour.windSpeed}
                     </Text>
                   </View>
-                  <View style={styles.hourDetailItem}>
+                  
+                  <View style={styles.forecastDetail}>
                     <Waves size={12} color={colors.text.secondary} />
-                    <Text style={[styles.hourDetailText, { color: colors.text.secondary }]}>
+                    <Text style={[styles.forecastDetailText, { color: colors.text.secondary }]}>
                       {hour.waves}
                     </Text>
                   </View>
@@ -177,57 +205,17 @@ export default function WeatherScreen() {
           </ScrollView>
         </View>
 
-        {/* Marine Conditions */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Marine Conditions
-          </Text>
-          <View style={[styles.marineCard, { backgroundColor: colors.surface.primary }]}>
-            <View style={styles.marineGrid}>
-              <View style={styles.marineItem}>
-                <Text style={[styles.marineLabel, { color: colors.text.secondary }]}>
-                  High Tide
-                </Text>
-                <Text style={[styles.marineValue, { color: colors.text.primary }]}>
-                  {weatherData.marine.tideHigh}
-                </Text>
-              </View>
-              <View style={styles.marineItem}>
-                <Text style={[styles.marineLabel, { color: colors.text.secondary }]}>
-                  Low Tide
-                </Text>
-                <Text style={[styles.marineValue, { color: colors.text.primary }]}>
-                  {weatherData.marine.tideLow}
-                </Text>
-              </View>
-              <View style={styles.marineItem}>
-                <Text style={[styles.marineLabel, { color: colors.text.secondary }]}>
-                  Sunrise
-                </Text>
-                <Text style={[styles.marineValue, { color: colors.text.primary }]}>
-                  {weatherData.marine.sunrise}
-                </Text>
-              </View>
-              <View style={styles.marineItem}>
-                <Text style={[styles.marineLabel, { color: colors.text.secondary }]}>
-                  Sunset
-                </Text>
-                <Text style={[styles.marineValue, { color: colors.text.primary }]}>
-                  {weatherData.marine.sunset}
-                </Text>
-              </View>
-            </View>
+        {/* Safety Notice */}
+        <View style={[styles.safetyCard, { backgroundColor: colors.surface.primary }]}>
+          <View style={styles.safetyHeader}>
+            <Navigation2 size={20} color={colors.primary} />
+            <Text style={[styles.safetyTitle, { color: colors.text.primary }]}>
+              Boating Conditions
+            </Text>
           </View>
-        </View>
-
-        {/* Safety Alert */}
-        <View style={[styles.alertCard, { backgroundColor: colors.surface.primary, borderLeftColor: colors.primary }]}>
-          <Text style={[styles.alertTitle, { color: colors.text.primary }]}>
-            Boating Conditions
-          </Text>
-          <Text style={[styles.alertText, { color: colors.text.secondary }]}>
-            Good conditions for boating. Light winds and moderate waves. 
-            Be aware of afternoon thunderstorms possible after 4 PM.
+          <Text style={[styles.safetyText, { color: colors.text.secondary }]}>
+            Good conditions for boating. Light to moderate winds with calm seas. 
+            Perfect for recreational activities and fishing.
           </Text>
         </View>
       </ScrollView>
@@ -245,7 +233,7 @@ const styles = StyleSheet.create({
   },
   currentWeatherCard: {
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
     marginBottom: 24,
   },
   currentHeader: {
@@ -254,24 +242,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  location: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  currentTime: {
+    fontSize: 14,
+  },
+  temperatureContainer: {
+    alignItems: 'center',
+  },
   temperature: {
     fontSize: 48,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   condition: {
     fontSize: 16,
-  },
-  currentDetails: {
-    gap: 12,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailText: {
-    fontSize: 14,
   },
   section: {
     marginBottom: 24,
@@ -281,72 +269,78 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 16,
   },
-  forecastScroll: {
+  conditionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  conditionCard: {
+    flex: 1,
+    minWidth: '45%',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  conditionValue: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  conditionLabel: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  forecastContainer: {
     marginHorizontal: -20,
     paddingHorizontal: 20,
   },
-  hourlyCard: {
+  forecastCard: {
+    width: 80,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     marginRight: 12,
     alignItems: 'center',
-    minWidth: 80,
   },
-  hourTime: {
+  forecastTime: {
     fontSize: 12,
     marginBottom: 8,
   },
-  hourTemp: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 8,
+  forecastIcon: {
     marginBottom: 8,
   },
-  hourDetails: {
-    gap: 4,
-    alignItems: 'center',
+  forecastTemp: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
   },
-  hourDetailItem: {
+  forecastDetails: {
+    gap: 4,
+  },
+  forecastDetail: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  hourDetailText: {
+  forecastDetailText: {
     fontSize: 10,
   },
-  marineCard: {
-    borderRadius: 16,
-    padding: 20,
-  },
-  marineGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 20,
-  },
-  marineItem: {
-    flex: 1,
-    minWidth: '45%',
-  },
-  marineLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  marineValue: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  alertCard: {
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
+  safetyCard: {
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 20,
   },
-  alertTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  safetyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 8,
   },
-  alertText: {
+  safetyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  safetyText: {
     fontSize: 14,
     lineHeight: 20,
   },
