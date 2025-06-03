@@ -24,9 +24,11 @@ export default function RootLayout() {
       checkAuth();
     }
     
-    SystemUI.setBackgroundColorAsync(colors.background.primary);
-    if (Platform.OS === 'ios') {
-      SystemUI.setStatusBarStyle('light');
+    if (Platform.OS !== 'web') {
+      SystemUI.setBackgroundColorAsync(colors.background.primary);
+      if (Platform.OS === 'ios') {
+        SystemUI.setStatusBarStyle('light');
+      }
     }
   }, [isInitialized, checkAuth]);
 
