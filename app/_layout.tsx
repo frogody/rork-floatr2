@@ -27,7 +27,7 @@ export default function RootLayout() {
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
     }
-  }, [isInitialized]);
+  }, [isInitialized, checkAuth]);
 
   if (!fontsLoaded && !fontError) {
     return null;

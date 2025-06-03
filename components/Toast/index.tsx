@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
-import { Check, AlertTriangle, Info, Star, Zap } from 'lucide-react-native';
+import { Check, AlertTriangle, Info, Star } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import { useToastStore } from '@/hooks/useToast';
 
 export function ToastProvider() {
-  const { visible, message, type, duration } = useToastStore();
+  const { visible, message, type } = useToastStore();
   const translateY = new Animated.Value(-100);
 
   useEffect(() => {
