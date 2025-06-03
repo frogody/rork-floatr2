@@ -45,21 +45,11 @@ export const useAuthStore = create<AuthState>()(
       isInitialized: false,
       
       checkAuth: () => {
-        set({ isLoading: true });
-        try {
-          const { user } = get();
-          set({ 
-            isAuthenticated: !!user,
-            isLoading: false,
-            isInitialized: true
-          });
-        } catch (error) {
-          set({ 
-            error: 'Authentication check failed',
-            isLoading: false,
-            isInitialized: true
-          });
-        }
+        const { user } = get();
+        set({ 
+          isAuthenticated: !!user,
+          isInitialized: true
+        });
       },
 
       signIn: async (userData: User) => {

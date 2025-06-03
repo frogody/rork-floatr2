@@ -7,24 +7,11 @@ import { Platform, View } from 'react-native';
 import * as SystemUI from 'expo-system-ui';
 import colors from '@/constants/colors';
 
-function useProtectedRoute(isAuthenticated: boolean) {
-  const segments = useSegments();
-  const router = useRouter();
-
-  useEffect(() => {
-    const inAuthGroup = segments[0] === 'auth';
-    const inOnboardingGroup = segments[0] === 'onboarding';
-
-    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      router.replace('/auth/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, segments]);
-}
-
 export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
+  
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
     'Inter-Medium': require('@/assets/fonts/Inter-Medium.ttf'),
@@ -43,13 +30,21 @@ export default function RootLayout() {
     }
   }, [isInitialized, checkAuth]);
 
-  // Only initialize protected routes after fonts are loaded
-  if (fontsLoaded && !fontError) {
-    useProtectedRoute(isAuthenticated);
-  }
+  useEffect(() => {
+    if (!fontsLoaded || !isInitialized) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const inOnboardingGroup = segments[0] === 'onboarding';
+
+    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
+      router.replace('/auth/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, segments, fontsLoaded, isInitialized]);
 
   if (!fontsLoaded && !fontError) {
-    return null;
+    return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;
   }
 
   return (
@@ -61,7 +56,6 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.background.primary }
         }}
       >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
