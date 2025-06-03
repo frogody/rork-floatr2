@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/authStore';
 export default function TabLayout() {
   const { isAuthenticated } = useAuthStore();
 
-  // If not authenticated, don't render tabs
   if (!isAuthenticated) {
     return null;
   }

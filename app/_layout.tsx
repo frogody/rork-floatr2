@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, Slot } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import * as SystemUI from 'expo-system-ui';
 import colors from '@/constants/colors';
 
@@ -54,7 +54,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <View style={{ flex: 1, backgroundColor: colors.background.primary }}>
       <Stack 
         screenOptions={{ 
           headerShown: false,
@@ -66,7 +66,8 @@ export default function RootLayout() {
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack>
+      <Slot />
       <ToastProvider />
-    </>
+    </View>
   );
 }

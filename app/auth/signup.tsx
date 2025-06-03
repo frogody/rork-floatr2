@@ -27,6 +27,10 @@ export default function SignupScreen() {
     setIsLoading(true);
     try {
       await signUp(email, password, displayName);
+      showToast({
+        message: 'Account created successfully!',
+        type: 'success'
+      });
       router.replace('/onboarding');
     } catch (error) {
       showToast({
