@@ -1,46 +1,45 @@
 const colors = {
-  primary: '#3B82F6',
-  secondary: '#EC4899',
-  accent: '#10B981',
+  primary: '#007AFF',
+  secondary: '#5AC8FA',
+  accent: '#FF9500',
   
   background: {
-    primary: '#0A0A0A',
-    secondary: '#18181B',
-    tertiary: '#27272A',
-    card: '#1F1F23',
+    primary: '#000000',
+    secondary: '#1C1C1E',
+    tertiary: '#2C2C2E',
   },
   
   surface: {
-    primary: '#0A0A0A',
-    secondary: '#18181B',
-    tertiary: '#27272A',
+    primary: '#1C1C1E',
+    secondary: '#2C2C2E',
+    tertiary: '#3A3A3C',
   },
   
   text: {
-    primary: '#F8FAFC',
-    secondary: '#CBD5E1',
-    tertiary: '#64748B',
+    primary: '#FFFFFF',
+    secondary: '#EBEBF5',
+    tertiary: '#EBEBF599',
+    inverse: '#000000',
   },
   
   border: {
-    primary: '#27272A',
-    secondary: '#3F3F46',
+    primary: '#38383A',
+    secondary: '#48484A',
   },
   
   status: {
-    success: '#10B981',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    info: '#3B82F6',
+    success: '#30D158',
+    warning: '#FF9F0A',
+    error: '#FF453A',
+    info: '#007AFF',
   },
   
-  gradient: {
-    primary: ['#3B82F6', '#1D4ED8'],
-    secondary: ['#EC4899', '#BE185D'],
-    accent: ['#10B981', '#047857'],
-  },
-  
-  error: '#EF4444',
+  // Legacy support
+  border: '#38383A',
+  success: '#30D158',
+  warning: '#FF9F0A',
+  error: '#FF453A',
+  info: '#007AFF',
 };
 
 export default colors;

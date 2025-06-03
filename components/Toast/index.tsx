@@ -1,45 +1,59 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
-import { Check, AlertTriangle, Info, Star } from 'lucide-react-native';
-import colors from '@/constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useToastStore from '@/hooks/useToast';
+import colors from '@/constants/colors';
+import { CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react-native';
 
-export function ToastProvider() {
-  const { visible, message, type } = useToastStore();
+export const ToastProvider: React.FC = () => {
+  const { visible, message, type, hideToast } = useToastStore();
+  const insets = useSafeAreaInsets();
   const translateY = React.useRef(new Animated.Value(-100)).current;
+  const opacity = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      Animated.spring(translateY, {
-        toValue: Platform.OS === 'ios' ? 60 : 20,
-        useNativeDriver: true,
-        damping: 15,
-        mass: 1,
-        stiffness: 120,
-      }).start();
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
     } else {
-      Animated.spring(translateY, {
-        toValue: -100,
-        useNativeDriver: true,
-        damping: 15,
-        mass: 1,
-        stiffness: 120,
-      }).start();
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -100,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }
   }, [visible]);
+
+  if (!visible) return null;
 
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <Check size={20} color={colors.status.success} />;
+        return <CheckCircle size={20} color={colors.status.success} />;
       case 'error':
-        return <AlertTriangle size={20} color={colors.status.error} />;
-      case 'info':
-        return <Info size={20} color={colors.status.info} />;
+        return <AlertCircle size={20} color={colors.status.error} />;
       case 'warning':
-        return <Star size={20} color={colors.status.warning} />;
+        return <AlertTriangle size={20} color={colors.status.warning} />;
+      case 'info':
       default:
-        return null;
+        return <Info size={20} color={colors.status.info} />;
     }
   };
 
@@ -49,22 +63,24 @@ export function ToastProvider() {
         return colors.status.success + '20';
       case 'error':
         return colors.status.error + '20';
-      case 'info':
-        return colors.status.info + '20';
       case 'warning':
         return colors.status.warning + '20';
+      case 'info':
       default:
-        return colors.surface.secondary;
+        return colors.status.info + '20';
     }
   };
 
-  if (!visible) return null;
-
   return (
-    <Animated.View 
+    <Animated.View
       style={[
         styles.container,
-        { transform: [{ translateY }], backgroundColor: getBackgroundColor() }
+        {
+          top: insets.top + 10,
+          transform: [{ translateY }],
+          opacity,
+          backgroundColor: getBackgroundColor(),
+        },
       ]}
     >
       <View style={styles.content}>
@@ -73,32 +89,42 @@ export function ToastProvider() {
       </View>
     </Animated.View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     top: 0,
-    left: 20,
-    right: 20,
-    backgroundColor: colors.surface.secondary,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    left: 16,
+    right: 16,
     zIndex: 1000,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 5,
+      },
+      web: {
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+      },
+    }),
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    padding: 16,
   },
   message: {
     flex: 1,
-    fontSize: 14,
+    marginLeft: 12,
+    fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: colors.text.primary,
   },
