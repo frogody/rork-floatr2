@@ -1,5 +1,3 @@
-import { Crew, Match } from '@/types';
-
 export const boatTypes = [
   'Sailboat',
   'Center Console',
@@ -14,6 +12,32 @@ export const boatTypes = [
 ] as const;
 
 export type BoatType = typeof boatTypes[number];
+
+export interface Crew {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  distance: number;
+  photoUrl: string;
+  photoUrls: string[];
+  tags: string[];
+  crewSize: number;
+  boatType: BoatType;
+  boatLength: number;
+  boatCapacity: number;
+  bio: string;
+}
+
+export interface Match {
+  id: string;
+  crewId: string;
+  matchedAt: string;
+  lastMessage?: {
+    text: string;
+    timestamp: string;
+  };
+}
 
 export const mockCrews: Crew[] = [
   {
@@ -35,9 +59,9 @@ export const mockCrews: Crew[] = [
     boatCapacity: 8,
     bio: 'We are a group of friends who love sailing and meeting new people on the water. We usually anchor at the sandbar on weekends and are always up for a raft-up party!',
   },
-  // ... rest of the mockCrews array
+  // Add more mock crews here as needed
 ];
 
 export const mockMatches: Match[] = [
-  // ... rest of the mockMatches array
+  // Add mock matches here as needed
 ];
