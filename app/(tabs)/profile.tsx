@@ -31,7 +31,7 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
-  const colors = getColors();
+  const colors = getColors(false); // Use light colors for profile screen
 
   const handleHaptic = React.useCallback(async () => {
     if (Platform.OS !== 'web') {

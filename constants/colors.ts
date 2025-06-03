@@ -18,6 +18,7 @@ export interface ColorScheme {
   text: {
     primary: string;
     secondary: string;
+    tertiary: string;
     disabled: string;
     inverse: string;
   };
@@ -53,6 +54,7 @@ const lightColors: ColorScheme = {
   text: {
     primary: '#000000',
     secondary: '#6D6D80',
+    tertiary: '#8E8E93',
     disabled: '#C7C7CC',
     inverse: '#FFFFFF',
   },
@@ -88,6 +90,7 @@ const darkColors: ColorScheme = {
   text: {
     primary: '#FFFFFF',
     secondary: '#8E8E93',
+    tertiary: '#6D6D80',
     disabled: '#48484A',
     inverse: '#000000',
   },
@@ -103,7 +106,7 @@ const darkColors: ColorScheme = {
   },
 };
 
-export function getColors(isDark: boolean): ColorScheme {
+export function getColors(isDark: boolean = false): ColorScheme {
   return isDark ? darkColors : lightColors;
 }
 

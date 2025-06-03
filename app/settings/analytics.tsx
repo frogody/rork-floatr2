@@ -14,7 +14,7 @@ import { BarChart3, TrendingUp, Eye, Shield, Info } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 
 export default function AnalyticsSettingsScreen() {
-  const colors = getColors();
+  const colors = getColors(false); // Use light colors
   const [settings, setSettings] = React.useState({
     shareUsageData: true,
     sharePerformanceData: false,
@@ -108,12 +108,12 @@ export default function AnalyticsSettingsScreen() {
                 <Switch
                   value={settings[option.key as keyof typeof settings]}
                   onValueChange={(value) => updateSetting(option.key, value)}
-                  trackColor={{ false: colors.border, true: colors.primary }}
+                  trackColor={{ false: colors.border.primary, true: colors.primary }}
                   thumbColor={colors.background.primary}
                 />
               </View>
               {index < analyticsOptions.length - 1 && (
-                <View style={[styles.separator, { backgroundColor: colors.border }]} />
+                <View style={[styles.separator, { backgroundColor: colors.border.primary }]} />
               )}
             </View>
           ))}

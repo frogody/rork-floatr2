@@ -17,7 +17,7 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function PreferencesScreen() {
   const { user, updateUser } = useAuthStore();
-  const colors = getColors();
+  const colors = getColors(false); // Use light colors
   const [preferences, setPreferences] = React.useState(user?.preferences || {
     ageRange: [21, 35] as [number, number],
     maxDistance: 25,
@@ -122,7 +122,7 @@ export default function PreferencesScreen() {
                     backgroundColor: preferences.maxDistance === distance 
                       ? colors.primary 
                       : colors.background.primary,
-                    borderColor: colors.border,
+                    borderColor: colors.border.primary,
                   }
                 ]}
                 onPress={() => {
@@ -161,7 +161,7 @@ export default function PreferencesScreen() {
                     backgroundColor: preferences.showMe === option.value 
                       ? colors.primary 
                       : colors.background.primary,
-                    borderColor: colors.border,
+                    borderColor: colors.border.primary,
                   }
                 ]}
                 onPress={() => {
@@ -200,7 +200,7 @@ export default function PreferencesScreen() {
                     backgroundColor: preferences.boatTypes.includes(boatType) 
                       ? colors.primary 
                       : colors.background.primary,
-                    borderColor: colors.border,
+                    borderColor: colors.border.primary,
                   }
                 ]}
                 onPress={() => {
@@ -241,7 +241,7 @@ export default function PreferencesScreen() {
                     backgroundColor: preferences.activities.includes(activity) 
                       ? colors.primary 
                       : colors.background.primary,
-                    borderColor: colors.border,
+                    borderColor: colors.border.primary,
                   }
                 ]}
                 onPress={() => {
@@ -289,7 +289,7 @@ export default function PreferencesScreen() {
                 handleHaptic();
                 updatePreference('onlyVerified', value);
               }}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.background.primary}
             />
           </View>
@@ -309,7 +309,7 @@ export default function PreferencesScreen() {
                 handleHaptic();
                 updatePreference('onlyWithBoats', value);
               }}
-              trackColor={{ false: colors.border, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.background.primary}
             />
           </View>
