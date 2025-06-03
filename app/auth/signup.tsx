@@ -23,7 +23,7 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp({ email, password, displayName });
       router.replace('/(tabs)');
     } catch (error) {
       showToast('Failed to create account', 'error');
