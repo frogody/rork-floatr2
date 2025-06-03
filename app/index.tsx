@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Video, ResizeMode } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
 import { getColors } from '@/constants/colors';
@@ -130,11 +131,22 @@ export default function WelcomeScreen() {
           }
         ]}
       >
-        <Image
-          source={{ uri: HERO_IMAGE }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
+        {Platform.OS !== 'web' ? (
+          <Video
+            source={require('../assets/videos/A_floaty_with_202506032109_wciyz.mov')}
+            style={styles.heroVideo}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+            isLooping
+            isMuted
+          />
+        ) : (
+          <Image
+            source={{ uri: HERO_IMAGE }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+        )}
         <View style={styles.overlay} />
         <View style={styles.gradientOverlay} />
       </Animated.View>
@@ -237,6 +249,10 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  heroVideo: {
     width: '100%',
     height: '100%',
   },
