@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Platform } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
@@ -13,6 +13,7 @@ export default function LoginScreen() {
   
   const { signIn } = useAuthStore();
   const showToast = useToastStore(state => state.showToast);
+  const router = useRouter();
 
   const handleLogin = async () => {
     if (!email || !password) {

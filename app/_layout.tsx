@@ -39,7 +39,7 @@ export default function RootLayout() {
     if (isAuthenticated && (inAuthGroup || segments[0] === undefined)) {
       router.replace('/(tabs)');
     } else if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
-      router.replace('/');
+      router.replace('/auth/login');
     }
   }, [isAuthenticated, segments, navigationState?.key, isInitialized]);
 
