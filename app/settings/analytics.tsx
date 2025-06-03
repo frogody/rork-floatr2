@@ -6,7 +6,8 @@ import {
   ScrollView, 
   Switch,
   Alert,
-  Platform
+  Platform,
+  useColorScheme
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -20,10 +21,14 @@ import {
   Shield,
   Info
 } from 'lucide-react-native';
-import colors from '@/constants/colors';
+import { getColors } from '@/constants/colors';
 import { Button } from '@/components/Button';
 
 export default function AnalyticsSettingsScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
+  
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [crashReportingEnabled, setCrashReportingEnabled] = useState(true);
   const [performanceMonitoringEnabled, setPerformanceMonitoringEnabled] = useState(true);
@@ -83,14 +88,14 @@ export default function AnalyticsSettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       
       <Stack.Screen
         options={{
           title: 'Analytics & Privacy',
           headerStyle: {
-            backgroundColor: colors.background.dark,
+            backgroundColor: colors.background.primary,
           },
           headerTintColor: colors.text.primary,
         }}
@@ -98,21 +103,21 @@ export default function AnalyticsSettingsScreen() {
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Data Collection Settings</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Data Collection Settings</Text>
+          <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
             Control how Floatr collects and uses your data to improve the app experience
           </Text>
         </View>
         
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.surface.primary }]}>
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <View style={styles.settingIconContainer}>
-                <BarChart size={20} color={colors.text.primary} />
+              <View style={[styles.settingIconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <BarChart size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Usage Analytics</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[styles.settingTitle, { color: colors.text.primary }]}>Usage Analytics</Text>
+                <Text style={[styles.settingDescription, { color: colors.text.secondary }]}>
                   Collect anonymous data about how you use the app to help us improve features
                 </Text>
               </View>
@@ -120,19 +125,19 @@ export default function AnalyticsSettingsScreen() {
             <Switch
               value={analyticsEnabled}
               onValueChange={handleToggleAnalytics}
-              trackColor={{ false: colors.background.tertiary, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.text.primary}
             />
           </View>
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <View style={styles.settingIconContainer}>
-                <Activity size={20} color={colors.text.primary} />
+              <View style={[styles.settingIconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <Activity size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Crash Reporting</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[styles.settingTitle, { color: colors.text.primary }]}>Crash Reporting</Text>
+                <Text style={[styles.settingDescription, { color: colors.text.secondary }]}>
                   Send crash reports to help us identify and fix bugs
                 </Text>
               </View>
@@ -140,19 +145,19 @@ export default function AnalyticsSettingsScreen() {
             <Switch
               value={crashReportingEnabled}
               onValueChange={handleToggleCrashReporting}
-              trackColor={{ false: colors.background.tertiary, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.text.primary}
             />
           </View>
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <View style={styles.settingIconContainer}>
-                <PieChart size={20} color={colors.text.primary} />
+              <View style={[styles.settingIconContainer, { backgroundColor: colors.primary + '20' }]}>
+                <PieChart size={20} color={colors.primary} />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Performance Monitoring</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[styles.settingTitle, { color: colors.text.primary }]}>Performance Monitoring</Text>
+                <Text style={[styles.settingDescription, { color: colors.text.secondary }]}>
                   Track app performance to help us optimize speed and responsiveness
                 </Text>
               </View>
@@ -160,23 +165,23 @@ export default function AnalyticsSettingsScreen() {
             <Switch
               value={performanceMonitoringEnabled}
               onValueChange={handleTogglePerformanceMonitoring}
-              trackColor={{ false: colors.background.tertiary, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.text.primary}
             />
           </View>
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <View style={styles.settingIconContainer}>
+              <View style={[styles.settingIconContainer, { backgroundColor: colors.primary + '20' }]}>
                 {userBehaviorTracking ? (
-                  <Eye size={20} color={colors.text.primary} />
+                  <Eye size={20} color={colors.primary} />
                 ) : (
-                  <EyeOff size={20} color={colors.text.primary} />
+                  <EyeOff size={20} color={colors.primary} />
                 )}
               </View>
               <View>
-                <Text style={styles.settingTitle}>User Behavior Tracking</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[styles.settingTitle, { color: colors.text.primary }]}>User Behavior Tracking</Text>
+                <Text style={[styles.settingDescription, { color: colors.text.secondary }]}>
                   Track detailed user interactions to personalize your experience
                 </Text>
               </View>
@@ -184,30 +189,30 @@ export default function AnalyticsSettingsScreen() {
             <Switch
               value={userBehaviorTracking}
               onValueChange={handleToggleUserBehaviorTracking}
-              trackColor={{ false: colors.background.tertiary, true: colors.primary }}
+              trackColor={{ false: colors.border.primary, true: colors.primary }}
               thumbColor={colors.text.primary}
             />
           </View>
         </View>
         
-        <View style={styles.infoBox}>
+        <View style={[styles.infoBox, { backgroundColor: colors.surface.primary }]}>
           <Info size={20} color={colors.text.secondary} />
-          <Text style={styles.infoText}>
+          <Text style={[styles.infoText, { color: colors.text.secondary }]}>
             We take your privacy seriously. All data is collected anonymously and used only to improve the app experience. 
             You can change these settings at any time.
           </Text>
         </View>
         
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data Management</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface.primary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Data Management</Text>
           
           <Button
             title="Delete My Analytics Data"
             onPress={handleDeleteData}
             variant="outline"
             size="medium"
-            style={styles.deleteButton}
-            textStyle={styles.deleteButtonText}
+            style={[styles.deleteButton, { borderColor: colors.error }]}
+            textStyle={{ color: colors.error }}
           />
           
           <Button
@@ -227,7 +232,6 @@ export default function AnalyticsSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.dark,
   },
   content: {
     flex: 1,
@@ -239,30 +243,27 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.text.secondary,
     lineHeight: 24,
   },
   section: {
-    marginBottom: 32,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text.primary,
     marginBottom: 16,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.background.tertiary,
-    borderRadius: 12,
-    padding: 16,
+    paddingVertical: 12,
     marginBottom: 12,
   },
   settingInfo: {
@@ -275,7 +276,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -283,16 +283,13 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
-    color: colors.text.secondary,
     lineHeight: 20,
   },
   infoBox: {
-    backgroundColor: colors.background.tertiary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 32,
@@ -301,16 +298,11 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: colors.text.secondary,
     lineHeight: 20,
     marginLeft: 12,
     flex: 1,
   },
   deleteButton: {
-    borderColor: colors.status.error,
     marginBottom: 16,
-  },
-  deleteButtonText: {
-    color: colors.status.error,
   },
 });
