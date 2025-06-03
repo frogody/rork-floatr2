@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { useAuthStore } from '@/store/authStore';
@@ -9,7 +9,6 @@ import colors from '@/constants/colors';
 
 export default function RootLayout() {
   const { isAuthenticated, checkAuth, isInitialized } = useAuthStore();
-  const [isMounted, setIsMounted] = useState(false);
   
   const [fontsLoaded, fontError] = useFonts({
     'Inter-Regular': require('@/assets/fonts/Inter-Regular.ttf'),
@@ -29,12 +28,8 @@ export default function RootLayout() {
     }
   }, [isInitialized, checkAuth]);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   // Show loading state
-  if (!fontsLoaded || !isInitialized || !isMounted) {
+  if (!fontsLoaded || !isInitialized) {
     return <View style={{ flex: 1, backgroundColor: colors.background.primary }} />;
   }
 
