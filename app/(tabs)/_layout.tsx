@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform, useColorScheme } from 'react-native';
-import { Compass, MessageCircle, User, BlurView } from 'lucide-react-native';
+import { Compass, MessageCircle, User } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 export default function TabLayout() {

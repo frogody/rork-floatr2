@@ -7,6 +7,7 @@ export interface User {
   isPremium?: boolean;
   createdAt?: Date;
   lastActive?: Date;
+  lastActiveAt?: Date; // Added for compatibility
   preferences?: UserPreferences;
   settings?: UserSettings;
   location?: {

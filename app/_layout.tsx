@@ -28,7 +28,7 @@ export default function RootLayout() {
                 fontSize: 17,
               },
               headerShadowVisible: false,
-              headerBackTitleVisible: false,
+              headerBackTitle: '',
               animation: Platform.select({
                 ios: 'slide_from_right',
                 android: 'slide_from_right',
