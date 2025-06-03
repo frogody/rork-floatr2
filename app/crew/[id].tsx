@@ -1,29 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   StyleSheet, 
   Text, 
   ScrollView, 
-  Image,
   TouchableOpacity,
+  Image,
   useColorScheme,
+  Dimensions,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { 
   MapPin, 
   Users, 
   Star, 
-  Anchor, 
+  Anchor,
   MessageCircle,
   Heart,
   Share,
-  Flag,
+  Clock,
+  Navigation2,
+  Waves,
   Calendar,
-  Navigation
+  Phone,
+  Mail
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 import { mockCrews } from '@/mocks/crews';
+import { Button } from '@/components/Button';
+
+const { width } = Dimensions.get('window');
 
 export default function CrewDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -31,6 +38,9 @@ export default function CrewDetailScreen() {
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
 
+  const [isLiked, setIsLiked] = useState(false);
+
+  // Find the crew by ID
   const crew = mockCrews.find(c => c.id === id);
 
   if (!crew) {
@@ -41,99 +51,99 @@ export default function CrewDetailScreen() {
     );
   }
 
+  const getTimeAgo = (lastActive: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - lastActive.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    
+    if (minutes < 1) return 'Active now';
+    if (minutes < 60) return `Active ${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `Active ${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `Active ${days}d ago`;
+  };
+
   const handleMessage = () => {
     router.push(`/chat/${crew.id}`);
   };
 
   const handleLike = () => {
-    // Add to favorites
-    console.log('Liked crew:', crew.id);
+    setIsLiked(!isLiked);
   };
 
   const handleShare = () => {
-    // Share crew
-    console.log('Share crew:', crew.id);
+    // Share functionality
   };
 
-  const handleReport = () => {
-    router.push(`/report/${crew.id}`);
-  };
-
-  const handleJoinRequest = () => {
-    router.push(`/join-request/${crew.id}`);
+  const handleJoinCrew = () => {
+    // Join crew functionality
+    router.push('/meetups/create');
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      
       <Stack.Screen 
         options={{ 
           title: crew.name,
+          headerStyle: { backgroundColor: colors.background.primary },
+          headerTintColor: colors.text.primary,
           headerRight: () => (
-            <View style={styles.headerButtons}>
+            <View style={styles.headerActions}>
               <TouchableOpacity 
                 style={[styles.headerButton, { backgroundColor: colors.surface.primary }]}
                 onPress={handleShare}
               >
-                <Share size={18} color={colors.primary} />
+                <Share size={18} color={colors.text.primary} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.headerButton, { backgroundColor: colors.surface.primary }]}
-                onPress={handleReport}
+                onPress={handleLike}
               >
-                <Flag size={18} color={colors.text.secondary} />
+                <Heart 
+                  size={18} 
+                  color={isLiked ? colors.error : colors.text.primary}
+                  fill={isLiked ? colors.error : 'transparent'}
+                />
               </TouchableOpacity>
             </View>
           ),
         }} 
       />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Hero Image */}
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: crew.imageUrl }} style={styles.image} />
-          <View style={styles.imageOverlay}>
-            <View style={styles.distanceContainer}>
-              <MapPin size={12} color={colors.text.primary} />
-              <Text style={[styles.distanceText, { color: colors.text.primary }]}>
-                {crew.distance} mi away
+        <View style={styles.heroContainer}>
+          <Image source={{ uri: crew.imageUrl }} style={styles.heroImage} />
+          <View style={styles.heroOverlay}>
+            <View style={styles.statusContainer}>
+              <View style={[
+                styles.statusDot, 
+                { backgroundColor: crew.isActive ? colors.success : colors.text.secondary }
+              ]} />
+              <Text style={[styles.statusText, { color: colors.text.primary }]}>
+                {getTimeAgo(crew.lastActive)}
               </Text>
             </View>
           </View>
         </View>
 
         {/* Main Info */}
-        <View style={styles.mainInfo}>
+        <View style={[styles.infoCard, { backgroundColor: colors.surface.primary }]}>
           <View style={styles.titleRow}>
-            <Text style={[styles.name, { color: colors.text.primary }]}>{crew.name}</Text>
-            {crew.verified && (
-              <Star size={20} color={colors.primary} fill={colors.primary} />
-            )}
-          </View>
-
-          <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <Anchor size={16} color={colors.text.secondary} />
-              <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                {crew.boatType || 'Boat'}
+            <View style={styles.titleContainer}>
+              <Text style={[styles.crewName, { color: colors.text.primary }]}>
+                {crew.name}
               </Text>
+              {crew.verified && (
+                <Star size={20} color={colors.primary} fill={colors.primary} />
+              )}
             </View>
-            
-            <View style={styles.metaItem}>
-              <Users size={16} color={colors.text.secondary} />
-              <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                {crew.memberCount} members
-              </Text>
-            </View>
-
-            <View style={styles.metaItem}>
-              <View style={[
-                styles.statusDot, 
-                { backgroundColor: crew.isActive ? colors.success : colors.text.secondary }
-              ]} />
-              <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                {crew.isActive ? 'Active now' : 'Offline'}
+            <View style={styles.distanceContainer}>
+              <MapPin size={16} color={colors.text.secondary} />
+              <Text style={[styles.distance, { color: colors.text.secondary }]}>
+                {crew.distance} mi away
               </Text>
             </View>
           </View>
@@ -142,10 +152,34 @@ export default function CrewDetailScreen() {
             {crew.description}
           </Text>
 
+          {/* Meta Info */}
+          <View style={styles.metaContainer}>
+            <View style={styles.metaItem}>
+              <Anchor size={16} color={colors.text.secondary} />
+              <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                {crew.boatType || 'Boat'}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Users size={16} color={colors.text.secondary} />
+              <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                {crew.memberCount} members
+              </Text>
+            </View>
+            {crew.location && (
+              <View style={styles.metaItem}>
+                <Navigation2 size={16} color={colors.text.secondary} />
+                <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                  {crew.location}
+                </Text>
+              </View>
+            )}
+          </View>
+
           {/* Tags */}
           <View style={styles.tagsContainer}>
             {crew.tags.map((tag, index) => (
-              <View key={index} style={[styles.tag, { backgroundColor: colors.surface.secondary }]}>
+              <View key={index} style={[styles.tag, { backgroundColor: colors.background.secondary }]}>
                 <Text style={[styles.tagText, { color: colors.text.secondary }]}>{tag}</Text>
               </View>
             ))}
@@ -155,67 +189,93 @@ export default function CrewDetailScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <TouchableOpacity 
-            style={[styles.quickAction, { backgroundColor: colors.surface.primary }]}
-            onPress={() => router.push('/map')}
+            style={[styles.quickActionButton, { backgroundColor: colors.surface.primary }]}
+            onPress={handleMessage}
           >
-            <Navigation size={20} color={colors.primary} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Navigate</Text>
+            <MessageCircle size={20} color={colors.primary} />
+            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Message</Text>
           </TouchableOpacity>
-
+          
           <TouchableOpacity 
-            style={[styles.quickAction, { backgroundColor: colors.surface.primary }]}
-            onPress={() => router.push('/events')}
+            style={[styles.quickActionButton, { backgroundColor: colors.surface.primary }]}
+            onPress={() => router.push('/meetups/create')}
           >
             <Calendar size={20} color={colors.secondary} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Events</Text>
+            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Plan Meetup</Text>
           </TouchableOpacity>
-
+          
           <TouchableOpacity 
-            style={[styles.quickAction, { backgroundColor: colors.surface.primary }]}
-            onPress={handleLike}
+            style={[styles.quickActionButton, { backgroundColor: colors.surface.primary }]}
           >
-            <Heart size={20} color={colors.error} />
-            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Favorite</Text>
+            <Phone size={20} color={colors.accent} />
+            <Text style={[styles.quickActionText, { color: colors.text.primary }]}>Call</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Location Info */}
-        <View style={[styles.section, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Location</Text>
-          <View style={styles.locationInfo}>
-            <MapPin size={16} color={colors.text.secondary} />
-            <Text style={[styles.locationText, { color: colors.text.secondary }]}>
-              {crew.location || 'Miami, FL'}
-            </Text>
+        {/* Additional Info */}
+        <View style={[styles.additionalInfo, { backgroundColor: colors.surface.primary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            About This Crew
+          </Text>
+          
+          <View style={styles.infoGrid}>
+            <View style={styles.infoItem}>
+              <Clock size={16} color={colors.text.secondary} />
+              <View style={styles.infoContent}>
+                <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>
+                  Typical Schedule
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.text.primary }]}>
+                  Weekends & Evenings
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.infoItem}>
+              <Waves size={16} color={colors.text.secondary} />
+              <View style={styles.infoContent}>
+                <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>
+                  Experience Level
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.text.primary }]}>
+                  All Levels Welcome
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.infoItem}>
+              <Users size={16} color={colors.text.secondary} />
+              <View style={styles.infoContent}>
+                <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>
+                  Age Range
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.text.primary }]}>
+                  {crew.age ? `${crew.age - 5}-${crew.age + 10}` : '25-45'}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Activity */}
-        <View style={[styles.section, { backgroundColor: colors.surface.primary }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Activity</Text>
-          <Text style={[styles.activityText, { color: colors.text.secondary }]}>
-            Last active {crew.isActive ? 'now' : new Date(crew.lastActive).toLocaleDateString()}
-          </Text>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <Button
+            title="Join This Crew"
+            onPress={handleJoinCrew}
+            variant="primary"
+            size="large"
+            style={styles.joinButton}
+          />
+          
+          <Button
+            title="Send Message"
+            onPress={handleMessage}
+            variant="secondary"
+            size="large"
+            style={styles.messageButton}
+          />
         </View>
       </ScrollView>
-
-      {/* Action Buttons */}
-      <View style={[styles.actionButtons, { backgroundColor: colors.background.primary }]}>
-        <TouchableOpacity 
-          style={[styles.secondaryButton, { backgroundColor: colors.surface.primary }]}
-          onPress={handleMessage}
-        >
-          <MessageCircle size={20} color={colors.primary} />
-          <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>Message</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.primaryButton, { backgroundColor: colors.primary }]}
-          onPress={handleJoinRequest}
-        >
-          <Text style={[styles.primaryButtonText, { color: colors.text.primary }]}>Request to Join</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -230,9 +290,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  headerButtons: {
+  headerActions: {
     flexDirection: 'row',
     gap: 8,
   },
@@ -246,76 +306,99 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  imageContainer: {
+  heroContainer: {
     position: 'relative',
-    height: 250,
+    height: 300,
   },
-  image: {
+  heroImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  imageOverlay: {
+  heroOverlay: {
     position: 'absolute',
-    top: 16,
+    bottom: 16,
     left: 16,
     right: 16,
   },
-  distanceContainer: {
+  statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.6)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     alignSelf: 'flex-start',
-    gap: 4,
-  },
-  distanceText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  mainInfo: {
-    padding: 20,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: '700',
-    flex: 1,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 14,
+    gap: 6,
   },
   statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  infoCard: {
+    margin: 20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  crewName: {
+    fontSize: 24,
+    fontWeight: '700',
+    flex: 1,
+  },
+  distanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  distance: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   description: {
     fontSize: 16,
     lineHeight: 24,
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  metaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 20,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 14,
   },
   tagsContainer: {
     flexDirection: 'row',
-    gap: 8,
     flexWrap: 'wrap',
+    gap: 8,
   },
   tag: {
     paddingHorizontal: 12,
@@ -332,68 +415,63 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 20,
   },
-  quickAction: {
+  quickActionButton: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 16,
     gap: 8,
   },
   quickActionText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
-  section: {
+  additionalInfo: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  locationInfo: {
+  infoGrid: {
+    gap: 16,
+  },
+  infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
-  locationText: {
-    fontSize: 14,
+  infoContent: {
+    flex: 1,
   },
-  activityText: {
+  infoLabel: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  infoValue: {
     fontSize: 14,
+    fontWeight: '500',
   },
   actionButtons: {
-    flexDirection: 'row',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
   },
-  secondaryButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
+  joinButton: {
+    width: '100%',
   },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    flex: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  messageButton: {
+    width: '100%',
   },
 });

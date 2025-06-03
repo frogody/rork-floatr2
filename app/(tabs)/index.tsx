@@ -67,7 +67,6 @@ export default function DiscoveryScreen() {
   });
 
   const handleCrewPress = (crewId: string) => {
-    // Navigate to crew detail screen
     router.push(`/crew/${crewId}`);
   };
 
@@ -80,10 +79,10 @@ export default function DiscoveryScreen() {
         router.push('/weather');
         break;
       case 'events':
-        router.push('/events');
+        router.push('/meetups/create');
         break;
       case 'trending':
-        router.push('/trending');
+        router.push('/(tabs)/nearby');
         break;
     }
   };
@@ -112,7 +111,7 @@ export default function DiscoveryScreen() {
         </View>
         <TouchableOpacity 
           style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
-          onPress={() => router.push('/filters')}
+          onPress={() => router.push('/(tabs)/nearby')}
         >
           <Filter size={20} color={colors.primary} />
         </TouchableOpacity>
@@ -210,7 +209,7 @@ export default function DiscoveryScreen() {
               <Calendar size={24} color={colors.secondary} />
             </View>
             <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Events</Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Upcoming meetups</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Create meetups</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -221,14 +220,14 @@ export default function DiscoveryScreen() {
               <TrendingUp size={24} color={colors.success} />
             </View>
             <Text style={[styles.quickActionTitle, { color: colors.text.primary }]}>Trending</Text>
-            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Hot topics</Text>
+            <Text style={[styles.quickActionSubtitle, { color: colors.text.secondary }]}>Hot crews</Text>
           </TouchableOpacity>
         </View>
 
         {/* Crew List */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Nearby Crews</Text>
-          <TouchableOpacity onPress={() => router.push('/crews')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/nearby')}>
             <Text style={[styles.seeAllText, { color: colors.primary }]}>See All</Text>
           </TouchableOpacity>
         </View>

@@ -8,62 +8,112 @@ import {
   Image,
   useColorScheme,
 } from 'react-native';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Stack, router } from 'expo-router';
 import { 
   MapPin, 
   Star, 
   Users, 
-  TrendingUp,
-  Filter,
-  Navigation
+  Anchor,
+  Navigation2,
+  Waves,
+  Sun,
+  Wind
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 
-const popularSpots = [
+interface Spot {
+  id: string;
+  name: string;
+  description: string;
+  rating: number;
+  reviewCount: number;
+  distance: number;
+  imageUrl: string;
+  tags: string[];
+  depth: string;
+  conditions: string;
+  popularity: 'high' | 'medium' | 'low';
+}
+
+const mockSpots: Spot[] = [
   {
     id: '1',
     name: 'Stiltsville',
-    description: 'Historic stilt houses in Biscayne Bay with crystal clear waters',
+    description: 'Historic stilt houses in the middle of Biscayne Bay. Perfect for anchoring and exploring.',
     rating: 4.8,
-    reviews: 124,
+    reviewCount: 234,
     distance: 3.2,
     imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-    tags: ['Historic', 'Scenic', 'Swimming'],
-    trending: true,
+    tags: ['Historic', 'Anchoring', 'Sightseeing'],
+    depth: '8-12 ft',
+    conditions: 'Calm',
+    popularity: 'high',
   },
   {
     id: '2',
     name: 'Sandbar at Haulover',
-    description: 'Popular sandbar perfect for anchoring and socializing',
+    description: 'Popular sandbar perfect for rafting up with other boats and socializing.',
     rating: 4.6,
-    reviews: 89,
-    distance: 2.1,
-    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
-    tags: ['Sandbar', 'Party', 'Shallow'],
-    trending: false,
+    reviewCount: 189,
+    distance: 1.8,
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
+    tags: ['Sandbar', 'Social', 'Swimming'],
+    depth: '3-6 ft',
+    conditions: 'Moderate',
+    popularity: 'high',
   },
   {
     id: '3',
-    name: 'Key Biscayne',
-    description: 'Beautiful beaches and calm waters for family fun',
+    name: 'Nixon Sandbar',
+    description: 'Secluded sandbar with crystal clear waters, perfect for a peaceful day on the water.',
     rating: 4.7,
-    reviews: 156,
-    distance: 4.8,
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-    tags: ['Beach', 'Family', 'Calm'],
-    trending: true,
+    reviewCount: 156,
+    distance: 4.5,
+    imageUrl: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
+    tags: ['Secluded', 'Clear Water', 'Peaceful'],
+    depth: '4-8 ft',
+    conditions: 'Calm',
+    popularity: 'medium',
   },
   {
     id: '4',
-    name: 'Nixon Sandbar',
-    description: 'Secluded spot perfect for peaceful anchoring',
+    name: 'Boca Chita Key',
+    description: 'Beautiful island with lighthouse and great snorkeling opportunities.',
+    rating: 4.9,
+    reviewCount: 298,
+    distance: 6.1,
+    imageUrl: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=400&h=300&fit=crop',
+    tags: ['Island', 'Lighthouse', 'Snorkeling'],
+    depth: '6-15 ft',
+    conditions: 'Calm',
+    popularity: 'high',
+  },
+  {
+    id: '5',
+    name: 'Elliott Key',
+    description: 'Largest island in Biscayne National Park with hiking trails and pristine beaches.',
     rating: 4.5,
-    reviews: 67,
-    distance: 5.2,
-    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop',
-    tags: ['Secluded', 'Peaceful', 'Anchoring'],
-    trending: false,
+    reviewCount: 167,
+    distance: 8.3,
+    imageUrl: 'https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?w=400&h=300&fit=crop',
+    tags: ['National Park', 'Hiking', 'Beaches'],
+    depth: '10-20 ft',
+    conditions: 'Moderate',
+    popularity: 'medium',
+  },
+  {
+    id: '6',
+    name: 'Star Island',
+    description: 'Exclusive area perfect for celebrity spotting and luxury yacht watching.',
+    rating: 4.4,
+    reviewCount: 89,
+    distance: 2.1,
+    imageUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&h=300&fit=crop',
+    tags: ['Luxury', 'Celebrity', 'Exclusive'],
+    depth: '12-25 ft',
+    conditions: 'Calm',
+    popularity: 'low',
   },
 ];
 
@@ -71,153 +121,157 @@ export default function SpotsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  
-  const [selectedFilter, setSelectedFilter] = useState('all');
 
-  const filters = ['all', 'trending', 'nearby', 'family', 'party'];
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredSpots = popularSpots.filter(spot => {
-    if (selectedFilter === 'all') return true;
-    if (selectedFilter === 'trending') return spot.trending;
-    if (selectedFilter === 'nearby') return spot.distance < 3;
-    return spot.tags.some(tag => tag.toLowerCase().includes(selectedFilter));
+  const categories = [
+    { id: 'all', label: 'All Spots' },
+    { id: 'anchoring', label: 'Anchoring' },
+    { id: 'sandbar', label: 'Sandbars' },
+    { id: 'island', label: 'Islands' },
+    { id: 'snorkeling', label: 'Snorkeling' },
+  ];
+
+  const filteredSpots = mockSpots.filter(spot => {
+    if (selectedCategory === 'all') return true;
+    return spot.tags.some(tag => tag.toLowerCase().includes(selectedCategory));
   });
 
-  const handleSpotPress = (spotId: string) => {
-    router.push(`/spot/${spotId}`);
+  const getPopularityColor = (popularity: string) => {
+    switch (popularity) {
+      case 'high': return colors.success;
+      case 'medium': return colors.accent;
+      case 'low': return colors.text.secondary;
+      default: return colors.text.secondary;
+    }
+  };
+
+  const getConditionsIcon = (conditions: string) => {
+    switch (conditions.toLowerCase()) {
+      case 'calm': return <Waves size={14} color={colors.success} />;
+      case 'moderate': return <Wind size={14} color={colors.accent} />;
+      default: return <Sun size={14} color={colors.text.secondary} />;
+    }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      
       <Stack.Screen 
         options={{ 
           title: 'Popular Spots',
-          headerRight: () => (
-            <TouchableOpacity 
-              style={[styles.headerButton, { backgroundColor: colors.surface.primary }]}
-              onPress={() => router.push('/map')}
-            >
-              <Navigation size={18} color={colors.primary} />
-            </TouchableOpacity>
-          ),
+          headerStyle: { backgroundColor: colors.background.primary },
+          headerTintColor: colors.text.primary,
         }} 
       />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Filters */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {filters.map((filter) => (
+      {/* Categories */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoriesContainer}
+        contentContainerStyle={styles.categoriesContent}
+      >
+        {categories.map((category) => {
+          const isSelected = selectedCategory === category.id;
+          return (
             <TouchableOpacity
-              key={filter}
+              key={category.id}
               style={[
-                styles.filterTab, 
-                { backgroundColor: selectedFilter === filter ? colors.primary : colors.surface.primary }
+                styles.categoryChip,
+                { 
+                  backgroundColor: isSelected ? colors.primary : colors.surface.primary,
+                  borderColor: isSelected ? colors.primary : colors.border.primary,
+                }
               ]}
-              onPress={() => setSelectedFilter(filter)}
+              onPress={() => setSelectedCategory(category.id)}
             >
               <Text style={[
-                styles.filterTabText, 
-                { color: selectedFilter === filter ? colors.text.primary : colors.text.secondary }
+                styles.categoryChipText,
+                { color: isSelected ? colors.text.primary : colors.text.secondary }
               ]}>
-                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {category.label}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          );
+        })}
+      </ScrollView>
 
-        {/* Stats */}
-        <View style={[styles.statsCard, { backgroundColor: colors.surface.primary }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {filteredSpots.length}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Spots Found
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {filteredSpots.filter(spot => spot.trending).length}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Trending
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              4.6
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Avg Rating
-            </Text>
-          </View>
-        </View>
-
-        {/* Spots List */}
+      {/* Spots List */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.spotsList}>
           {filteredSpots.map((spot) => (
-            <TouchableOpacity
-              key={spot.id}
+            <TouchableOpacity 
+              key={spot.id} 
               style={[styles.spotCard, { backgroundColor: colors.surface.primary }]}
-              onPress={() => handleSpotPress(spot.id)}
             >
               <Image source={{ uri: spot.imageUrl }} style={styles.spotImage} />
               
-              <View style={styles.spotContent}>
+              <View style={styles.spotInfo}>
                 <View style={styles.spotHeader}>
-                  <View style={styles.spotTitleRow}>
-                    <Text style={[styles.spotName, { color: colors.text.primary }]}>
-                      {spot.name}
+                  <Text style={[styles.spotName, { color: colors.text.primary }]}>
+                    {spot.name}
+                  </Text>
+                  <View style={styles.ratingContainer}>
+                    <Star size={14} color={colors.accent} fill={colors.accent} />
+                    <Text style={[styles.rating, { color: colors.text.primary }]}>
+                      {spot.rating}
                     </Text>
-                    {spot.trending && (
-                      <View style={[styles.trendingBadge, { backgroundColor: colors.accent }]}>
-                        <TrendingUp size={12} color={colors.text.primary} />
-                        <Text style={[styles.trendingText, { color: colors.text.primary }]}>
-                          Trending
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  
-                  <View style={styles.spotMeta}>
-                    <View style={styles.ratingContainer}>
-                      <Star size={14} color={colors.accent} fill={colors.accent} />
-                      <Text style={[styles.rating, { color: colors.text.primary }]}>
-                        {spot.rating}
-                      </Text>
-                      <Text style={[styles.reviews, { color: colors.text.secondary }]}>
-                        ({spot.reviews})
-                      </Text>
-                    </View>
-                    
-                    <View style={styles.distanceContainer}>
-                      <MapPin size={14} color={colors.text.secondary} />
-                      <Text style={[styles.distance, { color: colors.text.secondary }]}>
-                        {spot.distance} mi
-                      </Text>
-                    </View>
+                    <Text style={[styles.reviewCount, { color: colors.text.secondary }]}>
+                      ({spot.reviewCount})
+                    </Text>
                   </View>
                 </View>
 
-                <Text style={[styles.spotDescription, { color: colors.text.secondary }]} numberOfLines={2}>
+                <Text 
+                  style={[styles.spotDescription, { color: colors.text.secondary }]} 
+                  numberOfLines={2}
+                >
                   {spot.description}
                 </Text>
 
-                <View style={styles.tagsContainer}>
-                  {spot.tags.map((tag, index) => (
-                    <View key={index} style={[styles.tag, { backgroundColor: colors.background.secondary }]}>
-                      <Text style={[styles.tagText, { color: colors.text.secondary }]}>{tag}</Text>
-                    </View>
-                  ))}
+                <View style={styles.spotMeta}>
+                  <View style={styles.metaItem}>
+                    <MapPin size={12} color={colors.text.secondary} />
+                    <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                      {spot.distance} mi
+                    </Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Anchor size={12} color={colors.text.secondary} />
+                    <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                      {spot.depth}
+                    </Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    {getConditionsIcon(spot.conditions)}
+                    <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                      {spot.conditions}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.spotFooter}>
+                  <View style={styles.tagsContainer}>
+                    {spot.tags.slice(0, 2).map((tag, index) => (
+                      <View key={index} style={[styles.tag, { backgroundColor: colors.background.secondary }]}>
+                        <Text style={[styles.tagText, { color: colors.text.secondary }]}>{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  
+                  <View style={styles.popularityContainer}>
+                    <View style={[styles.popularityDot, { backgroundColor: getPopularityColor(spot.popularity) }]} />
+                    <Text style={[styles.popularityText, { color: colors.text.secondary }]}>
+                      {spot.popularity} traffic
+                    </Text>
+                  </View>
                 </View>
               </View>
+
+              <TouchableOpacity style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}>
+                <Navigation2 size={16} color={colors.primary} />
+              </TouchableOpacity>
             </TouchableOpacity>
           ))}
         </View>
@@ -230,51 +284,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+  categoriesContainer: {
+    paddingVertical: 16,
   },
-  content: {
-    flex: 1,
-  },
-  filtersContainer: {
-    marginBottom: 20,
-    marginTop: 16,
-  },
-  filtersContent: {
+  categoriesContent: {
     paddingHorizontal: 20,
-    gap: 12,
+    gap: 8,
   },
-  filterTab: {
+  categoryChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    borderWidth: 1,
   },
-  filterTabText: {
-    fontSize: 14,
+  categoryChipText: {
+    fontSize: 12,
     fontWeight: '500',
   },
-  statsCard: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
+  content: {
+    flex: 1,
   },
   spotsList: {
     paddingHorizontal: 20,
@@ -283,7 +311,7 @@ const styles = StyleSheet.create({
   },
   spotCard: {
     borderRadius: 16,
-    overflow: 'hidden',
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -292,42 +320,24 @@ const styles = StyleSheet.create({
   },
   spotImage: {
     width: '100%',
-    height: 200,
-    resizeMode: 'cover',
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 16,
   },
-  spotContent: {
-    padding: 16,
+  spotInfo: {
+    flex: 1,
   },
   spotHeader: {
-    marginBottom: 8,
-  },
-  spotTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   spotName: {
     fontSize: 18,
     fontWeight: '600',
     flex: 1,
-  },
-  trendingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  trendingText: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  spotMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginRight: 12,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -336,17 +346,9 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  reviews: {
-    fontSize: 12,
-  },
-  distanceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  distance: {
+  reviewCount: {
     fontSize: 12,
   },
   spotDescription: {
@@ -354,10 +356,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 12,
   },
+  spotMeta: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 12,
+  },
+  spotFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   tagsContainer: {
     flexDirection: 'row',
     gap: 6,
-    flexWrap: 'wrap',
+    flex: 1,
   },
   tag: {
     paddingHorizontal: 8,
@@ -365,7 +385,31 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tagText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
+  },
+  popularityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  popularityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  popularityText: {
+    fontSize: 10,
+    textTransform: 'capitalize',
+  },
+  actionButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

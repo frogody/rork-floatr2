@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   StyleSheet, 
   Text, 
   ScrollView, 
   TouchableOpacity,
+  Image,
   useColorScheme,
   RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Stack, router } from 'expo-router';
+import { router } from 'expo-router';
 import { 
   MapPin, 
-  Filter, 
-  Navigation, 
-  Users,
+  Users, 
+  Star, 
+  Filter,
+  Navigation2,
   Anchor,
   Waves,
-  Settings
+  Clock
 } from 'lucide-react-native';
 import { getColors } from '@/constants/colors';
 import { mockCrews } from '@/mocks/crews';
@@ -26,256 +28,221 @@ export default function NearbyScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedRadius, setSelectedRadius] = useState(5);
-  const [sortBy, setSortBy] = useState('distance');
 
-  const radiusOptions = [1, 2, 5, 10, 25];
-  const sortOptions = [
-    { id: 'distance', label: 'Distance', icon: MapPin },
-    { id: 'members', label: 'Crew Size', icon: Users },
-    { id: 'activity', label: 'Activity', icon: Waves },
+  const [refreshing, setRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('all');
+
+  const filters = [
+    { id: 'all', label: 'All Crews', count: mockCrews.length },
+    { id: 'active', label: 'Active Now', count: mockCrews.filter(c => c.isActive).length },
+    { id: 'nearby', label: 'Under 2 mi', count: mockCrews.filter(c => c.distance < 2).length },
+    { id: 'verified', label: 'Verified', count: mockCrews.filter(c => c.verified).length },
   ];
 
-  const nearbyCrews = mockCrews
-    .filter(crew => crew.distance <= selectedRadius)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'distance':
-          return a.distance - b.distance;
-        case 'members':
-          return b.memberCount - a.memberCount;
-        case 'activity':
-          return new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime();
-        default:
-          return 0;
-      }
-    });
+  const filteredCrews = mockCrews.filter(crew => {
+    switch (selectedFilter) {
+      case 'active':
+        return crew.isActive;
+      case 'nearby':
+        return crew.distance < 2;
+      case 'verified':
+        return crew.verified;
+      default:
+        return true;
+    }
+  }).sort((a, b) => a.distance - b.distance);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh
     setTimeout(() => {
       setRefreshing(false);
-    }, 1000);
+    }, 2000);
   }, []);
+
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? colors.success : colors.text.secondary;
+  };
+
+  const getTimeAgo = (lastActive: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - lastActive.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
 
   const handleCrewPress = (crewId: string) => {
     router.push(`/crew/${crewId}`);
-  };
-
-  const handleMapPress = () => {
-    router.push('/map');
-  };
-
-  const handleFiltersPress = () => {
-    router.push('/filters');
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       
-      <Stack.Screen 
-        options={{ 
-          title: 'Nearby',
-          headerRight: () => (
-            <View style={styles.headerButtons}>
-              <TouchableOpacity 
-                style={[styles.headerButton, { backgroundColor: colors.surface.primary }]}
-                onPress={handleMapPress}
-              >
-                <Navigation size={18} color={colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.headerButton, { backgroundColor: colors.surface.primary }]}
-                onPress={handleFiltersPress}
-              >
-                <Filter size={18} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }} 
-      />
-
-      <ScrollView 
-        style={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Radius Selector */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Search Radius</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.radiusContainer}>
-            {radiusOptions.map((radius) => (
-              <TouchableOpacity
-                key={radius}
-                style={[
-                  styles.radiusOption,
-                  { 
-                    backgroundColor: selectedRadius === radius ? colors.primary : colors.surface.primary,
-                  }
-                ]}
-                onPress={() => setSelectedRadius(radius)}
-              >
-                <Text style={[
-                  styles.radiusText,
-                  { 
-                    color: selectedRadius === radius ? colors.text.primary : colors.text.secondary,
-                  }
-                ]}>
-                  {radius} mi
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Nearby Crews</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
+            {filteredCrews.length} crews found
+          </Text>
         </View>
+        <TouchableOpacity 
+          style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
+          onPress={() => setShowFilters(!showFilters)}
+        >
+          <Filter size={20} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
 
-        {/* Sort Options */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Sort By</Text>
-          <View style={styles.sortContainer}>
-            {sortOptions.map((option) => {
-              const IconComponent = option.icon;
-              const isSelected = sortBy === option.id;
+      {/* Filters */}
+      {showFilters && (
+        <View style={styles.filtersContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filtersContent}
+          >
+            {filters.map((filter) => {
+              const isSelected = selectedFilter === filter.id;
               return (
                 <TouchableOpacity
-                  key={option.id}
+                  key={filter.id}
                   style={[
-                    styles.sortOption,
+                    styles.filterChip,
                     { 
                       backgroundColor: isSelected ? colors.primary : colors.surface.primary,
+                      borderColor: isSelected ? colors.primary : colors.border.primary,
                     }
                   ]}
-                  onPress={() => setSortBy(option.id)}
+                  onPress={() => setSelectedFilter(filter.id)}
                 >
-                  <IconComponent 
-                    size={16} 
-                    color={isSelected ? colors.text.primary : colors.text.secondary} 
-                  />
                   <Text style={[
-                    styles.sortText,
-                    { 
-                      color: isSelected ? colors.text.primary : colors.text.secondary,
-                    }
+                    styles.filterChipText,
+                    { color: isSelected ? colors.text.primary : colors.text.secondary }
                   ]}>
-                    {option.label}
+                    {filter.label} ({filter.count})
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
         </View>
+      )}
 
-        {/* Stats */}
-        <View style={[styles.statsCard, { backgroundColor: colors.surface.primary }]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {nearbyCrews.length}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Crews Found
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {nearbyCrews.filter(crew => crew.isActive).length}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Active Now
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.text.primary }]}>
-              {selectedRadius}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Mile Radius
-            </Text>
-          </View>
-        </View>
-
-        {/* Crews List */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Nearby Crews ({nearbyCrews.length})
-          </Text>
-          
-          {nearbyCrews.length === 0 ? (
-            <View style={[styles.emptyState, { backgroundColor: colors.surface.primary }]}>
-              <MapPin size={48} color={colors.text.secondary} />
-              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-                No crews found
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
-                Try increasing your search radius or check back later
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.crewsList}>
-              {nearbyCrews.map((crew) => (
-                <TouchableOpacity
-                  key={crew.id}
-                  style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}
-                  onPress={() => handleCrewPress(crew.id)}
-                >
-                  <View style={styles.crewHeader}>
-                    <View style={styles.crewInfo}>
-                      <Text style={[styles.crewName, { color: colors.text.primary }]}>
-                        {crew.name}
-                      </Text>
-                      <View style={styles.crewMeta}>
-                        <View style={styles.metaItem}>
-                          <MapPin size={12} color={colors.text.secondary} />
-                          <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                            {crew.distance} mi
-                          </Text>
-                        </View>
-                        <View style={styles.metaItem}>
-                          <Users size={12} color={colors.text.secondary} />
-                          <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                            {crew.memberCount}
-                          </Text>
-                        </View>
-                        <View style={styles.metaItem}>
-                          <View style={[
-                            styles.statusDot, 
-                            { backgroundColor: crew.isActive ? colors.success : colors.text.secondary }
-                          ]} />
-                          <Text style={[styles.metaText, { color: colors.text.secondary }]}>
-                            {crew.isActive ? 'Active' : 'Offline'}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                    
-                    <TouchableOpacity 
-                      style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}
-                      onPress={() => handleCrewPress(crew.id)}
-                    >
-                      <Anchor size={16} color={colors.primary} />
-                    </TouchableOpacity>
+      {/* Crew List */}
+      <ScrollView 
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
+        <View style={styles.crewList}>
+          {filteredCrews.map((crew) => (
+            <TouchableOpacity 
+              key={crew.id} 
+              style={[styles.crewCard, { backgroundColor: colors.surface.primary }]}
+              onPress={() => handleCrewPress(crew.id)}
+            >
+              <Image source={{ uri: crew.imageUrl }} style={styles.crewImage} />
+              
+              <View style={styles.crewInfo}>
+                <View style={styles.crewHeader}>
+                  <View style={styles.crewNameContainer}>
+                    <Text style={[styles.crewName, { color: colors.text.primary }]}>
+                      {crew.name}
+                    </Text>
+                    {crew.verified && (
+                      <Star size={14} color={colors.primary} fill={colors.primary} />
+                    )}
                   </View>
-                  
-                  <Text style={[styles.crewDescription, { color: colors.text.secondary }]} numberOfLines={2}>
-                    {crew.description}
+                  <Text style={[styles.crewDistance, { color: colors.text.secondary }]}>
+                    {crew.distance} mi
                   </Text>
-                  
-                  <View style={styles.tagsContainer}>
-                    {crew.tags.slice(0, 3).map((tag, index) => (
-                      <View key={index} style={[styles.tag, { backgroundColor: colors.background.secondary }]}>
-                        <Text style={[styles.tagText, { color: colors.text.secondary }]}>{tag}</Text>
-                      </View>
-                    ))}
+                </View>
+
+                <View style={styles.crewMeta}>
+                  <View style={styles.metaItem}>
+                    <Anchor size={12} color={colors.text.secondary} />
+                    <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                      {crew.boatType || 'Boat'}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+                  <View style={styles.metaItem}>
+                    <Users size={12} color={colors.text.secondary} />
+                    <Text style={[styles.metaText, { color: colors.text.secondary }]}>
+                      {crew.memberCount}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.crewStatus}>
+                  <View style={styles.statusContainer}>
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(crew.isActive) }]} />
+                    <Text style={[styles.statusText, { color: colors.text.secondary }]}>
+                      {crew.isActive ? 'Active now' : getTimeAgo(crew.lastActive)}
+                    </Text>
+                  </View>
+                  {crew.location && (
+                    <View style={styles.locationContainer}>
+                      <MapPin size={12} color={colors.text.secondary} />
+                      <Text style={[styles.locationText, { color: colors.text.secondary }]}>
+                        {crew.location}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text 
+                  style={[styles.crewDescription, { color: colors.text.secondary }]} 
+                  numberOfLines={2}
+                >
+                  {crew.description}
+                </Text>
+
+                {/* Tags */}
+                <View style={styles.tagsContainer}>
+                  {crew.tags.slice(0, 3).map((tag, index) => (
+                    <View key={index} style={[styles.tag, { backgroundColor: colors.background.secondary }]}>
+                      <Text style={[styles.tagText, { color: colors.text.secondary }]}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.actionButton, { backgroundColor: colors.background.secondary }]}
+                onPress={() => handleCrewPress(crew.id)}
+              >
+                <Navigation2 size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
         </View>
+
+        {filteredCrews.length === 0 && (
+          <View style={styles.emptyState}>
+            <Waves size={48} color={colors.text.secondary} />
+            <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+              No crews found
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
+              Try adjusting your filters or check back later
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -285,99 +252,72 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerButtons: {
+  header: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
-  headerButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+  },
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  filtersContainer: {
+    paddingBottom: 16,
+  },
+  filtersContent: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   content: {
     flex: 1,
   },
-  section: {
+  crewList: {
     paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  radiusContainer: {
-    flexDirection: 'row',
-  },
-  radiusOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  radiusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  sortOption: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 6,
-  },
-  sortText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  statsCard: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    padding: 20,
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 40,
-    borderRadius: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  crewsList: {
-    gap: 12,
+    gap: 16,
+    paddingBottom: 20,
   },
   crewCard: {
+    flexDirection: 'row',
     borderRadius: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  crewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  crewInfo: {
+    flex: 1,
   },
   crewHeader: {
     flexDirection: 'row',
@@ -385,17 +325,25 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 8,
   },
-  crewInfo: {
+  crewNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     flex: 1,
   },
   crewName: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 6,
+    flex: 1,
+  },
+  crewDistance: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   crewMeta: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
+    marginBottom: 8,
   },
   metaItem: {
     flexDirection: 'row',
@@ -405,21 +353,36 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
   },
+  crewStatus: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
   },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+  statusText: {
+    fontSize: 12,
+  },
+  locationContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+  },
+  locationText: {
+    fontSize: 12,
   },
   crewDescription: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: 12,
   },
   tagsContainer: {
@@ -433,7 +396,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tagText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
