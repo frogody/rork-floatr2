@@ -25,11 +25,7 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      await signIn({
-        id: '1',
-        email,
-        displayName: email.split('@')[0],
-      });
+      await signIn(email, password);
       router.replace('/(tabs)');
     } catch (error) {
       showToast({
