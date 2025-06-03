@@ -22,6 +22,7 @@ export default function RootLayout() {
       checkAuth();
     }
     
+    // Set system UI colors
     SystemUI.setBackgroundColorAsync(colors.background.primary);
     if (Platform.OS === 'ios') {
       SystemUI.setStatusBarStyle('light');
@@ -36,24 +37,14 @@ export default function RootLayout() {
     <>
       <Stack screenOptions={{
         headerShown: false,
+        animation: 'slide_from_right',
       }}>
-        <Stack.Screen 
-          name="index" 
-          options={{
-            animation: 'fade',
-          }}
-        />
-        <Stack.Screen 
-          name="(tabs)" 
-          options={{
-            animation: 'fade',
-          }}
-        />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen 
           name="auth" 
           options={{
             animation: 'slide_from_bottom',
-            presentation: 'modal',
           }}
         />
       </Stack>
