@@ -8,11 +8,12 @@ import {
   ViewStyle,
   TextStyle,
   Animated,
+  AccessibilityRole,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import colors from '@/constants/colors';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'small' | 'medium' | 'large';
 
 interface ButtonProps {
@@ -26,6 +27,9 @@ interface ButtonProps {
   textStyle?: TextStyle;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  testID?: string;
 }
 
 export function Button({
@@ -39,42 +43,67 @@ export function Button({
   textStyle,
   icon,
   iconPosition = 'left',
+  accessibilityLabel,
+  accessibilityHint,
+  testID,
 }: ButtonProps) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const opacityAnim = React.useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
+  const handlePressIn = React.useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.97,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 4,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, opacityAnim]);
 
-  const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  };
+  const handlePressOut = React.useCallback(() => {
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 4,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [scaleAnim, opacityAnim]);
 
-  const handlePress = async () => {
+  const handlePress = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        // Haptics might not be available on all devices
+        console.warn('Haptics not available:', error);
+      }
     }
     onPress();
-  };
+  }, [onPress]);
 
-  const getVariantStyles = (): ViewStyle => {
+  const getVariantStyles = React.useMemo((): ViewStyle => {
     const baseStyles: ViewStyle = {
       opacity: disabled ? 0.5 : 1,
-      backgroundColor: disabled ? colors.status.disabled : undefined,
     };
 
     if (disabled) {
-      return baseStyles;
+      return {
+        ...baseStyles,
+        backgroundColor: colors.status.disabled,
+      };
     }
 
     switch (variant) {
@@ -92,7 +121,7 @@ export function Button({
         return {
           ...baseStyles,
           backgroundColor: 'transparent',
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderColor: colors.primary,
         };
       case 'ghost':
@@ -100,58 +129,83 @@ export function Button({
           ...baseStyles,
           backgroundColor: 'transparent',
         };
+      case 'destructive':
+        return {
+          ...baseStyles,
+          backgroundColor: colors.status.error,
+        };
       default:
         return baseStyles;
     }
-  };
+  }, [variant, disabled]);
 
-  const getSizeStyles = (): ViewStyle => {
+  const getSizeStyles = React.useMemo((): ViewStyle => {
     switch (size) {
       case 'small':
         return {
           paddingVertical: 8,
           paddingHorizontal: 16,
           borderRadius: 8,
+          minHeight: 36,
         };
       case 'large':
         return {
           paddingVertical: 16,
           paddingHorizontal: 24,
           borderRadius: 14,
+          minHeight: 56,
         };
       default:
         return {
           paddingVertical: 12,
           paddingHorizontal: 20,
           borderRadius: 12,
+          minHeight: 48,
         };
     }
-  };
+  }, [size]);
 
-  const getTextColor = (): string => {
+  const getTextColor = React.useMemo((): string => {
     if (disabled) return colors.text.disabled;
     switch (variant) {
       case 'outline':
       case 'ghost':
         return colors.primary;
+      case 'destructive':
+        return colors.text.primary;
       default:
         return colors.text.primary;
     }
-  };
+  }, [variant, disabled]);
 
-  const buttonContent = (
+  const getTextSize = React.useMemo((): number => {
+    switch (size) {
+      case 'small':
+        return 14;
+      case 'large':
+        return 18;
+      default:
+        return 16;
+    }
+  }, [size]);
+
+  const buttonContent = React.useMemo(() => (
     <>
       {loading ? (
-        <ActivityIndicator color={getTextColor()} />
+        <ActivityIndicator 
+          color={getTextColor} 
+          size={size === 'small' ? 'small' : 'small'}
+        />
       ) : (
         <React.Fragment>
           {icon && iconPosition === 'left' && icon}
           <Text
             style={[
               styles.text,
-              { color: getTextColor() },
-              size === 'small' && styles.smallText,
-              size === 'large' && styles.largeText,
+              { 
+                color: getTextColor,
+                fontSize: getTextSize,
+              },
               icon && (iconPosition === 'left' ? styles.textWithLeftIcon : styles.textWithRightIcon),
               textStyle,
             ]}
@@ -162,10 +216,15 @@ export function Button({
         </React.Fragment>
       )}
     </>
-  );
+  ), [loading, icon, iconPosition, title, getTextColor, getTextSize, textStyle]);
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View 
+      style={{ 
+        transform: [{ scale: scaleAnim }],
+        opacity: opacityAnim,
+      }}
+    >
       <TouchableOpacity
         onPress={handlePress}
         onPressIn={handlePressIn}
@@ -173,11 +232,19 @@ export function Button({
         disabled={disabled || loading}
         style={[
           styles.button,
-          getVariantStyles(),
-          getSizeStyles(),
+          getVariantStyles,
+          getSizeStyles,
           style,
         ]}
         activeOpacity={0.9}
+        accessibilityRole="button" as AccessibilityRole
+        accessibilityLabel={accessibilityLabel || title}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{
+          disabled: disabled || loading,
+          busy: loading,
+        }}
+        testID={testID}
       >
         {buttonContent}
       </TouchableOpacity>
@@ -192,15 +259,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  smallText: {
-    fontSize: 14,
-  },
-  largeText: {
-    fontSize: 18,
   },
   textWithLeftIcon: {
     marginLeft: 8,

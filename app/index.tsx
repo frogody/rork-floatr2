@@ -7,64 +7,108 @@ import {
   Dimensions,
   Animated,
   Image,
+  ImageBackground,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Button } from '@/components/Button';
 import colors from '@/constants/colors';
 import { useAuthStore } from '@/store/authStore';
-import { Anchor } from 'lucide-react-native';
+import { Anchor, Waves } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?q=80&w=2940&auto=format&fit=crop';
 
 export default function WelcomeScreen() {
+  const insets = useSafeAreaInsets();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(20)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
   const imageAnim = React.useRef(new Animated.Value(0)).current;
-  const { isAuthenticated } = useAuthStore();
+  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+  
+  const { isAuthenticated, isInitialized, checkAuth } = useAuthStore();
 
   React.useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(tabs)');
+    checkAuth();
+  }, [checkAuth]);
+
+  React.useEffect(() => {
+    if (isInitialized && isAuthenticated) {
+      router.replace('/(tabs)/nearby');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isInitialized]);
 
   React.useEffect(() => {
-    Animated.parallel([
+    const animations = Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 1000,
         useNativeDriver: true,
       }),
-      Animated.timing(slideAnim, {
+      Animated.spring(slideAnim, {
         toValue: 0,
-        duration: 800,
+        tension: 50,
+        friction: 8,
         useNativeDriver: true,
       }),
       Animated.timing(imageAnim, {
         toValue: 1,
-        duration: 1200,
+        duration: 1500,
         useNativeDriver: true,
       }),
-    ]).start();
-  }, []);
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]);
 
-  const handleGetStarted = async () => {
+    animations.start();
+
+    return () => {
+      animations.stop();
+    };
+  }, [fadeAnim, slideAnim, imageAnim, scaleAnim]);
+
+  const handleGetStarted = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
     router.push('/auth/signup');
-  };
+  }, []);
 
-  const handleSignIn = async () => {
+  const handleSignIn = React.useCallback(async () => {
     if (Platform.OS !== 'web') {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
     router.push('/auth/login');
-  };
+  }, []);
+
+  if (!isInitialized) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <StatusBar style="light" />
+        <Animated.View style={[styles.loadingContent, { opacity: fadeAnim }]}>
+          <View style={styles.loadingIcon}>
+            <Anchor size={32} color={colors.primary} />
+          </View>
+          <Text style={styles.loadingText}>Floatr</Text>
+        </Animated.View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -75,47 +119,68 @@ export default function WelcomeScreen() {
           styles.heroImageContainer,
           {
             opacity: imageAnim,
+            transform: [{ scale: scaleAnim }],
           }
         ]}
       >
-        <Image 
+        <ImageBackground 
           source={{ uri: HERO_IMAGE }}
           style={styles.heroImage}
           resizeMode="cover"
-        />
-        <View style={styles.overlay} />
+        >
+          <View style={styles.overlay} />
+          <View style={styles.gradientOverlay} />
+        </ImageBackground>
       </Animated.View>
       
       <Animated.View 
         style={[
           styles.content,
           {
+            paddingTop: insets.top + 60,
+            paddingBottom: insets.bottom + 32,
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }]
           }
         ]}
       >
         <View style={styles.header}>
-          <View style={styles.iconContainer}>
+          <Animated.View 
+            style={[
+              styles.iconContainer,
+              { transform: [{ scale: scaleAnim }] }
+            ]}
+          >
             <Anchor size={28} color={colors.background.primary} />
-          </View>
+            <View style={styles.iconAccent}>
+              <Waves size={16} color={colors.primary} />
+            </View>
+          </Animated.View>
           
           <View style={styles.textContainer}>
             <Text style={styles.title}>Floatr</Text>
             <Text style={styles.subtitle}>Meet on the Water</Text>
             <Text style={styles.description}>
-              Connect with nearby boaters, raft-up, and share amazing experiences on the water
+              Connect with nearby boaters, raft-up, and share amazing experiences on the water. 
+              Your next adventure is just a swipe away.
             </Text>
           </View>
         </View>
         
-        <View style={styles.buttonContainer}>
+        <Animated.View 
+          style={[
+            styles.buttonContainer,
+            { transform: [{ translateY: slideAnim }] }
+          ]}
+        >
           <Button
             title="Get Started"
             onPress={handleGetStarted}
             variant="primary"
             size="large"
             style={styles.primaryButton}
+            accessibilityLabel="Get started with Floatr"
+            accessibilityHint="Navigate to sign up screen"
           />
           
           <Button
@@ -124,8 +189,10 @@ export default function WelcomeScreen() {
             variant="ghost"
             size="large"
             style={styles.secondaryButton}
+            accessibilityLabel="Sign in to existing account"
+            accessibilityHint="Navigate to sign in screen"
           />
-        </View>
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -135,6 +202,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: colors.background.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: colors.text.primary,
   },
   heroImageContainer: {
     position: 'absolute',
@@ -147,41 +235,65 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  gradientOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+    background: Platform.select({
+      web: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)',
+      default: undefined,
+    }),
   },
   content: {
     flex: 1,
     padding: 24,
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 120 : 80,
-    paddingBottom: Platform.OS === 'ios' ? 48 : 32,
   },
   header: {
     alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 32,
+    position: 'relative',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  iconAccent: {
+    position: 'absolute',
+    bottom: -8,
+    right: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.background.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textContainer: {
-    maxWidth: width * 0.85,
+    maxWidth: width * 0.9,
   },
   title: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: 'bold',
     color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'left',
+    letterSpacing: -1,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 22,
     color: colors.text.secondary,
-    marginBottom: 16,
+    marginBottom: 20,
     textAlign: 'left',
     fontWeight: '500',
   },
@@ -190,12 +302,18 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'left',
     lineHeight: 24,
+    opacity: 0.9,
   },
   buttonContainer: {
-    gap: 12,
+    gap: 16,
   },
   primaryButton: {
     width: '100%',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   secondaryButton: {
     width: '100%',

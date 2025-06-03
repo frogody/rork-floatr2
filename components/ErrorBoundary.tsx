@@ -1,78 +1,62 @@
-import React, { Component, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { AlertTriangle, RefreshCw } from 'lucide-react-native';
 import colors from '@/constants/colors';
-import { router } from 'expo-router';
+import { Button } from '@/components/Button';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error?: Error; resetError: () => void }>;
+}
+
+export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('ErrorBoundary caught error:', error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Here you could log to crash reporting service
   }
 
-  handleRetry = () => {
-    this.setState({ hasError: false, error: null });
-  };
-
-  handleGoHome = () => {
-    this.setState({ hasError: false, error: null });
-    try {
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Failed to navigate home:', error);
-    }
+  resetError = () => {
+    this.setState({ hasError: false, error: undefined });
   };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error} resetError={this.resetError} />;
       }
 
       return (
-        <SafeAreaView style={styles.container}>
-          <ScrollView contentContainerStyle={styles.content}>
-            <View style={styles.iconContainer}>
-              <AlertTriangle size={64} color={colors.status.error} />
-            </View>
-            
+        <View style={styles.container}>
+          <View style={styles.content}>
+            <AlertTriangle size={48} color={colors.status.error} />
             <Text style={styles.title}>Something went wrong</Text>
             <Text style={styles.message}>
               We encountered an unexpected error. Please try again.
             </Text>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.retryButton} onPress={this.handleRetry}>
-                <RefreshCw size={20} color={colors.background.primary} />
-                <Text style={styles.retryButtonText}>Try Again</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.homeButton} onPress={this.handleGoHome}>
-                <Home size={20} color={colors.primary} />
-                <Text style={styles.homeButtonText}>Go Home</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </SafeAreaView>
+            <Button
+              title="Try Again"
+              onPress={this.resetError}
+              variant="primary"
+              icon={<RefreshCw size={20} color={colors.text.primary} />}
+              style={styles.button}
+            />
+          </View>
+        </View>
       );
     }
 
@@ -84,63 +68,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
-  },
-  content: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
   },
-  iconContainer: {
-    marginBottom: 24,
+  content: {
+    alignItems: 'center',
+    maxWidth: 300,
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
+    fontWeight: '600',
     color: colors.text.primary,
+    marginTop: 16,
+    marginBottom: 8,
     textAlign: 'center',
-    marginBottom: 12,
   },
   message: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
     color: colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
+    lineHeight: 22,
+    marginBottom: 24,
   },
-  buttonContainer: {
-    width: '100%',
-    gap: 12,
-  },
-  retryButton: {
-    backgroundColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  retryButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.background.primary,
-  },
-  homeButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  homeButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.primary,
+  button: {
+    minWidth: 120,
   },
 });

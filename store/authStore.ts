@@ -21,10 +21,10 @@ interface AuthState {
   isInitialized: boolean;
   
   // Actions
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (params: SignUpParams) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   updateBoat: (boatData: Partial<Boat>) => void;
   setOnboarded: (value: boolean) => void;
@@ -35,6 +35,7 @@ interface AuthState {
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,20 +51,26 @@ export const useAuthStore = create<AuthState>()(
       blockedUsers: [],
       isInitialized: false,
       
-      checkAuth: () => {
+      checkAuth: async () => {
         set({ isLoading: true });
         try {
           const { user } = get();
+          // Simulate auth check delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           set({ 
             isAuthenticated: !!user,
             isLoading: false,
             isInitialized: true
           });
         } catch (error) {
+          console.error('Auth check failed:', error);
           set({ 
             error: 'Authentication check failed',
             isLoading: false,
-            isInitialized: true
+            isInitialized: true,
+            isAuthenticated: false,
+            user: null,
           });
         }
       },
@@ -71,12 +78,26 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Basic email validation
+          if (!email.includes('@')) {
+            throw new Error('Invalid email format');
+          }
+          
+          if (password.length < 6) {
+            throw new Error('Password must be at least 6 characters');
+          }
+          
           const newUser: User = {
-            id: Math.random().toString(),
-            email,
+            id: `user_${Date.now()}`,
+            email: email.toLowerCase().trim(),
             displayName: email.split('@')[0],
-            createdAt: new Date()
+            createdAt: new Date(),
+            lastActiveAt: new Date(),
           };
+          
           set({ 
             user: newUser, 
             isAuthenticated: true, 
@@ -84,7 +105,8 @@ export const useAuthStore = create<AuthState>()(
             error: null
           });
         } catch (error) {
-          set({ error: 'Sign in failed', isLoading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Sign in failed';
+          set({ error: errorMessage, isLoading: false });
           throw error;
         }
       },
@@ -92,12 +114,30 @@ export const useAuthStore = create<AuthState>()(
       signUp: async ({ email, password, displayName }: SignUpParams) => {
         set({ isLoading: true, error: null });
         try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          
+          // Validation
+          if (!email.includes('@')) {
+            throw new Error('Invalid email format');
+          }
+          
+          if (password.length < 6) {
+            throw new Error('Password must be at least 6 characters');
+          }
+          
+          if (displayName.trim().length < 2) {
+            throw new Error('Display name must be at least 2 characters');
+          }
+          
           const newUser: User = {
-            id: Math.random().toString(),
-            email,
-            displayName,
-            createdAt: new Date()
+            id: `user_${Date.now()}`,
+            email: email.toLowerCase().trim(),
+            displayName: displayName.trim(),
+            createdAt: new Date(),
+            lastActiveAt: new Date(),
           };
+          
           set({ 
             user: newUser, 
             isAuthenticated: true, 
@@ -105,32 +145,55 @@ export const useAuthStore = create<AuthState>()(
             error: null
           });
         } catch (error) {
-          set({ error: 'Sign up failed', isLoading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Sign up failed';
+          set({ error: errorMessage, isLoading: false });
           throw error;
         }
       },
 
-      signOut: () => {
-        set({
-          user: null,
-          boat: null,
-          isAuthenticated: false,
-          error: null
-        });
+      signOut: async () => {
+        set({ isLoading: true });
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          set({
+            user: null,
+            boat: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+            isOnboarded: false,
+          });
+        } catch (error) {
+          console.error('Sign out error:', error);
+          // Force sign out even if API fails
+          set({
+            user: null,
+            boat: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+        }
       },
 
       updateUser: (userData: Partial<User>) => {
         const { user } = get();
         if (user) {
-          set({ user: { ...user, ...userData } });
+          const updatedUser = { 
+            ...user, 
+            ...userData,
+            lastActiveAt: new Date(),
+          };
+          set({ user: updatedUser });
         }
       },
 
       updateBoat: (boatData: Partial<Boat>) => {
         const { boat } = get();
-        if (boat) {
-          set({ boat: { ...boat, ...boatData } });
-        }
+        const updatedBoat = boat ? { ...boat, ...boatData } : boatData as Boat;
+        set({ boat: updatedBoat });
       },
 
       setOnboarded: (value: boolean) => {
@@ -156,14 +219,21 @@ export const useAuthStore = create<AuthState>()(
       deleteAccount: async () => {
         set({ isLoading: true, error: null });
         try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
           set({
             user: null,
             boat: null,
             isAuthenticated: false,
-            isLoading: false
+            isLoading: false,
+            isOnboarded: false,
+            hasSeenTutorial: false,
+            blockedUsers: [],
           });
         } catch (error) {
-          set({ error: 'Failed to delete account', isLoading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Failed to delete account';
+          set({ error: errorMessage, isLoading: false });
           throw error;
         }
       },
@@ -171,9 +241,17 @@ export const useAuthStore = create<AuthState>()(
       changePassword: async (currentPassword: string, newPassword: string) => {
         set({ isLoading: true, error: null });
         try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 800));
+          
+          if (newPassword.length < 6) {
+            throw new Error('New password must be at least 6 characters');
+          }
+          
           set({ isLoading: false });
         } catch (error) {
-          set({ error: 'Failed to change password', isLoading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Failed to change password';
+          set({ error: errorMessage, isLoading: false });
           throw error;
         }
       },
@@ -181,10 +259,37 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (email: string) => {
         set({ isLoading: true, error: null });
         try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 600));
+          
+          if (!email.includes('@')) {
+            throw new Error('Invalid email format');
+          }
+          
           set({ isLoading: false });
         } catch (error) {
-          set({ error: 'Failed to reset password', isLoading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Failed to reset password';
+          set({ error: errorMessage, isLoading: false });
           throw error;
+        }
+      },
+
+      refreshUser: async () => {
+        const { user } = get();
+        if (!user) return;
+        
+        try {
+          // Simulate API call to refresh user data
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          const updatedUser = {
+            ...user,
+            lastActiveAt: new Date(),
+          };
+          
+          set({ user: updatedUser });
+        } catch (error) {
+          console.error('Failed to refresh user:', error);
         }
       },
 
@@ -203,6 +308,12 @@ export const useAuthStore = create<AuthState>()(
         hasSeenTutorial: state.hasSeenTutorial,
         blockedUsers: state.blockedUsers,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.isInitialized = true;
+          state.isLoading = false;
+        }
+      },
     }
   )
 );

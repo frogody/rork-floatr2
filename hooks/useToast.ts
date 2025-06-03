@@ -7,28 +7,62 @@ interface ToastState {
   message: string;
   type: ToastType;
   duration: number;
-  showToast: (messageOrOptions: string | { message: string; type?: ToastType; duration?: number }) => void;
+  timeoutId: NodeJS.Timeout | null;
+  
+  showToast: (messageOrOptions: string | { 
+    message: string; 
+    type?: ToastType; 
+    duration?: number;
+  }) => void;
   hideToast: () => void;
+  clearTimeout: () => void;
 }
 
-export const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>((set, get) => ({
   visible: false,
   message: '',
   type: 'info',
   duration: 3000,
+  timeoutId: null,
+  
   showToast: (messageOrOptions) => {
+    const { clearTimeout: clearExistingTimeout } = get();
+    clearExistingTimeout();
+    
+    let message: string;
+    let type: ToastType = 'info';
+    let duration: number = 3000;
+    
     if (typeof messageOrOptions === 'string') {
-      set({ visible: true, message: messageOrOptions, type: 'info', duration: 3000 });
+      message = messageOrOptions;
     } else {
-      const { message, type = 'info', duration = 3000 } = messageOrOptions;
-      set({ visible: true, message, type, duration });
+      message = messageOrOptions.message;
+      type = messageOrOptions.type || 'info';
+      duration = messageOrOptions.duration || 3000;
     }
     
-    setTimeout(() => {
-      set({ visible: false });
-    }, typeof messageOrOptions === 'string' ? 3000 : messageOrOptions.duration || 3000);
+    set({ visible: true, message, type, duration });
+    
+    const timeoutId = setTimeout(() => {
+      set({ visible: false, timeoutId: null });
+    }, duration);
+    
+    set({ timeoutId });
   },
-  hideToast: () => set({ visible: false }),
+  
+  hideToast: () => {
+    const { clearTimeout: clearExistingTimeout } = get();
+    clearExistingTimeout();
+    set({ visible: false });
+  },
+  
+  clearTimeout: () => {
+    const { timeoutId } = get();
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      set({ timeoutId: null });
+    }
+  },
 }));
 
 export const useToast = () => {
@@ -38,5 +72,13 @@ export const useToast = () => {
   return {
     showToast,
     hideToast,
+    success: (message: string, duration?: number) => 
+      showToast({ message, type: 'success', duration }),
+    error: (message: string, duration?: number) => 
+      showToast({ message, type: 'error', duration }),
+    info: (message: string, duration?: number) => 
+      showToast({ message, type: 'info', duration }),
+    warning: (message: string, duration?: number) => 
+      showToast({ message, type: 'warning', duration }),
   };
 };
