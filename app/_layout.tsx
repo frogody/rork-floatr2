@@ -32,11 +32,8 @@ export default function RootLayout() {
     if (isInitialized) {
       if (isAuthenticated) {
         router.replace('/(tabs)');
-      } else {
-        const currentRoute = router.canGoBack();
-        if (!currentRoute) {
-          router.replace('/');
-        }
+      } else if (!router.canGoBack()) {
+        router.replace('/');
       }
     }
   }, [isInitialized, isAuthenticated]);

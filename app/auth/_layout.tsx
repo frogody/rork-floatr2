@@ -7,7 +7,11 @@ export default function AuthLayout() {
     <View style={styles.container}>
       <Stack 
         screenOptions={{
-          headerStyle: styles.header,
+          headerStyle: {
+            backgroundColor: colors.background.primary,
+            elevation: 0,
+            shadowOpacity: 0,
+          },
           headerTintColor: colors.text.primary,
           headerTitleStyle: styles.headerTitle,
           headerShadowVisible: false,
@@ -40,11 +44,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
-  },
-  header: {
-    backgroundColor: colors.background.primary,
-    elevation: 0,
-    shadowOpacity: 0,
   },
   headerTitle: {
     fontFamily: 'Inter-SemiBold',
