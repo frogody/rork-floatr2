@@ -8,12 +8,12 @@ import {
   Dimensions 
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Check, X, Heart, Zap, AlertCircle } from 'lucide-react-native';
+import { Check, X, Heart, Zap, AlertCircle, AlertTriangle } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 interface AnimatedToastProps {
   visible: boolean;
-  type: 'success' | 'error' | 'match' | 'boost' | 'info';
+  type: 'success' | 'error' | 'match' | 'boost' | 'info' | 'warning';
   title: string;
   message?: string;
   duration?: number;
@@ -114,6 +114,8 @@ export default function AnimatedToast({
         return <Zap size={20} color={colors.warning} fill={colors.warning} />;
       case 'info':
         return <AlertCircle size={20} color={colors.primary} />;
+      case 'warning':
+        return <AlertTriangle size={20} color={colors.warning} />;
       default:
         return null;
     }
@@ -131,6 +133,8 @@ export default function AnimatedToast({
         return 'rgba(245, 158, 11, 0.9)';
       case 'info':
         return 'rgba(59, 130, 246, 0.9)';
+      case 'warning':
+        return 'rgba(245, 158, 11, 0.9)';
       default:
         return colors.background.card;
     }
