@@ -95,12 +95,6 @@ export default function DiscoveryScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity 
-          style={[styles.filterButton, { backgroundColor: colors.surface.primary }]}
-          onPress={() => router.push('/(tabs)/nearby')}
-        >
-          <Compass size={20} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
       {/* Stats */}
@@ -242,7 +236,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     marginBottom: 20,
-    gap: 12,
   },
   searchInputContainer: {
     flex: 1,
@@ -256,13 +249,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-  },
-  filterButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   statsContainer: {
     paddingHorizontal: 20,
