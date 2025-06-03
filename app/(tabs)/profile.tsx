@@ -158,7 +158,7 @@ export default function ProfileScreen() {
       
       <TouchableOpacity style={styles.premiumBanner} onPress={handleGoPremium}>
         <LinearGradient
-          colors={colors.gradient.sunset}
+          colors={[colors.gradient.sunset[0], colors.gradient.sunset[1]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.premiumGradient}
