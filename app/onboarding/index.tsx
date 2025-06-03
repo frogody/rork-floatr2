@@ -70,6 +70,7 @@ export default function OnboardingScreen() {
         index: currentIndex + 1,
         animated: true,
       });
+      setCurrentIndex(currentIndex + 1);
     } else {
       // Complete onboarding
       // In a real app, we would collect boat info here
@@ -97,12 +98,13 @@ export default function OnboardingScreen() {
       index: onboardingSteps.length - 1,
       animated: true,
     });
+    setCurrentIndex(onboardingSteps.length - 1);
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / width);
-    if (index !== currentIndex) {
+    if (index !== currentIndex && index >= 0 && index < onboardingSteps.length) {
       setCurrentIndex(index);
     }
   };
@@ -123,6 +125,11 @@ export default function OnboardingScreen() {
         viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
       
       <View style={styles.footer}>
