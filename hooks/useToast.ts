@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { ToastType } from '@/types';
+
+type ToastType = 'info' | 'success' | 'error' | 'warning';
 
 interface ToastState {
   visible: boolean;
